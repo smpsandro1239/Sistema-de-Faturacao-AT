@@ -2,9 +2,9 @@
 
 **Legenda:** `[x]` Concluído | `[ ]` Pendente
 
-**Progresso Total:** ~84–88% (fiscal ~95%, comercial ~68–72%)
+**Progresso Total:** ~88–92% (fiscal ~95%, comercial ~82–86%)
 
-**Última atualização:** 19-02-2026  
+**Última atualização:** 23-02-2026
 **Versão do projeto:** 1.0.0-beta
 
 ---
@@ -28,7 +28,7 @@
 
 ### 7.2 Exportação
 - [ ] Exportar documento para PDF (melhorar layout atual + opção de download direto)
-- [ ] Enviar documento por email (automático na emissão + manual)
+- [x] Enviar documento por email (automático na emissão + manual)
 
 ### 9.2 Funcionalidades
 - [ ] Gráficos de vendas no dashboard (Recharts ou Tremor – mensal, por cliente, por artigo)
@@ -49,7 +49,7 @@
 - [x] CRUD Fornecedores (semelhante a Clientes: NIF, morada, contactos, IBAN)
 - [x] Encomendas de compra (estados: rascunho, enviada, confirmada, parcialmente recebida, recebida, cancelada)
 - [x] Entrada automática de stock na receção
-- [ ] Registo de faturas de fornecedores + ligação a contas correntes
+- [x] Registo de faturas de fornecedores + ligação a contas correntes
 
 #### Orçamentos / Propostas
 - [x] CRUD Orçamentos (estados: rascunho, enviado, aceite, rejeitado, expirado)
@@ -57,8 +57,8 @@
 - [x] Conversão automática para Fatura
 
 #### Encomendas / Ordens de Venda
-- [ ] CRUD Encomendas de cliente (estados: rascunho, confirmada, em preparação, faturada, cancelada)
-- [ ] Conversão para fatura (total ou parcial)
+- [x] CRUD Encomendas de cliente (estados: rascunho, confirmada, em preparação, faturada, cancelada)
+- [x] Conversão para fatura (total ou parcial)
 - [ ] Reserva temporária de stock (opcional)
 
 #### Faturação Recorrente / Avenças
@@ -323,6 +323,26 @@
 - [x] Conversão automática com geração de hash e ATCUD
 - [x] Atualizar dashboard com link para Orçamentos
 
+### FASE 14 — Compras e Contas Correntes
+- [x] Criar modelos Prisma: FaturaCompra, LinhaFaturaCompra, PagamentoCompra
+- [x] Criar API CRUD para Faturas de Compra (/api/compras/faturas)
+- [x] Criar API para registo de pagamentos de compras
+- [x] Criar página de gestão de Faturas de Fornecedor
+- [x] Criar página de Contas Correntes com saldos de clientes e fornecedores
+- [x] Atualizar dashboard com links para Contas Correntes
+
+### FASE 15 — Email e Comunicação
+- [x] Instalar e configurar nodemailer
+- [x] Criar biblioteca de email (/src/lib/mail.ts)
+- [x] Criar API para envio de documentos por email
+- [x] Adicionar botão de envio por email na visualização de documentos
+
+### FASE 16 — Encomendas de Cliente
+- [x] Criar modelos Prisma: EncomendaCliente, LinhaEncomendaCliente
+- [x] Criar API CRUD para Encomendas de Cliente (/api/encomendas)
+- [x] Criar API de conversão de Encomenda para Fatura
+- [x] Criar página de gestão de Encomendas de Cliente
+
 ---
 
 ## 📊 RESUMO POR ÁREA (atualizado)
@@ -330,13 +350,13 @@
 | Área | Pendentes | Concluídas | Progresso aproximado |
 |------|-----------|------------|---------------------|
 | Requisitos Fiscais AT | 3–5 | 22+ | 93–95% |
-| Funcionalidades Comerciais | 6–8 | 30+ | 72–76% |
+| Funcionalidades Comerciais | 4–6 | 45+ | 82–86% |
 | Performance | 3 | 1 | ~25% |
 | Testes | 8+ | 0 | ~5% |
 | Segurança | 6 | 5 | ~45% |
-| Frontend | 4–5 | 14 | ~78% |
-| Backend | 5–6 | 32+ | ~88% |
-| Base de Dados | 4 | 22+ | ~88% |
+| Frontend | 2–3 | 20+ | ~85% |
+| Backend | 3–4 | 45+ | ~92% |
+| Base de Dados | 2 | 30+ | ~95% |
 | Infraestrutura | 5 | 1 | ~15–20% |
 | Documentação | 6 | 2–3 | ~30% |
 
@@ -344,7 +364,7 @@
 
 ## 📝 NOTAS
 
-- **Foco imediato (próximos 4–8 meses):** Email automático → Encomendas de venda → Recorrentes → Relatórios
+- **Foco imediato (próximos 4–8 meses):** Faturação Recorrente → Relatórios → Exportação Avançada → API Pública
 - Não pedir certificação final AT até ter as funcionalidades 🔴 implementadas e testadas
 - PDF simples continua válido como fatura eletrónica até final de 2026; preparar ADQ para 2027+
 - Priorizar o que resolve dores reais: follow-up de vendas, automação de envios

@@ -6,8 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { EstadoOrcamento, EstadoDocumento, TipoDocumento } from "@prisma/client";
-import { calcularHashDocumento } from "@/lib/hash";
-import { gerarATCUD } from "@/lib/atcud";
+import { calcularHashDocumento, gerarATCUD } from "@/lib/hash";
 
 // POST - Converter orçamento em fatura
 export async function POST(

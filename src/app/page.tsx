@@ -263,6 +263,14 @@ export default function Dashboard() {
               <Package className="h-4 w-4" />
               Stock
             </Link>
+            <Link href="/encomendas" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
+              <FileText className="h-4 w-4" />
+              Encomendas
+            </Link>
+            <Link href="/contas-correntes" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
+              <Euro className="h-4 w-4" />
+              Contas Correntes
+            </Link>
             <Link href="/series" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
               <Settings className="h-4 w-4" />
               Séries

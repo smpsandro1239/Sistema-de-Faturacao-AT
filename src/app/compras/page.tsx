@@ -41,6 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -475,10 +476,18 @@ export default function PaginaEncomendasCompra() {
             Gestão de encomendas a fornecedores
           </p>
         </div>
-        <Button onClick={() => setDialogCriar(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Encomenda
-        </Button>
+        <div className="flex gap-2">
+          <Link href="/compras/faturas">
+            <Button variant="outline">
+              <FileText className="h-4 w-4 mr-2" />
+              Ver Faturas
+            </Button>
+          </Link>
+          <Button onClick={() => setDialogCriar(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Encomenda
+          </Button>
+        </div>
       </div>
 
       {/* Filtros */}

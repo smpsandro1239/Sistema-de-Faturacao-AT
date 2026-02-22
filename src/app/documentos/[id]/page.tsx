@@ -19,7 +19,8 @@ import {
   Settings,
   FileSpreadsheet,
   Download,
-  Loader2
+  Loader2,
+  Mail
 } from "lucide-react";
 import { gerarDadosQRCode, gerarQRCodeDataURL } from "@/lib/qrcode";
 import { gerarPDFDocumento } from "@/lib/pdf";
@@ -66,6 +67,7 @@ export default function DocumentoPage() {
   const [qrCodeURL, setQRCodeURL] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [exportingPDF, setExportingPDF] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   useEffect(() => {
     const carregarDocumento = async () => {
@@ -145,6 +147,30 @@ export default function DocumentoPage() {
     }
   };
 
+  const handleSendEmail = async () => {
+    if (!documento) return;
+
+    setSendingEmail(true);
+    try {
+      const res = await fetch(`/api/documentos/${documento.id}/enviar-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}), // Usa o email do cliente por defeito
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Email enviado com sucesso!");
+      } else {
+        toast.error(data.error || "Erro ao enviar email");
+      }
+    } catch (error) {
+      toast.error("Erro ao conectar ao servidor de email");
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
@@ -220,6 +246,18 @@ export default function DocumentoPage() {
                   <Download className="h-4 w-4 mr-2" />
                 )}
                 PDF
+              </Button>
+              <Button
+                onClick={handleSendEmail}
+                variant="outline"
+                disabled={sendingEmail || documento.estado !== "EMITIDO"}
+              >
+                {sendingEmail ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Mail className="h-4 w-4 mr-2" />
+                )}
+                Enviar Email
               </Button>
               <Button onClick={handlePrint} className="bg-emerald-600 hover:bg-emerald-700">
                 <Printer className="h-4 w-4 mr-2" />

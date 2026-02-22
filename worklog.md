@@ -501,3 +501,28 @@ Stage Summary:
 - jose para JWT
 - sonner para toast notifications
 - Recharts para gráficos
+
+---
+Task ID: 24
+Agent: Jules
+Task: Implementar Faturas de Fornecedor, Contas Correntes, Encomendas de Cliente e Envio de Email
+
+Work Log:
+- Adicionados modelos ao schema Prisma: FaturaCompra, LinhaFaturaCompra, PagamentoCompra, EncomendaCliente, LinhaEncomendaCliente.
+- Implementadas APIs CRUD para Faturas de Fornecedor (/api/compras/faturas) e Encomendas de Cliente (/api/encomendas).
+- Implementada API de conversão de Encomenda de Cliente para Fatura com geração de Hash e ATCUD.
+- Criada biblioteca de email (/src/lib/mail.ts) usando nodemailer para envio de documentos.
+- Implementada API de envio de documentos por email (/api/documentos/[id]/enviar-email).
+- Criadas páginas de frontend:
+  - /compras/faturas: Registo e pagamento de faturas de fornecedor.
+  - /encomendas: Gestão de ordens de venda com conversão para fatura.
+  - /contas-correntes: Visualização centralizada de saldos pendentes (clientes e fornecedores).
+- Atualizada navegação no Dashboard e links entre módulos.
+- Corrigido import quebrado de gerarATCUD em orçamentos.
+- Instaladas dependências: nodemailer, @types/nodemailer.
+
+Stage Summary:
+- Sistema comercial agora suporta o ciclo completo de compras (encomenda -> receção -> fatura -> pagamento).
+- Início da automação de comunicação com clientes via email.
+- Gestão de tesouraria básica com Contas Correntes.
+- Progresso comercial subiu para ~82-86%.
