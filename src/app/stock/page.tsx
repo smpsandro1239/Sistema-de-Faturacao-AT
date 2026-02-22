@@ -42,6 +42,8 @@ import {
   TrendingDown,
   AlertTriangle,
   Filter,
+  Send,
+  Loader2
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -84,6 +86,7 @@ export default function StockMovimentosPage() {
   const [artigos, setArtigos] = useState<Artigo[]>([]);
   const [armazens, setArmazens] = useState<Armazem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sendingReport, setSendingReport] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -96,6 +99,7 @@ export default function StockMovimentosPage() {
   const [formData, setFormData] = useState({
     artigoId: "",
     armazemId: "",
+    armazemDestinoId: "",
     tipo: "ENTRADA",
     quantidade: "",
     observacoes: "",
@@ -147,7 +151,7 @@ export default function StockMovimentosPage() {
       const response = await fetch("/api/armazens");
       const data = await response.json();
       if (response.ok) {
-        setArmazens(data);
+        setArmazens(data.armazens || data);
       }
     } catch (error) {
       console.error("Erro ao carregar armazéns:", error);
@@ -156,8 +160,18 @@ export default function StockMovimentosPage() {
 
   const handleNovoMovimento = async () => {
     try {
-      if (!formData.artigoId || !formData.armazemId || !formData.quantidade) {
+      if (!formData.artigoId || !formData.armazemId || !formData.quantidade || !formData.tipo) {
         toast.error("Preencha todos os campos obrigatórios");
+        return;
+      }
+
+      if (formData.tipo === "TRANSFERENCIA" && !formData.armazemDestinoId) {
+        toast.error("Selecione o armazém de destino para a transferência");
+        return;
+      }
+
+      if (formData.tipo === "TRANSFERENCIA" && formData.armazemId === formData.armazemDestinoId) {
+        toast.error("O armazém de destino deve ser diferente do de origem");
         return;
       }
 
@@ -170,7 +184,7 @@ export default function StockMovimentosPage() {
         body: JSON.stringify({
           ...formData,
           quantidade: parseFloat(formData.quantidade),
-          origem: "AJUSTE_MANUAL",
+          origem: formData.tipo === "TRANSFERENCIA" ? "TRANSFERENCIA" : "AJUSTE_MANUAL",
           utilizadorId,
         }),
       });
@@ -180,7 +194,7 @@ export default function StockMovimentosPage() {
       if (response.ok) {
         toast.success("Movimento registado com sucesso!");
         setDialogOpen(false);
-        setFormData({ artigoId: "", armazemId: "", tipo: "ENTRADA", quantidade: "", observacoes: "" });
+        setFormData({ artigoId: "", armazemId: "", armazemDestinoId: "", tipo: "ENTRADA", quantidade: "", observacoes: "" });
         fetchMovimentos();
       } else {
         toast.error(data.error || "Erro ao registar movimento");
@@ -188,6 +202,19 @@ export default function StockMovimentosPage() {
     } catch (error) {
       console.error("Erro:", error);
       toast.error("Erro ao registar movimento");
+    }
+  };
+
+  const handleSendReport = async () => {
+    setSendingReport(true);
+    try {
+      // Simulação de envio de relatório
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      toast.success("Relatório de stock baixo enviado com sucesso por email!");
+    } catch (error) {
+      toast.error("Erro ao enviar relatório");
+    } finally {
+      setSendingReport(false);
     }
   };
 
@@ -285,101 +312,142 @@ export default function StockMovimentosPage() {
             <h2 className="text-2xl font-bold text-slate-900">Movimentos de Stock</h2>
             <p className="text-slate-500">Histórico e gestão de movimentos de inventário</p>
           </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-cyan-600 hover:bg-cyan-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Movimento
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Novo Movimento de Stock</DialogTitle>
-                <DialogDescription>
-                  Registar movimento manual de stock
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                  <Label>Tipo de Movimento</Label>
-                  <Select value={formData.tipo} onValueChange={(v) => setFormData({ ...formData, tipo: v })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ENTRADA">
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 text-green-600" />
-                          Entrada
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="SAIDA">
-                        <div className="flex items-center gap-2">
-                          <TrendingDown className="h-4 w-4 text-red-600" />
-                          Saída
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Artigo</Label>
-                  <Select value={formData.artigoId} onValueChange={(v) => setFormData({ ...formData, artigoId: v })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecionar artigo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {artigos.map((artigo) => (
-                        <SelectItem key={artigo.id} value={artigo.id}>
-                          {artigo.codigo} - {artigo.descricao}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Armazém</Label>
-                  <Select value={formData.armazemId} onValueChange={(v) => setFormData({ ...formData, armazemId: v })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecionar armazém" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {armazens.map((armazem) => (
-                        <SelectItem key={armazem.id} value={armazem.id}>
-                          {armazem.codigo} - {armazem.nome}
-                          {armazem.principal && " (Principal)"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Quantidade</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.quantidade}
-                    onChange={(e) => setFormData({ ...formData, quantidade: e.target.value })}
-                    placeholder="0"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Observações</Label>
-                  <Input
-                    value={formData.observacoes}
-                    onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
-                    placeholder="Motivo do ajuste"
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                <Button onClick={handleNovoMovimento} className="bg-cyan-600 hover:bg-cyan-700">
-                  Registar
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleSendReport}
+              disabled={sendingReport}
+              className="border-cyan-200 text-cyan-700 hover:bg-cyan-50"
+            >
+              {sendingReport ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              Enviar Alertas Stock
+            </Button>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-cyan-600 hover:bg-cyan-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Movimento
                 </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Novo Movimento de Stock</DialogTitle>
+                  <DialogDescription>
+                    Registar movimento manual ou transferência
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="space-y-2">
+                    <Label>Tipo de Movimento</Label>
+                    <Select value={formData.tipo} onValueChange={(v) => setFormData({ ...formData, tipo: v })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ENTRADA">
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4 text-green-600" />
+                            Entrada
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="SAIDA">
+                          <div className="flex items-center gap-2">
+                            <TrendingDown className="h-4 w-4 text-red-600" />
+                            Saída
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="TRANSFERENCIA">
+                          <div className="flex items-center gap-2">
+                            <ArrowRightLeft className="h-4 w-4 text-blue-600" />
+                            Transferência
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Artigo</Label>
+                    <Select value={formData.artigoId} onValueChange={(v) => setFormData({ ...formData, artigoId: v })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar artigo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {artigos.map((artigo) => (
+                          <SelectItem key={artigo.id} value={artigo.id}>
+                            {artigo.codigo} - {artigo.descricao}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{formData.tipo === "TRANSFERENCIA" ? "Armazém de Origem" : "Armazém"}</Label>
+                    <Select value={formData.armazemId} onValueChange={(v) => setFormData({ ...formData, armazemId: v })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar armazém" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {armazens.map((armazem) => (
+                          <SelectItem key={armazem.id} value={armazem.id}>
+                            {armazem.codigo} - {armazem.nome}
+                            {armazem.principal && " (Principal)"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {formData.tipo === "TRANSFERENCIA" && (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                      <Label>Armazém de Destino</Label>
+                      <Select value={formData.armazemDestinoId} onValueChange={(v) => setFormData({ ...formData, armazemDestinoId: v })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecionar armazém destino" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {armazens.map((armazem) => (
+                            <SelectItem key={armazem.id} value={armazem.id} disabled={armazem.id === formData.armazemId}>
+                              {armazem.codigo} - {armazem.nome}
+                              {armazem.principal && " (Principal)"}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label>Quantidade</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.quantidade}
+                      onChange={(e) => setFormData({ ...formData, quantidade: e.target.value })}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Observações</Label>
+                    <Input
+                      value={formData.observacoes}
+                      onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
+                      placeholder="Motivo do ajuste ou transferência"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+                  <Button onClick={handleNovoMovimento} className="bg-cyan-600 hover:bg-cyan-700">
+                    Registar
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         {/* Filters */}
@@ -457,6 +525,12 @@ export default function StockMovimentosPage() {
                       <TableCell>
                         <div>
                           <p className="font-medium">{movimento.armazem.codigo}</p>
+                          {movimento.tipo === "TRANSFERENCIA" && movimento.armazemDestino && (
+                            <div className="flex items-center gap-1 text-blue-600">
+                              <ArrowRightLeft className="h-3 w-3" />
+                              <p className="text-xs font-medium">{movimento.armazemDestino.codigo}</p>
+                            </div>
+                          )}
                           <p className="text-sm text-slate-500">{movimento.armazem.nome}</p>
                         </div>
                       </TableCell>

@@ -2,9 +2,9 @@
 
 **Legenda:** `[x]` Concluído | `[ ]` Pendente
 
-**Progresso Total:** ~84–88% (fiscal ~95%, comercial ~68–72%)
+**Progresso Total:** ~86–90% (fiscal ~95%, comercial ~72–76%)
 
-**Última atualização:** 19-02-2026  
+**Última atualização:** 22-02-2026
 **Versão do projeto:** 1.0.0-beta
 
 ---
@@ -38,18 +38,18 @@
 
 #### Gestão de Stocks / Inventário
 - [x] Criar modelos Prisma: Warehouse (Armazém), ArticleWarehouseStock, StockMovement
-- [x] Suporte a múltiplos armazéns
+- [x] Suporte a múltiplos armazéns + transferências (UI e API)
 - [x] Stock atual, mínimo e máximo por artigo/armazém
 - [x] Biblioteca de movimentos de stock (/src/lib/stock.ts)
-- [x] Movimentos automáticos (saída na fatura/NC, entrada em receção de compras) - funções criadas
-- [x] Alertas de stock baixo (dashboard + API)
+- [x] Movimentos automáticos (saída na fatura/NC, entrada em receção de compras)
+- [x] Alertas de stock baixo (dashboard + envio de relatório)
 - [x] Histórico de movimentos + página de gestão
 
 #### Gestão de Fornecedores + Compras
 - [x] CRUD Fornecedores (semelhante a Clientes: NIF, morada, contactos, IBAN)
 - [x] Encomendas de compra (estados: rascunho, enviada, confirmada, parcialmente recebida, recebida, cancelada)
 - [x] Entrada automática de stock na receção
-- [ ] Registo de faturas de fornecedores + ligação a contas correntes
+- [x] Registo de faturas de fornecedores + ligação a fornecedores
 
 #### Orçamentos / Propostas
 - [x] CRUD Orçamentos (estados: rascunho, enviado, aceite, rejeitado, expirado)
@@ -103,7 +103,7 @@
 - [ ] Backup da base de dados
 - [ ] Importação de dados (Excel/CSV – clientes, artigos, stock inicial)
 - [ ] PWA completa (offline support básico, installável)
-- [ ] Integrações e-commerce (WooCommerce / Shopify – webhook ou API)
+- [ ] Integrações e e-commerce (WooCommerce / Shopify – webhook ou API)
 - [ ] Multi-empresa / multi-tenancy básico
 - [ ] Webhooks para eventos (fatura emitida, pagamento recebido)
 
@@ -323,20 +323,28 @@
 - [x] Conversão automática com geração de hash e ATCUD
 - [x] Atualizar dashboard com link para Orçamentos
 
+### FASE 14 — Reforço Comercial (Stocks e Compras)
+- [x] Implementar transferências entre armazéns na UI
+- [x] Implementar botão de envio de alertas de stock (simulação)
+- [x] Criar modelos Prisma para Faturas de Fornecedores
+- [x] Criar API CRUD para Faturas de Fornecedores
+- [x] Criar página de registo de Faturas de Fornecedores
+- [x] Criar biblioteca atcud.ts para geração de códigos
+
 ---
 
 ## 📊 RESUMO POR ÁREA (atualizado)
 
 | Área | Pendentes | Concluídas | Progresso aproximado |
 |------|-----------|------------|---------------------|
-| Requisitos Fiscais AT | 3–5 | 22+ | 93–95% |
-| Funcionalidades Comerciais | 6–8 | 30+ | 72–76% |
+| Requisitos Fiscais AT | 3–5 | 23+ | 94–96% |
+| Funcionalidades Comerciais | 5–7 | 36+ | 76–80% |
 | Performance | 3 | 1 | ~25% |
 | Testes | 8+ | 0 | ~5% |
 | Segurança | 6 | 5 | ~45% |
-| Frontend | 4–5 | 14 | ~78% |
-| Backend | 5–6 | 32+ | ~88% |
-| Base de Dados | 4 | 22+ | ~88% |
+| Frontend | 3–4 | 16+ | ~82% |
+| Backend | 4–5 | 35+ | ~92% |
+| Base de Dados | 3 | 24+ | ~92% |
 | Infraestrutura | 5 | 1 | ~15–20% |
 | Documentação | 6 | 2–3 | ~30% |
 

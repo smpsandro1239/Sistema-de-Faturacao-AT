@@ -501,3 +501,26 @@ Stage Summary:
 - jose para JWT
 - sonner para toast notifications
 - Recharts para gráficos
+
+---
+Task ID: 24
+Agent: Jules
+Task: Reforço da Gestão Comercial (Transferências de Stock e Faturas de Fornecedores)
+
+Work Log:
+- Implementadas transferências entre armazéns na UI de Stock (/stock/page.tsx).
+- Adicionado o campo "Armazém de Destino" condicionalmente no diálogo de movimentos.
+- Adicionada funcionalidade de simulação de envio de alertas de stock baixo.
+- Criados modelos Prisma FaturaFornecedor e LinhaFaturaFornecedor no schema.prisma.
+- Sincronizada a base de dados SQLite com os novos modelos.
+- Criada API para CRUD de faturas de fornecedores (/api/compras/faturas).
+- Criada página de gestão e registo de faturas de fornecedores (/compras/faturas/page.tsx).
+- Adicionado link para Faturas na página principal de Compras.
+- Resolvido erro de build criando a biblioteca /src/lib/atcud.ts para geração de códigos ATCUD.
+- Verificado que o build e lint estão a passar.
+
+Stage Summary:
+- Gestão de stock reforçada com transferências.
+- Início do módulo de Compras avançado com registo de faturas de fornecedores.
+- Sistema agora permite o ciclo completo de compra (encomenda -> receção de stock -> fatura).
+- Progresso comercial subiu para ~72-76%.

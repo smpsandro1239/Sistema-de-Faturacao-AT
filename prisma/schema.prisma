@@ -121,6 +121,7 @@ model Artigo {
   stocksArmazem     ArtigoArmazemStock[]
   movimentosStock   MovimentoStock[]
   linhasEncomendaCompra LinhaEncomendaCompra[]
+  linhasFaturaFornecedor LinhaFaturaFornecedor[]
 }
 
 // ============================================
@@ -367,6 +368,7 @@ model Fornecedor {
   updatedAt         DateTime @updatedAt
 
   encomendasCompra  EncomendaCompra[]
+  faturasFornecedor FaturaFornecedor[]
 }
 
 // ============================================
@@ -520,6 +522,7 @@ model EncomendaCompra {
   armazemDestino        Armazem?              @relation(fields: [armazemDestinoId], references: [id])
   linhas                LinhaEncomendaCompra[]
   movimentosStock       MovimentoStock[]
+  faturaFornecedor     FaturaFornecedor? @relation("FaturaEncomenda")
 
   @@index([fornecedorId])
   @@index([estado])
@@ -664,4 +667,88 @@ model LinhaOrcamento {
 
   @@index([orcamentoId])
   @@index([artigoId])
+}
+
+// ============================================
+// FATURAS DE FORNECEDORES
+// ============================================
+
+enum EstadoFaturaFornecedor {
+  PENDENTE
+  PAGA
+  PAGA_PARCIAL
+  CANCELADA
+}
+
+model FaturaFornecedor {
+  id                    String                 @id @default(cuid())
+  numeroFatura          String                 // Número da fatura do fornecedor
+  fornecedorId          String
+
+  // Dados do fornecedor (histórico)
+  fornecedorNome        String
+  fornecedorNif         String
+
+  // Datas
+  dataFatura            DateTime
+  dataVencimento        DateTime?
+  dataPagamento         DateTime?
+
+  // Totais
+  totalBase             Float                  @default(0)
+  totalIVA              Float                  @default(0)
+  totalLiquido          Float                  @default(0)
+  totalPago             Float                  @default(0)
+
+  // Estado
+  estado                EstadoFaturaFornecedor @default(PENDENTE)
+
+  // Referências
+  encomendaCompraId     String?                @unique
+  encomendaCompra       EncomendaCompra?       @relation("FaturaEncomenda", fields: [encomendaCompraId], references: [id])
+
+  observacoes           String?
+  utilizadorId          String
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  fornecedor            Fornecedor             @relation(fields: [fornecedorId], references: [id])
+  linhas                LinhaFaturaFornecedor[]
+
+  @@index([fornecedorId])
+  @@index([estado])
+  @@index([dataFatura])
+}
+
+model LinhaFaturaFornecedor {
+  id                    String           @id @default(cuid())
+  faturaFornecedorId    String
+  artigoId              String?
+
+  // Dados do artigo
+  codigoArtigo          String
+  descricaoArtigo       String
+
+  // Quantidades e preços
+  quantidade            Float
+  precoUnitario         Float
+  desconto              Float            @default(0)
+
+  // IVA
+  taxaIVAId             String
+  taxaIVAPercentagem    Float
+
+  // Totais
+  base                  Float
+  valorIVA              Float
+
+  ordem                 Int              @default(1)
+
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  faturaFornecedor      FaturaFornecedor @relation(fields: [faturaFornecedorId], references: [id], onDelete: Cascade)
+  artigo                Artigo?          @relation(fields: [artigoId], references: [id])
+
+  @@index([faturaFornecedorId])
 }
