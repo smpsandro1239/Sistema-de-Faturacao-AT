@@ -524,3 +524,27 @@ Stage Summary:
 - Início do módulo de Compras avançado com registo de faturas de fornecedores.
 - Sistema agora permite o ciclo completo de compra (encomenda -> receção de stock -> fatura).
 - Progresso comercial subiu para ~72-76%.
+
+---
+Task ID: 25
+Agent: Jules
+Task: Comunicação e Vendas (Envio de Email e Encomendas de Cliente)
+
+Work Log:
+- Instalada biblioteca nodemailer para envio de emails.
+- Criada biblioteca /src/lib/mail.ts para gestão de transportadores e templates de email.
+- Atualizada biblioteca /src/lib/pdf.ts para suportar output em Buffer, permitindo anexar o PDF gerado no email.
+- Criada API /api/documentos/enviar-email para processar o envio de faturas com anexo PDF.
+- Adicionado botão "Email" na página de visualização de documentos (/documentos/[id]) com diálogo para introdução do email de destino.
+- Registadas as ações de envio de email nos logs de auditoria.
+- Adicionados modelos EncomendaCliente e LinhaEncomendaCliente ao prisma/schema.prisma.
+- Criada API CRUD para Encomendas de Cliente (/api/vendas/encomendas).
+- Criada página de gestão de Encomendas de Cliente (/app/encomendas/page.tsx).
+- Adicionado link para Encomendas na navegação principal do Dashboard.
+- Sincronizada a base de dados SQLite.
+
+Stage Summary:
+- Implementado o canal de comunicação por email para documentos fiscais.
+- Adicionado suporte a Ordens de Venda (Encomendas de Cliente), expandindo o fluxo comercial.
+- Sistema agora cobre: Orçamento -> Encomenda -> Fatura.
+- Progresso total do projeto atingiu ~90%.

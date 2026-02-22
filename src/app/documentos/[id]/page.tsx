@@ -7,6 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
   Shield, 
   ArrowLeft,
@@ -19,7 +30,9 @@ import {
   Settings,
   FileSpreadsheet,
   Download,
-  Loader2
+  Loader2,
+  Mail,
+  Send
 } from "lucide-react";
 import { gerarDadosQRCode, gerarQRCodeDataURL } from "@/lib/qrcode";
 import { gerarPDFDocumento } from "@/lib/pdf";
@@ -36,6 +49,7 @@ interface Documento {
   clienteMorada: string | null;
   clienteCodigoPostal: string | null;
   clienteLocalidade: string | null;
+  clienteEmail?: string;
   empresaNome: string;
   empresaNif: string;
   empresaMorada: string;
@@ -66,11 +80,13 @@ export default function DocumentoPage() {
   const [qrCodeURL, setQRCodeURL] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [exportingPDF, setExportingPDF] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailDestino, setEmailDestino] = useState("");
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
 
   useEffect(() => {
     const carregarDocumento = async () => {
       try {
-        // Tentar carregar da API primeiro
         const response = await fetch(`/api/documentos?id=${params.id}`);
         
         if (response.ok) {
@@ -78,8 +94,8 @@ export default function DocumentoPage() {
           
           if (data.documento) {
             setDocumento(data.documento);
+            setEmailDestino(data.documento.clienteEmail || "");
             
-            // Gerar QR Code
             if (data.documento.hash && data.documento.atcud) {
               const dadosQR = gerarDadosQRCode({
                 nifEmissor: data.documento.empresaNif,
@@ -145,6 +161,38 @@ export default function DocumentoPage() {
     }
   };
 
+  const handleSendEmail = async () => {
+    if (!documento || !emailDestino) {
+      toast.error("Introduza um email válido");
+      return;
+    }
+
+    setSendingEmail(true);
+    try {
+      const response = await fetch("/api/documentos/enviar-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          documentoId: documento.id,
+          emailDestino: emailDestino,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.simulated ? "Simulação: Email enviado!" : "Email enviado com sucesso!");
+        setEmailDialogOpen(false);
+      } else {
+        toast.error(data.error || "Erro ao enviar email");
+      }
+    } catch (error) {
+      toast.error("Falha ao enviar email");
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
@@ -203,12 +251,59 @@ export default function DocumentoPage() {
               </div>
             </Link>
             <div className="flex items-center gap-2">
-              <Button variant="outline" asChild>
+              <Button variant="outline" asChild className="hidden sm:flex">
                 <Link href="/documentos">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Voltar
                 </Link>
               </Button>
+
+              <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Mail className="h-4 w-4 mr-2" />
+                    Email
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Enviar por Email</DialogTitle>
+                    <DialogDescription>
+                      O documento será enviado em anexo para o email indicado.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="email" className="text-right">
+                        Email
+                      </Label>
+                      <Input
+                        id="email"
+                        value={emailDestino}
+                        onChange={(e) => setEmailDestino(e.target.value)}
+                        placeholder="cliente@exemplo.pt"
+                        className="col-span-3"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      type="submit"
+                      onClick={handleSendEmail}
+                      disabled={sendingEmail}
+                      className="bg-emerald-600 hover:bg-emerald-700"
+                    >
+                      {sendingEmail ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4 mr-2" />
+                      )}
+                      Enviar Agora
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
               <Button 
                 onClick={handleExportPDF} 
                 variant="outline"
@@ -296,6 +391,7 @@ export default function DocumentoPage() {
               <div>
                 <p className="font-medium">{documento.clienteNome}</p>
                 <p className="text-slate-600">NIF: {documento.clienteNif}</p>
+                {documento.clienteEmail && <p className="text-slate-500">{documento.clienteEmail}</p>}
               </div>
               <div className="text-right text-slate-600">
                 {documento.clienteMorada && <p>{documento.clienteMorada}</p>}

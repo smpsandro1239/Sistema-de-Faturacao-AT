@@ -82,6 +82,7 @@ model Cliente {
 
   documentos        Documento[]
   orcamentos        Orcamento[]
+  encomendasCliente EncomendaCliente[]
 }
 
 // ============================================
@@ -122,6 +123,7 @@ model Artigo {
   movimentosStock   MovimentoStock[]
   linhasEncomendaCompra LinhaEncomendaCompra[]
   linhasFaturaFornecedor LinhaFaturaFornecedor[]
+  linhasEncomendaCliente LinhaEncomendaCliente[]
 }
 
 // ============================================
@@ -257,6 +259,7 @@ model Documento {
   auditorias            Auditoria[]
   movimentosStock       MovimentoStock[]
   orcamentosConvertidos Orcamento[]      @relation("OrcamentoConvertido")
+  encomendaCliente      EncomendaCliente? @relation("DocumentoEncomenda")
 }
 
 // ============================================
@@ -751,4 +754,93 @@ model LinhaFaturaFornecedor {
   artigo                Artigo?          @relation(fields: [artigoId], references: [id])
 
   @@index([faturaFornecedorId])
+}
+
+// ============================================
+// ENCOMENDAS DE CLIENTE (SALES ORDERS)
+// ============================================
+
+enum EstadoEncomendaCliente {
+  RASCUNHO
+  CONFIRMADA
+  EM_PREPARACAO
+  FATURADA
+  CANCELADA
+}
+
+model EncomendaCliente {
+  id                    String                 @id @default(cuid())
+  numero                Int                    // Número sequencial
+  numeroFormatado       String                 // "ENC 2024/00001"
+
+  clienteId             String
+
+  // Dados do cliente (histórico)
+  clienteNome           String
+  clienteNif            String
+  clienteMorada         String?
+  clienteCodigoPostal   String?
+  clienteLocalidade     String?
+
+  // Datas
+  dataEncomenda         DateTime               @default(now())
+  dataEntregaPrevista   DateTime?
+
+  // Totais
+  totalBase             Float                  @default(0)
+  totalIVA              Float                  @default(0)
+  totalDescontos        Float                  @default(0)
+  totalLiquido          Float                  @default(0)
+
+  // Estado
+  estado                EstadoEncomendaCliente @default(RASCUNHO)
+
+  // Conversão
+  documentoId           String?                @unique
+  documento             Documento?             @relation("DocumentoEncomenda", fields: [documentoId], references: [id])
+
+  observacoes           String?
+  utilizadorId          String
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  cliente               Cliente                @relation(fields: [clienteId], references: [id])
+  linhas                LinhaEncomendaCliente[]
+
+  @@index([clienteId])
+  @@index([estado])
+  @@index([dataEncomenda])
+}
+
+model LinhaEncomendaCliente {
+  id                    String           @id @default(cuid())
+  encomendaId           String
+  artigoId              String?
+
+  // Dados do artigo
+  codigoArtigo          String
+  descricaoArtigo       String
+
+  // Quantidades e preços
+  quantidade            Float
+  precoUnitario         Float
+  desconto              Float            @default(0)
+
+  // IVA
+  taxaIVAId             String
+  taxaIVAPercentagem    Float
+
+  // Totais
+  base                  Float
+  valorIVA              Float
+
+  ordem                 Int              @default(1)
+
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  encomenda             EncomendaCliente @relation(fields: [encomendaId], references: [id], onDelete: Cascade)
+  artigo                Artigo?          @relation(fields: [artigoId], references: [id])
+
+  @@index([encomendaId])
 }

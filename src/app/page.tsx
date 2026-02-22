@@ -246,6 +246,10 @@ export default function Dashboard() {
             <Link href="/orcamentos" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
               <FileText className="h-4 w-4" />
               Orçamentos
+            <Link href="/encomendas" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
+              <Package className="h-4 w-4" />
+              Encomendas
+            </Link>
             </Link>
             <Link href="/compras" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
               <Truck className="h-4 w-4" />

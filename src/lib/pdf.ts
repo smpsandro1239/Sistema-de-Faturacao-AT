@@ -62,7 +62,7 @@ const formatDate = (dateString: string): string => {
   });
 };
 
-export async function gerarPDFDocumento(documento: DocumentoPDF): Promise<void> {
+export async function gerarPDFDocumento(documento: DocumentoPDF, options: { output?: 'file' | 'buffer' } = {}): Promise<any> {
   const doc = new jsPDF();
   
   // Colors
@@ -275,7 +275,13 @@ export async function gerarPDFDocumento(documento: DocumentoPDF): Promise<void> 
     doc.text('Processado por programa certificado nº AT/DEMO/2024', pageWidth - margin, footerY + 28, { align: 'right' });
   }
   
-  // Save
-  const fileName = `${documento.numeroFormatado.replace(/\//g, '-')}.pdf`;
-  doc.save(fileName);
+  if (options.output === 'buffer') {
+    return Buffer.from(doc.output('arraybuffer'));
+  }
+
+  // Save (Browser only)
+  if (typeof window !== 'undefined') {
+    const fileName = `${documento.numeroFormatado.replace(/\//g, '-')}.pdf`;
+    doc.save(fileName);
+  }
 }

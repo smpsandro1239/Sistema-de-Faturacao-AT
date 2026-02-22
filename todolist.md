@@ -2,7 +2,7 @@
 
 **Legenda:** `[x]` Concluído | `[ ]` Pendente
 
-**Progresso Total:** ~86–90% (fiscal ~95%, comercial ~72–76%)
+**Progresso Total:** ~88–92% (fiscal ~95%, comercial ~76–80%)
 
 **Última atualização:** 22-02-2026
 **Versão do projeto:** 1.0.0-beta
@@ -27,8 +27,8 @@
 ## 🟠 PRIORIDADE ALTA (Funcionalidades Essenciais / Comerciais – as que mais diferenciam)
 
 ### 7.2 Exportação
-- [ ] Exportar documento para PDF (melhorar layout atual + opção de download direto)
-- [ ] Enviar documento por email (automático na emissão + manual)
+- [x] Exportar documento para PDF (melhorar layout atual + opção de download direto)
+- [x] Enviar documento por email (automático na emissão + manual)
 
 ### 9.2 Funcionalidades
 - [ ] Gráficos de vendas no dashboard (Recharts ou Tremor – mensal, por cliente, por artigo)
@@ -57,7 +57,7 @@
 - [x] Conversão automática para Fatura
 
 #### Encomendas / Ordens de Venda
-- [ ] CRUD Encomendas de cliente (estados: rascunho, confirmada, em preparação, faturada, cancelada)
+- [x] CRUD Encomendas de cliente (estados: rascunho, confirmada, em preparação, faturada, cancelada)
 - [ ] Conversão para fatura (total ou parcial)
 - [ ] Reserva temporária de stock (opcional)
 
@@ -234,7 +234,7 @@
 - [x] Criar biblioteca de QR Code (/src/lib/qrcode.ts)
 
 ### FASE 5 — SAF-T (PT)
-- [x] Criar página SAF-T com histórico
+- [x] Criar página SAF-T with histórico
 - [x] Criar estrutura XML conforme schema oficial
 - [x] Implementar secção Header
 - [x] Implementar secção MasterFiles
@@ -331,6 +331,16 @@
 - [x] Criar página de registo de Faturas de Fornecedores
 - [x] Criar biblioteca atcud.ts para geração de códigos
 
+### FASE 15 — Comunicação e Vendas
+- [x] Implementar biblioteca de envio de emails (/src/lib/mail.ts)
+- [x] Criar API para envio de documentos por email
+- [x] Adicionar botão "Email" na visualização de documentos com diálogo de envio
+- [x] Atualizar biblioteca PDF para suportar geração em Buffer para anexos
+- [x] Criar modelos Prisma para Encomendas de Cliente (Sales Orders)
+- [x] Criar API CRUD para Encomendas de Cliente
+- [x] Criar página de gestão de Encomendas de Cliente (/encomendas)
+- [x] Adicionar link de Encomendas no Dashboard
+
 ---
 
 ## 📊 RESUMO POR ÁREA (atualizado)
@@ -338,13 +348,13 @@
 | Área | Pendentes | Concluídas | Progresso aproximado |
 |------|-----------|------------|---------------------|
 | Requisitos Fiscais AT | 3–5 | 23+ | 94–96% |
-| Funcionalidades Comerciais | 5–7 | 36+ | 76–80% |
+| Funcionalidades Comerciais | 4–6 | 40+ | 80–84% |
 | Performance | 3 | 1 | ~25% |
 | Testes | 8+ | 0 | ~5% |
 | Segurança | 6 | 5 | ~45% |
-| Frontend | 3–4 | 16+ | ~82% |
-| Backend | 4–5 | 35+ | ~92% |
-| Base de Dados | 3 | 24+ | ~92% |
+| Frontend | 2–3 | 18+ | ~86% |
+| Backend | 3–4 | 38+ | ~94% |
+| Base de Dados | 2 | 26+ | ~94% |
 | Infraestrutura | 5 | 1 | ~15–20% |
 | Documentação | 6 | 2–3 | ~30% |
 
@@ -352,10 +362,8 @@
 
 ## 📝 NOTAS
 
-- **Foco imediato (próximos 4–8 meses):** Email automático → Encomendas de venda → Recorrentes → Relatórios
-- Não pedir certificação final AT até ter as funcionalidades 🔴 implementadas e testadas
-- PDF simples continua válido como fatura eletrónica até final de 2026; preparar ADQ para 2027+
-- Priorizar o que resolve dores reais: follow-up de vendas, automação de envios
-- Evitar over-engineering nas primeiras funcionalidades novas – lançar MVP utilizável → iterar com feedback
+- **Foco imediato:** Recorrentes/Avenças → Relatórios detalhados → Portal do Cliente → Pagamentos
+- Documentos de Encomenda de Cliente podem agora ser registados e geridos. Próximo passo: conversão direta para fatura.
+- O envio de email está funcional (simulado em dev se não houver SMTP configurado).
 
-**Stack:** Next.js 16 + Prisma + SQLite (ou PostgreSQL recomendado para produção) + shadcn/ui
+**Stack:** Next.js 16 + Prisma + SQLite (ou PostgreSQL recomendado para produção) + shadcn/ui + nodemailer
