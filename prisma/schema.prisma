@@ -1,0 +1,667 @@
+// Sistema de Faturação Certificado pela AT
+// Schema completo conforme requisitos fiscais portugueses
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// EMPRESA E CONFIGURAÇÕES
+// ============================================
+
+model Empresa {
+  id              String   @id @default(cuid())
+  nome            String
+  nif             String   @unique
+  morada          String
+  codigoPostal    String
+  localidade      String
+  telefone        String?
+  email           String?
+  website         String?
+  certificadoAT   String?  // Número do certificado AT
+  conservatoria   String?
+  matricula       String?
+  capitalSocial   Float?
+  ativo           Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================
+// UTILIZADORES E PERFIS
+// ============================================
+
+enum PerfilUtilizador {
+  ADMIN
+  GESTOR
+  OPERADOR
+  CONSULTA
+}
+
+model Utilizador {
+  id            String            @id @default(cuid())
+  nome          String
+  email         String            @unique
+  passwordHash  String
+  perfil        PerfilUtilizador  @default(OPERADOR)
+  ativo         Boolean           @default(true)
+  ultimoAcesso  DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  documentos    Documento[]
+  auditorias    Auditoria[]
+  movimentosStock MovimentoStock[]
+}
+
+// ============================================
+// CLIENTES
+// ============================================
+
+model Cliente {
+  id                String   @id @default(cuid())
+  codigo            String   @unique
+  nome              String
+  nif               String
+  morada            String?
+  codigoPostal      String?
+  localidade        String?
+  pais              String   @default("PT")
+  telefone          String?
+  email             String?
+  observacoes       String?
+  ativo             Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  documentos        Documento[]
+  orcamentos        Orcamento[]
+}
+
+// ============================================
+// ARTIGOS E SERVIÇOS
+// ============================================
+
+enum TipoArtigo {
+  PRODUTO
+  SERVICO
+  OUTRO
+}
+
+model Artigo {
+  id                String      @id @default(cuid())
+  codigo            String      @unique
+  descricao         String
+  tipo              TipoArtigo  @default(PRODUTO)
+  precoUnitario     Float
+  unidade           String      @default("UN")
+  taxaIVAId         String
+  isencaoId         String?
+  
+  // Controlo de stock
+  controlaStock     Boolean     @default(false)
+  stockMinimo       Float?
+  stockMaximo       Float?
+  
+  observacoes       String?
+  ativo             Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  taxaIVA           TaxaIVA     @relation(fields: [taxaIVAId], references: [id])
+  isencao           IsencaoIVA? @relation(fields: [isencaoId], references: [id])
+  linhasDocumento   LinhaDocumento[]
+  linhasOrcamento   LinhaOrcamento[]
+  stocksArmazem     ArtigoArmazemStock[]
+  movimentosStock   MovimentoStock[]
+  linhasEncomendaCompra LinhaEncomendaCompra[]
+}
+
+// ============================================
+// TAXAS DE IVA
+// ============================================
+
+model TaxaIVA {
+  id                String           @id @default(cuid())
+  codigo            String           @unique // "NOR", "INT", "RED", "MIN"
+  descricao         String           // "Normal", "Intermédia", "Reduzida", "Mínima"
+  taxa              Float            // 23%, 13%, 6%, 0%
+  tipo              String           // "NOR", "RED", "ISE"
+  ativo             Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  artigos           Artigo[]
+}
+
+model IsencaoIVA {
+  id                String           @id @default(cuid())
+  codigo            String           @unique // "M01", "M02", "M03", etc.
+  descricao         String           // "Não sujeito", "Isento Art. X"
+  motivo            String           // Razão da isenção
+  ativo             Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  artigos           Artigo[]
+}
+
+// ============================================
+// SÉRIES DE DOCUMENTos
+// ============================================
+
+enum TipoDocumento {
+  FATURA
+  FATURA_RECIBO
+  NOTA_CREDITO
+  NOTA_DEBITO
+  RECIBO
+  GUIA_REMESSA
+  GUIA_TRANSPORTE
+  FATURA_PROFORMA
+  ORCAMENTO
+}
+
+model Serie {
+  id                    String         @id @default(cuid())
+  codigo                String         @unique // "F2024", "NC2024"
+  descricao             String
+  tipoDocumento         TipoDocumento
+  prefixo               String         // "F", "NC", "FR"
+  numeroAtual           Int            @default(0)
+  codigoValidacaoAT     String?        // Código de validação da série (ATCUD)
+  ano                   Int            // Ano fiscal
+  dataInicio            DateTime
+  dataFim               DateTime?
+  ativo                 Boolean        @default(true)
+  bloqueado             Boolean        @default(false) // Impede edição após uso
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  documentos            Documento[]
+}
+
+// ============================================
+// DOCUMENTOS FISCAIS
+// ============================================
+
+enum EstadoDocumento {
+  RASCUNHO
+  EMITIDO
+  ANULADO
+  ENVIADO_AT
+}
+
+model Documento {
+  id                    String           @id @default(cuid())
+  numero                Int              // Número sequencial
+  numeroFormatado       String           // "F 2024/00001"
+  tipo                  TipoDocumento
+  serieId               String
+  clienteId             String
+  utilizadorId          String
+  
+  // Dados do cliente no momento da emissão (histórico)
+  clienteNome           String
+  clienteNif            String
+  clienteMorada         String?
+  clienteCodigoPostal   String?
+  clienteLocalidade     String?
+  
+  // Dados da empresa no momento da emissão
+  empresaNome           String
+  empresaNif            String
+  empresaMorada         String
+  empresaCodigoPostal   String
+  empresaLocalidade     String
+  
+  // Totais
+  totalBase             Float            @default(0)
+  totalIVA              Float            @default(0)
+  totalDescontos        Float            @default(0)
+  totalLiquido          Float            @default(0)
+  
+  // Requisitos fiscais AT
+  hash                  String?          // Hash SHA-256 do documento
+  hashDocumentoAnterior String?          // Hash do documento anterior (encadeamento)
+  atcud                 String?          // ATCUD do documento
+  dataEmissao           DateTime?
+  dataCriacao           DateTime         @default(now())
+  
+  // Estado
+  estado                EstadoDocumento  @default(RASCUNHO)
+  
+  // Referências (para notas de crédito)
+  documentoOriginalId   String?
+  documentoOriginal     Documento?       @relation("DocumentoReferencia", fields: [documentoOriginalId], references: [id])
+  documentosRetificacao Documento[]      @relation("DocumentoReferencia")
+  
+  // Observações
+  observacoes           String?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  serie                 Serie            @relation(fields: [serieId], references: [id])
+  cliente               Cliente          @relation(fields: [clienteId], references: [id])
+  utilizador            Utilizador       @relation(fields: [utilizadorId], references: [id])
+  linhas                LinhaDocumento[]
+  pagamentos            Pagamento[]
+  auditorias            Auditoria[]
+  movimentosStock       MovimentoStock[]
+  orcamentosConvertidos Orcamento[]      @relation("OrcamentoConvertido")
+}
+
+// ============================================
+// LINHAS DE DOCUMENTos
+// ============================================
+
+model LinhaDocumento {
+  id                    String     @id @default(cuid())
+  documentoId           String
+  artigoId              String?
+  
+  // Dados do artigo no momento da emissão
+  codigoArtigo          String
+  descricaoArtigo       String
+  
+  // Quantidades e preços
+  quantidade            Float
+  precoUnitario         Float
+  desconto              Float      @default(0)
+  
+  // IVA
+  taxaIVAId             String
+  taxaIVAPercentagem    Float
+  codigoIsencao         String?
+  
+  // Totais da linha
+  base                  Float      // quantidade * precoUnitario - desconto
+  valorIVA              Float      // base * taxaIVA
+  
+  ordem                 Int        @default(1)
+  observacoes           String?
+  
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+
+  documento             Documento  @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+  artigo                Artigo?    @relation(fields: [artigoId], references: [id])
+}
+
+// ============================================
+// PAGAMENTOS
+// ============================================
+
+enum MetodoPagamento {
+  NUMERARIO
+  TRANSFERENCIA
+  CARTAO_CREDITO
+  CARTAO_DEBITO
+  CHEQUE
+  OUTRO
+}
+
+model Pagamento {
+  id                    String          @id @default(cuid())
+  documentoId           String
+  metodo                MetodoPagamento
+  valor                 Float
+  data                  DateTime        @default(now())
+  referencia            String?         // Referência bancária, nº cheque, etc.
+  observacoes           String?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  documento             Documento       @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// AUDITORIA
+// ============================================
+
+model Auditoria {
+  id                    String      @id @default(cuid())
+  utilizadorId          String
+  documentoId           String?     // Referência ao documento (opcional)
+  acao                  String      // "CREATE", "UPDATE", "DELETE", "EMIT", "ANNUL"
+  entidade              String      // "Documento", "Cliente", "Serie", etc.
+  entidadeId            String      // ID da entidade
+  valorAntigo           String?     // JSON com valores anteriores
+  valorNovo             String?     // JSON com novos valores
+  ip                    String?
+  userAgent             String?
+  createdAt             DateTime    @default(now())
+
+  utilizador            Utilizador  @relation(fields: [utilizadorId], references: [id])
+  documento             Documento?  @relation(fields: [documentoId], references: [id])
+}
+
+// ============================================
+// FORNECEDORES
+// ============================================
+
+model Fornecedor {
+  id                String   @id @default(cuid())
+  codigo            String   @unique
+  nome              String
+  nif               String
+  morada            String?
+  codigoPostal      String?
+  localidade        String?
+  pais              String   @default("PT")
+  telefone          String?
+  email             String?
+  website           String?
+  iban              String?  // IBAN para pagamentos
+  contactoNome      String?  // Nome do contacto principal
+  observacoes       String?
+  ativo             Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  encomendasCompra  EncomendaCompra[]
+}
+
+// ============================================
+// ARMAZÉNS (WAREHOUSES)
+// ============================================
+
+model Armazem {
+  id                    String   @id @default(cuid())
+  codigo                String   @unique
+  nome                  String
+  morada                String?
+  codigoPostal          String?
+  localidade            String?
+  principal             Boolean  @default(false)  // Armazém principal
+  ativo                 Boolean  @default(true)
+  observacoes           String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  stocks                ArtigoArmazemStock[]
+  movimentosOrigem      MovimentoStock[]      @relation("MovimentoArmazemOrigem")
+  movimentosDestino     MovimentoStock[]      @relation("MovimentoArmazemDestino")
+  encomendasDestino     EncomendaCompra[]
+}
+
+// ============================================
+// STOCK POR ARTIGO/ARMAZÉM
+// ============================================
+
+model ArtigoArmazemStock {
+  id                    String   @id @default(cuid())
+  artigoId              String
+  armazemId             String
+  quantidade            Float    @default(0)
+  quantidadeReservada   Float    @default(0)  // Stock reservado para encomendas
+  localizacao           String?  // Prateleira, corredor, etc.
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  artigo                Artigo  @relation(fields: [artigoId], references: [id], onDelete: Cascade)
+  armazem               Armazem @relation(fields: [armazemId], references: [id], onDelete: Cascade)
+
+  @@unique([artigoId, armazemId])  // Um registo por artigo/armazém
+  @@index([artigoId])
+  @@index([armazemId])
+}
+
+// ============================================
+// MOVIMENTOS DE STOCK
+// ============================================
+
+enum TipoMovimentoStock {
+  ENTRADA               // Entrada de stock (compra, devolução, ajuste positivo)
+  SAIDA                 // Saída de stock (venda, consumo, ajuste negativo)
+  TRANSFERENCIA         // Transferência entre armazéns
+}
+
+enum OrigemMovimentoStock {
+  FATURA                // Saída em fatura
+  NOTA_CREDITO          // Entrada em nota de crédito
+  ENCOMENDA_COMPRA      // Entrada por encomenda de compra
+  AJUSTE_MANUAL         // Ajuste manual
+  TRANSFERENCIA         // Transferência entre armazéns
+  INVENTARIO            // Ajuste por inventário
+}
+
+model MovimentoStock {
+  id                    String              @id @default(cuid())
+  artigoId              String
+  armazemId             String              // Armazém de origem (saída) ou destino (entrada)
+  armazemDestinoId      String?             // Armazém destino (apenas para transferência)
+  
+  tipo                  TipoMovimentoStock
+  origem                OrigemMovimentoStock
+  
+  quantidade            Float               // Quantidade movimentada (sempre positiva)
+  quantidadeAnterior    Float               // Stock antes do movimento
+  quantidadeFinal       Float               // Stock após o movimento
+  
+  precoUnitario         Float?              // Custo unitário (para entradas)
+  valorTotal            Float?              // Valor total do movimento
+  
+  documentoId           String?             // Documento relacionado (fatura, NC, etc.)
+  encomendaCompraId     String?             // Encomenda de compra relacionada
+  observacoes           String?
+  
+  utilizadorId          String              // Utilizador que fez o movimento
+  createdAt             DateTime            @default(now())
+
+  artigo                Artigo              @relation(fields: [artigoId], references: [id])
+  armazem               Armazem             @relation("MovimentoArmazemOrigem", fields: [armazemId], references: [id])
+  armazemDestino        Armazem?            @relation("MovimentoArmazemDestino", fields: [armazemDestinoId], references: [id])
+  documento             Documento?          @relation(fields: [documentoId], references: [id])
+  encomendaCompra       EncomendaCompra?    @relation(fields: [encomendaCompraId], references: [id])
+  utilizador            Utilizador          @relation(fields: [utilizadorId], references: [id])
+
+  @@index([artigoId])
+  @@index([armazemId])
+  @@index([documentoId])
+  @@index([createdAt])
+}
+
+// ============================================
+// ENCOMENDAS DE COMPRA
+// ============================================
+
+enum EstadoEncomendaCompra {
+  RASCUNHO
+  ENVIADA              // Enviada ao fornecedor
+  CONFIRMADA           // Confirmada pelo fornecedor
+  PARCIALMENTE_RECEBIDA
+  RECEBIDA
+  CANCELADA
+}
+
+model EncomendaCompra {
+  id                    String                @id @default(cuid())
+  numero                Int                   // Número sequencial
+  numeroFormatado       String                // "EC 2024/00001"
+  
+  fornecedorId          String
+  
+  // Dados do fornecedor no momento da criação
+  fornecedorNome        String
+  fornecedorNif         String
+  fornecedorMorada      String?
+  
+  // Datas
+  dataEncomenda         DateTime              @default(now())
+  dataEntregaPrevista   DateTime?
+  dataRececao           DateTime?
+  
+  // Totais
+  totalBase             Float                 @default(0)
+  totalIVA              Float                 @default(0)
+  totalLiquido          Float                 @default(0)
+  
+  // Estado
+  estado                EstadoEncomendaCompra @default(RASCUNHO)
+  
+  // Armazém de destino padrão
+  armazemDestinoId      String?
+  
+  observacoes           String?
+  
+  utilizadorId          String
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  fornecedor            Fornecedor            @relation(fields: [fornecedorId], references: [id])
+  armazemDestino        Armazem?              @relation(fields: [armazemDestinoId], references: [id])
+  linhas                LinhaEncomendaCompra[]
+  movimentosStock       MovimentoStock[]
+
+  @@index([fornecedorId])
+  @@index([estado])
+  @@index([dataEncomenda])
+}
+
+// ============================================
+// LINHAS DE ENCOMENDA DE COMPRA
+// ============================================
+
+model LinhaEncomendaCompra {
+  id                    String           @id @default(cuid())
+  encomendaCompraId     String
+  artigoId              String?
+  
+  // Dados do artigo
+  codigoArtigo          String
+  descricaoArtigo       String
+  
+  // Quantidades e preços
+  quantidade            Float
+  quantidadeRecebida    Float            @default(0)
+  precoUnitario         Float
+  desconto              Float            @default(0)
+  
+  // IVA
+  taxaIVAId             String
+  taxaIVAPercentagem    Float
+  
+  // Totais
+  base                  Float            // quantidade * precoUnitario - desconto
+  valorIVA              Float
+  
+  ordem                 Int              @default(1)
+  observacoes           String?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  encomendaCompra       EncomendaCompra  @relation(fields: [encomendaCompraId], references: [id], onDelete: Cascade)
+  artigo                Artigo?          @relation(fields: [artigoId], references: [id])
+
+  @@index([encomendaCompraId])
+  @@index([artigoId])
+}
+
+// ============================================
+// ORÇAMENTOS / PROPOSTAS
+// ============================================
+
+enum EstadoOrcamento {
+  RASCUNHO
+  ENVIADO              // Enviado ao cliente
+  ACEITE               // Aceite pelo cliente
+  REJEITADO            // Rejeitado pelo cliente
+  EXPIRADO             // Validade expirada
+  CONVERTIDO           // Convertido em fatura/encomenda
+}
+
+model Orcamento {
+  id                    String           @id @default(cuid())
+  numero                Int              // Número sequencial
+  numeroFormatado       String           // "ORC 2024/00001"
+  
+  clienteId             String
+  
+  // Dados do cliente no momento da criação
+  clienteNome           String
+  clienteNif            String
+  clienteMorada         String?
+  clienteCodigoPostal   String?
+  clienteLocalidade     String?
+  
+  // Datas
+  dataOrcamento         DateTime         @default(now())
+  dataValidade          DateTime?        // Data de validade do orçamento
+  
+  // Totais
+  totalBase             Float            @default(0)
+  totalIVA              Float            @default(0)
+  totalDescontos        Float            @default(0)
+  totalLiquido          Float            @default(0)
+  
+  // Estado
+  estado                EstadoOrcamento  @default(RASCUNHO)
+  
+  // Conversão
+  documentoConvertidoId String?          // ID do documento criado a partir do orçamento
+  
+  // Observações e termos
+  observacoes           String?
+  termosCondicoes       String?          // Termos e condições
+  notasInternas         String?          // Notas internas (não visíveis no PDF)
+  
+  utilizadorId          String
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  cliente               Cliente          @relation(fields: [clienteId], references: [id])
+  documentoConvertido   Documento?       @relation("OrcamentoConvertido", fields: [documentoConvertidoId], references: [id])
+  linhas                LinhaOrcamento[]
+
+  @@index([clienteId])
+  @@index([estado])
+  @@index([dataOrcamento])
+}
+
+// ============================================
+// LINHAS DE ORÇAMENTO
+// ============================================
+
+model LinhaOrcamento {
+  id                    String     @id @default(cuid())
+  orcamentoId           String
+  artigoId              String?
+  
+  // Dados do artigo
+  codigoArtigo          String
+  descricaoArtigo       String
+  
+  // Quantidades e preços
+  quantidade            Float
+  precoUnitario         Float
+  desconto              Float      @default(0)
+  
+  // IVA
+  taxaIVAId             String
+  taxaIVAPercentagem    Float
+  
+  // Totais da linha
+  base                  Float      // quantidade * precoUnitario - desconto
+  valorIVA              Float      // base * taxaIVA
+  
+  ordem                 Int        @default(1)
+  observacoes           String?
+  
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+
+  orcamento             Orcamento  @relation(fields: [orcamentoId], references: [id], onDelete: Cascade)
+  artigo                Artigo?    @relation(fields: [artigoId], references: [id])
+
+  @@index([orcamentoId])
+  @@index([artigoId])
+}
