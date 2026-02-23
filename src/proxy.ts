@@ -20,7 +20,7 @@ const PUBLIC_ROUTES = [
   "/logo.svg"
 ];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Verificar se é uma rota pública
