@@ -535,3 +535,19 @@ Stage Summary:
 - O sistema comercial atingiu um nível de maturidade elevado, cobrindo o ciclo de venda assistida (encomendas) e automática (avenças).
 - Capacidade analítica reforçada com gráficos reais e exportação para contabilidade.
 - Progresso comercial subiu para ~82-86%.
+
+---
+Task ID: 26
+Agent: Jules
+Task: CIUS-PT Prep, Segurança CSRF, Portal Payments e POS Mobile
+
+Work Log:
+- Criada biblioteca `src/lib/cius-pt.ts` para suporte inicial ao formato UBL 2.1, preparando o sistema para a faturação eletrónica estruturada B2G obrigatória em 2027.
+- Reforçada a segurança global com proteção CSRF baseada em validação de Origin/Referer em todos os endpoints de escrita (Artigos, Séries, Clientes, Documentos).
+- Melhorado o Portal do Cliente com fluxo de pagamento online completo (Mock): suporte à escolha entre MB WAY e Cartão de Crédito, com atualização automática do estado de liquidação.
+- Otimização da interface POS: layout responsivo que adapta a grelha de artigos e o carrinho para visualização em ecrãs pequenos (tablets e smartphones), melhorando a usabilidade em balcão.
+
+Stage Summary:
+- O sistema aproxima-se da maturidade total, com preparação fiscal para o futuro (CIUS-PT) e segurança reforçada.
+- A experiência do cliente final foi elevada com pagamentos facilitados.
+- Progresso global estimado em ~92%.

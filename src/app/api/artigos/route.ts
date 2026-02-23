@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { articleSchema } from "@/lib/validations";
+import { validateCSRF } from "@/lib/auth";
 
 // GET - Listar todos os artigos
 export async function GET() {
@@ -25,6 +26,10 @@ export async function GET() {
 // POST - Criar novo artigo
 export async function POST(request: Request) {
   try {
+    if (!validateCSRF(request)) {
+      return NextResponse.json({ error: "Pedido inválido (CSRF)" }, { status: 403 });
+    }
+
     const body = await request.json();
 
     // Validação com Zod

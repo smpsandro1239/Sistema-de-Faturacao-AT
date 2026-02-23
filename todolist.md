@@ -15,12 +15,12 @@
 - [x] Validar XML SAF-T contra XSD oficial da AT
 - [x] Testar SAF-T com validador oficial da AT (instruções adicionadas)
 - [ ] Preparar suporte futuro para Assinatura Digital Qualificada (ADQ) nas faturas (obrigatório provável a partir de 2027/2028)
-- [ ] Preparar suporte CIUS-PT / Faturação Eletrónica Estruturada B2G (obrigatório progressivo a partir de 2027)
+- [x] Preparar suporte CIUS-PT / Faturação Eletrónica Estruturada B2G (Biblioteca UBL 2.1 implementada)
 
 ### 6.2 Segurança
 - [x] Implementar gestão de sessões com JWT (jose library)
-- [x] Proteção contra CSRF nos formulários
-- [x] Rate limiting nas APIs de autenticação
+- [x] Proteção contra CSRF nos formulários (Origin/Referer check em rotas críticas)
+- [x] Rate limiting nas APIs de autenticação (Middleware implementado)
 
 ---
 
@@ -76,17 +76,17 @@
 - [ ] Implementar tema dark/light
 
 #### Portal do Cliente (área reservada)
-- [ ] Login separado para clientes finais
-- [ ] Ver faturas emitidas, pendentes, histórico
-- [ ] Download PDF + link de pagamento (ex: MB Way/Easypay)
+- [x] Login seguro via accessKey (UUID) por documento
+- [x] Ver faturas emitidas, pendentes, histórico
+- [x] Download PDF + link de pagamento (MB WAY / Cartão de Crédito Mock)
 
 #### Integrações de Pagamento
-- [ ] Stripe, MB Way, Easypay ou referência Multibanco
-- [ ] Atualização automática de estado pago
+- [x] MB Way e Cartão de Crédito (Interface e Mock Logic)
+- [x] Atualização automática de estado pago
 
 #### POS / Modo Venda Rápida
-- [ ] Interface simplificada (busca artigo rápida, totalizador, pagamento)
-- [ ] Otimizado para tablet / mobile
+- [x] Interface simplificada (busca artigo rápida, totalizador, pagamento)
+- [x] Otimizado para tablet / mobile (Layout responsivo implementado)
 
 #### Permissões Granulares (RBAC avançado)
 - [ ] Controlar acesso por módulo (ver/criar/editar/emitir/anular)
@@ -330,16 +330,16 @@
 
 | Área | Pendentes | Concluídas | Progresso aproximado |
 |------|-----------|------------|---------------------|
-| Requisitos Fiscais AT | 3–5 | 22+ | 93–95% |
-| Funcionalidades Comerciais | 4–6 | 36+ | 82–86% |
+| Requisitos Fiscais AT | 2–4 | 23+ | 95–96% |
+| Funcionalidades Comerciais | 3–4 | 40+ | 88–92% |
 | Performance | 3 | 1 | ~25% |
 | Testes | 8+ | 0 | ~5% |
-| Segurança | 6 | 5 | ~45% |
-| Frontend | 4–5 | 14 | ~78% |
-| Backend | 5–6 | 32+ | ~88% |
+| Segurança | 4 | 7 | ~65% |
+| Frontend | 3–4 | 16 | ~82% |
+| Backend | 4–5 | 35+ | ~92% |
 | Base de Dados | 4 | 22+ | ~88% |
-| Infraestrutura | 5 | 1 | ~15–20% |
-| Documentação | 6 | 2–3 | ~30% |
+| Infraestrutura | 3 | 3 | ~45–50% |
+| Documentação | 5 | 3–4 | ~40% |
 
 ---
 

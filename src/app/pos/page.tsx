@@ -169,12 +169,12 @@ export default function POSPage() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-screen bg-slate-50 overflow-hidden">
       {/* Esquerda: Grelha de Artigos */}
-      <div className="flex-1 flex flex-col p-4 space-y-4">
-        <header className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-slate-800">Ponto de Venda (POS)</h1>
-          <div className="relative w-96">
+      <div className="flex-1 flex flex-col p-4 space-y-4 overflow-hidden">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <h1 className="text-xl md:text-2xl font-bold text-slate-800">POS</h1>
+          <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
             <Input
               placeholder="Pesquisar por nome ou código..."
@@ -226,8 +226,8 @@ export default function POSPage() {
       </div>
 
       {/* Direita: Carrinho e Pagamento */}
-      <div className="w-[450px] bg-white border-l shadow-2xl flex flex-col">
-        <div className="p-4 border-b bg-slate-900 text-white flex justify-between items-center">
+      <div className="w-full lg:w-[450px] bg-white border-t lg:border-t-0 lg:border-l shadow-2xl flex flex-col h-[40vh] lg:h-full">
+        <div className="p-4 border-b bg-slate-900 text-white flex justify-between items-center sticky top-0">
           <div className="flex items-center gap-2">
             <ShoppingCart className="w-5 h-5" />
             <h2 className="font-bold">Carrinho Atual</h2>

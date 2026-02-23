@@ -23,6 +23,7 @@ export default function DocumentPortalPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState<"CARD" | "MBWAY" | null>(null);
 
   useEffect(() => {
     fetch(`/api/portal/documento/${key}`)
@@ -39,10 +40,14 @@ export default function DocumentPortalPage() {
   }, [key]);
 
   const handlePay = async () => {
+    if (!selectedMethod) return toast.error("Selecione um método de pagamento");
+
     setPaying(true);
     try {
       const res = await fetch(`/api/portal/documento/${key}/pagar`, {
-        method: "POST"
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ metodo: selectedMethod })
       });
       const result = await res.json();
       if (result.success) {
@@ -52,7 +57,7 @@ export default function DocumentPortalPage() {
         newData.documento.estadoPagamento = "PAGO";
         setData(newData);
       } else {
-        toast.error("Erro no pagamento");
+        toast.error(result.error || "Erro no pagamento");
       }
     } catch (error) {
       toast.error("Erro ao processar pagamento");
@@ -162,7 +167,10 @@ export default function DocumentPortalPage() {
                   <CardDescription>Escolha um método de pagamento seguro.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center gap-4 p-3 bg-white rounded-lg border cursor-pointer hover:border-emerald-500 transition-colors">
+                  <div
+                    className={`flex items-center gap-4 p-3 rounded-lg border cursor-pointer transition-all ${selectedMethod === 'CARD' ? 'border-emerald-500 bg-emerald-50' : 'bg-white hover:border-emerald-200'}`}
+                    onClick={() => setSelectedMethod('CARD')}
+                  >
                     <div className="bg-slate-100 p-2 rounded">
                       <CreditCard className="w-5 h-5" />
                     </div>
@@ -170,14 +178,20 @@ export default function DocumentPortalPage() {
                       <p className="text-sm font-medium">Cartão de Crédito</p>
                       <p className="text-xs text-slate-500">Stripe Secure</p>
                     </div>
+                    {selectedMethod === 'CARD' && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
                   </div>
-                  <div className="flex items-center gap-4 p-3 bg-white rounded-lg border cursor-pointer hover:border-emerald-500 transition-colors">
+                  <div
+                    className={`flex items-center gap-4 p-3 rounded-lg border cursor-pointer transition-all ${selectedMethod === 'MBWAY' ? 'border-emerald-500 bg-emerald-50' : 'bg-white hover:border-emerald-200'}`}
+                    onClick={() => setSelectedMethod('MBWAY')}
+                  >
                     <div className="bg-slate-100 p-2 rounded">
                       <Badge variant="secondary" className="text-[10px] bg-blue-100 text-blue-800">MBWAY</Badge>
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium">MB WAY</p>
+                      <p className="text-xs text-slate-500">Pagamento instantâneo</p>
                     </div>
+                    {selectedMethod === 'MBWAY' && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
                   </div>
                 </CardContent>
                 <CardFooter>
@@ -185,6 +199,19 @@ export default function DocumentPortalPage() {
                     {paying ? "Processando..." : `Pagar ${documento.totalLiquido.toFixed(2)}€`}
                   </Button>
                 </CardFooter>
+              </Card>
+            )}
+
+            {documento.estadoPagamento === "PAGO" && (
+              <Card className="border-emerald-200 bg-emerald-50">
+                <CardHeader className="text-center pb-2">
+                  <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto mb-2" />
+                  <CardTitle className="text-emerald-900">Documento Liquidado</CardTitle>
+                  <CardDescription className="text-emerald-700">Agradecemos o seu pagamento.</CardDescription>
+                </CardHeader>
+                <CardContent className="text-center text-xs text-emerald-600">
+                  Transação concluída via {documento.metodoPagamento || "sistema"}.
+                </CardContent>
               </Card>
             )}
 
