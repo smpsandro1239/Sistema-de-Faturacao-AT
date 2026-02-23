@@ -591,3 +591,18 @@ Stage Summary:
 O sistema agora cobre todo o ciclo comercial essencial para PMEs (Compras, Vendas, Stocks, Avenças, Contas Correntes). A base fiscal está sólida e a interface comercial está pronta para uso real. Segurança reforçada em todos os novos endpoints.
 
 **Status:** Concluído
+
+## [23-02-2026] - Task ID: 6 - Agent: Jules
+
+**Work Log:**
+- Segurança: Implementado mecanismo de Rate Limiting na rota de login (`src/lib/rate-limit.ts`) para prevenir ataques de força bruta.
+- Segurança: Adicionada proteção contra CSRF via validação de Origin/Referer em rotas críticas de escrita (Clientes e Documentos).
+- Portal do Cliente Seguro: Implementado sistema de acesso via `accessKey` (UUID) único por documento. O portal público permite consulta segura sem exposição de dados via NIF.
+- Integração de Email: Atualizado motor de email para incluir links diretos e seguros para o novo portal do cliente.
+- POS (Ponto de Venda): Desenvolvida interface de venda rápida (`src/app/pos/page.tsx`) com grelha de artigos, pesquisa instantânea, gestão de carrinho e finalização de venda integrada com emissão de documentos.
+- Base de Dados: Atualizado schema Prisma para suporte a chaves de acesso e sincronizado com `npx prisma db push`.
+
+**Stage Summary:**
+Reforço significativo na segurança da aplicação e entrega da primeira versão funcional do POS. O sistema está agora muito mais próximo de um estado pronto para produção, com proteção contra ataques comuns e um portal de cliente privado.
+
+**Status:** Concluído

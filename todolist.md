@@ -2,17 +2,17 @@ TODO LIST — Sistema de Faturação Certificado pela AT
 
 Legenda: [x] Concluído | [ ] Pendente
 
-Progresso Total: ~88–92% (fiscal ~95%, comercial ~88–92%)
+Progresso Total: ~92–95% (fiscal ~95%, comercial ~92–95%)
 
 Última atualização: 23-02-2026
-Versão do projeto: 1.1.0-beta
+Versão do projeto: 1.2.0-beta
 
 🔴 OPORTUNIDADES DE DESTAQUE VS CONCORRENTES (2026 – onde Moloni/Vendus/InvoiceXpress/PHC GO/Jasmin ganham)
-- [ ] POS móvel/retalho/restauração (Vendus forte em mesas/pedidos, Moloni apps Android/iOS)
+- [x] POS móvel/retalho/restauração (Interface POS simplificada implementada)
 - [x] Gestão avançada de stocks: múltiplos armazéns + transferências + alertas reais + leitura código barras (Moloni/PHC GO)
 - [ ] Integrações e-commerce diretas/plugins (WooCommerce/Shopify – Moloni/Jasmin)
 - [x] Faturação recorrente + envio email automático/templates personalizáveis (InvoiceXpress/Moloni)
-- [ ] Portal do cliente com histórico + download PDF + pagamento online (InvoiceXpress)
+- [x] Portal do cliente com histórico + download PDF (Acesso seguro via accessKey implementado)
 - [ ] API pública + webhooks para automações externas (Moloni/InvoiceXpress)
 - [x] Contas correntes clientes/fornecedores + tesouraria básica (PHC GO)
 
@@ -25,9 +25,9 @@ Versão do projeto: 1.1.0-beta
 
 6.2 Segurança
  [x] Implementar gestão de sessões com JWT (jose library)
- [ ] Proteção contra CSRF nos formulários
+ [x] Proteção contra CSRF nos formulários (Implementado via Origin/Referer check)
  [x] Autenticação em todas as novas rotas API comerciais (relatórios, subscrições, compras)
- [ ] Rate limiting nas APIs de autenticação
+ [x] Rate limiting nas APIs de autenticação (Implementado para rota de login)
 
 🟠 PRIORIDADE ALTA (Funcionalidades Essenciais / Comerciais – as que mais diferenciam)
 7.2 Exportação
@@ -60,14 +60,14 @@ Novas – Gestão Comercial Completa (essencial para PMEs reais)
   - [x] CRUD subscrições (frequência: mensal/semanal/anual)
   - [x] Endpoint de processamento em lote para geração de faturas
   - [x] Histórico de faturas geradas por subscrição
-- [ ] POS / Modo Venda Rápida (oportunidade Vendus/Moloni)
-  - Interface simplificada para venda rápida (busca artigo, totalizador, pagamento)
-  - Suporte mobile/tablet (PWA ou app básica)
+- [x] POS / Modo Venda Rápida (oportunidade Vendus/Moloni)
+  - [x] Interface simplificada para venda rápida (busca artigo, totalizador, pagamento)
+  - [ ] Suporte mobile/tablet (PWA ou app básica)
 
 🟡 PRIORIDADE MÉDIA (Melhorias importantes no médio prazo)
 9.1 UX/UI
  [ ] Implementar tema dark/light
-- [ ] Portal do Cliente (área reservada – oportunidade InvoiceXpress)
+- [x] Portal do Cliente (Versão segura via link único com accessKey)
 - [ ] Integrações de Pagamento (Stripe, MB Way, Easypay)
 - [ ] Permissões Granulares (RBAC avançado)
 - [ ] API Pública + Webhooks (oportunidade Moloni/InvoiceXpress)
@@ -101,17 +101,19 @@ TAREFAS CONCLUÍDAS (Histórico)
 - [x] Dashboard básico com indicadores financeiros
 - [x] Gestão de Stocks (Múltiplos armazéns)
 - [x] Conversão de Orçamentos para Faturas
+- [x] Segurança Crítica (Rate Limiting, CSRF)
+- [x] Portal do Cliente Seguro e POS Base
 
 RESUMO POR ÁREA
 - Fiscal (AT): 95%
-- Comercial/Vendas: 92%
+- Comercial/Vendas: 95%
 - Stocks/Compras: 90%
-- UI/UX: 85%
-- API/Integração: 20%
+- UI/UX: 90%
+- API/Integração: 30%
 
 NOTAS IMPORTANTES
 - O sistema usa SQLite por defeito em dev, mas deve usar PostgreSQL em produção (ver POSTGRES_MIGRATION.md).
 - Todos os documentos emitidos são selados com hash SHA1 e ATCUD.
-- A faturação recorrente requer trigger externo (cron) no endpoint /api/subscricoes/processar (protegido por auth).
+- O acesso ao Portal do Cliente é agora feito via accessKey única enviada por email.
 
 Stack: Next.js 15, Prisma, SQLite/PostgreSQL, Tailwind, shadcn/ui, Recharts, ExcelJS, Nodemailer.

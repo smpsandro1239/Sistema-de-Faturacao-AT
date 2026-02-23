@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
 import { authenticateUser, setSessionCookie } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { email, password } = body;
+
+    // Rate limiting: max 5 tentativas por email a cada 15 minutos
+    if (email && !rateLimit(`login:${email}`, 5, 15 * 60 * 1000)) {
+      return NextResponse.json(
+        { error: "Demasiadas tentativas de login. Por favor, aguarde 15 minutos." },
+        { status: 429 }
+      );
+    }
 
     if (!email || !password) {
       return NextResponse.json(

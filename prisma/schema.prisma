@@ -238,6 +238,7 @@ model Documento {
   hash                  String?          // Hash SHA-256 do documento
   hashDocumentoAnterior String?          // Hash do documento anterior (encadeamento)
   atcud                 String?          // ATCUD do documento
+  accessKey             String           @default(uuid())
   dataEmissao           DateTime?
   dataCriacao           DateTime         @default(now())
   
