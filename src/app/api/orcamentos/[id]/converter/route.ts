@@ -88,23 +88,30 @@ export async function POST(
       );
     }
 
-    // Obter último documento para hash
-    const ultimoDocumento = await db.documento.findFirst({
-      where: { tipo: { in: [TipoDocumento.FATURA, TipoDocumento.FATURA_RECIBO] } },
-      orderBy: { numero: "desc" },
-    });
-
     // Próximo número
     const proximoNumero = serie.numeroAtual + 1;
     const numeroFormatado = `${serie.prefixo} ${serie.ano}/${String(proximoNumero).padStart(5, "0")}`;
 
+    // Buscar último documento DA MESMA SÉRIE para hash
+    const ultimoDocumento = await db.documento.findFirst({
+      where: {
+        serieId: serie.id,
+        estado: EstadoDocumento.EMITIDO
+      },
+      orderBy: { dataEmissao: "desc" },
+    });
+
+    const dataEmissao = new Date();
+    const dataCriacao = new Date();
+
     // Gerar ATCUD
-    const atcud = gerarATCUD(serie.codigoValidacaoAT || "0", proximoNumero);
+    const atcud = gerarATCUD(serie.codigoValidacaoAT || "", proximoNumero);
 
     // Calcular hash
     const hash = calcularHashDocumento({
-      numero: numeroFormatado,
-      data: new Date(),
+      dataEmissao,
+      dataCriacao,
+      numeroDocumento: numeroFormatado,
       totalLiquido: orcamento.totalLiquido,
       hashAnterior: ultimoDocumento?.hash || null,
     });
@@ -114,7 +121,10 @@ export async function POST(
       // Atualizar número da série
       await tx.serie.update({
         where: { id: serie.id },
-        data: { numeroAtual: proximoNumero },
+        data: {
+          numeroAtual: proximoNumero,
+          bloqueado: true
+        },
       });
 
       // Criar documento
@@ -145,9 +155,10 @@ export async function POST(
           hash,
           hashDocumentoAnterior: ultimoDocumento?.hash || null,
           atcud,
-          dataEmissao: new Date(),
-          dataCriacao: new Date(),
+          dataEmissao,
+          dataCriacao,
           estado: EstadoDocumento.EMITIDO,
+          estadoPagamento: serie.tipoDocumento === TipoDocumento.FATURA_RECIBO ? "PAGO" : "PENDENTE",
           observacoes: observacoes || `Convertido do orçamento ${orcamento.numeroFormatado}`,
           linhas: {
             create: orcamento.linhas.map((linha) => ({
