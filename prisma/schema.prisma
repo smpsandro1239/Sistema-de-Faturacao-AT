@@ -122,8 +122,7 @@ model Artigo {
   stocksArmazem     ArtigoArmazemStock[]
   movimentosStock   MovimentoStock[]
   linhasEncomendaCompra LinhaEncomendaCompra[]
-  linhasFaturaCompra    LinhaFaturaCompra[]
-  linhasEncomendaCliente LinhaEncomendaCliente[]
+  linhasFaturaFornecedor LinhaFaturaFornecedor[]
 }
 
 // ============================================
@@ -370,7 +369,7 @@ model Fornecedor {
   updatedAt         DateTime @updatedAt
 
   encomendasCompra  EncomendaCompra[]
-  faturasCompra     FaturaCompra[]
+  faturasFornecedor FaturaFornecedor[]
 }
 
 // ============================================
@@ -524,6 +523,7 @@ model EncomendaCompra {
   armazemDestino        Armazem?              @relation(fields: [armazemDestinoId], references: [id])
   linhas                LinhaEncomendaCompra[]
   movimentosStock       MovimentoStock[]
+  faturaFornecedor     FaturaFornecedor? @relation("FaturaEncomenda")
 
   @@index([fornecedorId])
   @@index([estado])
@@ -671,147 +671,75 @@ model LinhaOrcamento {
 }
 
 // ============================================
-// FATURAS DE COMPRA (FORNECEDORES)
+// FATURAS DE FORNECEDORES
 // ============================================
 
-enum EstadoPagamento {
+enum EstadoFaturaFornecedor {
   PENDENTE
-  PARCIAL
-  PAGO
+  PAGA
+  PAGA_PARCIAL
+  CANCELADA
 }
 
-model FaturaCompra {
-  id                    String                @id @default(cuid())
-  numero                String                // Número da fatura do fornecedor
+model FaturaFornecedor {
+  id                    String                 @id @default(cuid())
+  numeroFatura          String                 // Número da fatura do fornecedor
   fornecedorId          String
 
-  // Dados do fornecedor no momento da criação
+  // Dados do fornecedor (histórico)
   fornecedorNome        String
   fornecedorNif         String
 
   // Datas
-  dataEmissao           DateTime
+  dataFatura            DateTime
   dataVencimento        DateTime?
+  dataPagamento         DateTime?
 
   // Totais
-  totalBase             Float                 @default(0)
-  totalIVA              Float                 @default(0)
-  totalLiquido          Float                 @default(0)
-
-  // Estado
-  estadoPagamento       EstadoPagamento       @default(PENDENTE)
-  valorPago             Float                 @default(0)
-
-  observacoes           String?
-
-  utilizadorId          String
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
-
-  fornecedor            Fornecedor            @relation(fields: [fornecedorId], references: [id])
-  linhas                LinhaFaturaCompra[]
-  pagamentos            PagamentoCompra[]
-
-  @@index([fornecedorId])
-  @@index([dataEmissao])
-}
-
-model LinhaFaturaCompra {
-  id                    String           @id @default(cuid())
-  faturaCompraId        String
-  artigoId              String?
-
-  descricao             String
-  quantidade            Float
-  precoUnitario         Float
-  desconto              Float            @default(0)
-
-  taxaIVAPercentagem    Float
-
-  base                  Float
-  valorIVA              Float
-
-  createdAt             DateTime         @default(now())
-  updatedAt             DateTime         @updatedAt
-
-  faturaCompra          FaturaCompra     @relation(fields: [faturaCompraId], references: [id], onDelete: Cascade)
-  artigo                Artigo?          @relation(fields: [artigoId], references: [id])
-}
-
-model PagamentoCompra {
-  id                    String           @id @default(cuid())
-  faturaCompraId        String
-  valor                 Float
-  data                  DateTime         @default(now())
-  metodo                MetodoPagamento
-  referencia            String?
-
-  createdAt             DateTime         @default(now())
-  updatedAt             DateTime         @updatedAt
-
-  faturaCompra          FaturaCompra     @relation(fields: [faturaCompraId], references: [id], onDelete: Cascade)
-}
-
-// ============================================
-// ENCOMENDAS DE CLIENTE (SALES ORDERS)
-// ============================================
-
-enum EstadoEncomendaCliente {
-  RASCUNHO
-  CONFIRMADA
-  EM_PREPARACAO
-  FATURADA
-  CANCELADA
-}
-
-model EncomendaCliente {
-  id                    String                 @id @default(cuid())
-  numero                Int                    // Número sequencial
-  numeroFormatado       String                 // "ENC 2024/00001"
-
-  clienteId             String
-  clienteNome           String
-  clienteNif            String
-
-  dataEncomenda         DateTime               @default(now())
-  dataEntregaPrevista   DateTime?
-
   totalBase             Float                  @default(0)
   totalIVA              Float                  @default(0)
   totalLiquido          Float                  @default(0)
+  totalPago             Float                  @default(0)
 
-  estado                EstadoEncomendaCliente @default(RASCUNHO)
+  // Estado
+  estado                EstadoFaturaFornecedor @default(PENDENTE)
 
-  documentoId           String?                // Fatura gerada
+  // Referências
+  encomendaCompraId     String?                @unique
+  encomendaCompra       EncomendaCompra?       @relation("FaturaEncomenda", fields: [encomendaCompraId], references: [id])
 
   observacoes           String?
-
   utilizadorId          String
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
-  cliente               Cliente                @relation(fields: [clienteId], references: [id])
-  linhas                LinhaEncomendaCliente[]
+  fornecedor            Fornecedor             @relation(fields: [fornecedorId], references: [id])
+  linhas                LinhaFaturaFornecedor[]
 
-  @@index([clienteId])
+  @@index([fornecedorId])
   @@index([estado])
+  @@index([dataFatura])
 }
 
-model LinhaEncomendaCliente {
+model LinhaFaturaFornecedor {
   id                    String           @id @default(cuid())
-  encomendaId           String
+  faturaFornecedorId    String
   artigoId              String?
 
+  // Dados do artigo
   codigoArtigo          String
   descricaoArtigo       String
 
+  // Quantidades e preços
   quantidade            Float
   precoUnitario         Float
   desconto              Float            @default(0)
 
+  // IVA
   taxaIVAId             String
   taxaIVAPercentagem    Float
 
+  // Totais
   base                  Float
   valorIVA              Float
 
@@ -820,6 +748,8 @@ model LinhaEncomendaCliente {
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
 
-  encomenda             EncomendaCliente @relation(fields: [encomendaId], references: [id], onDelete: Cascade)
+  faturaFornecedor      FaturaFornecedor @relation(fields: [faturaFornecedorId], references: [id], onDelete: Cascade)
   artigo                Artigo?          @relation(fields: [artigoId], references: [id])
+
+  @@index([faturaFornecedorId])
 }

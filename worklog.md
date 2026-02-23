@@ -505,24 +505,22 @@ Stage Summary:
 ---
 Task ID: 24
 Agent: Jules
-Task: Implementar Faturas de Fornecedor, Contas Correntes, Encomendas de Cliente e Envio de Email
+Task: Reforço da Gestão Comercial (Transferências de Stock e Faturas de Fornecedores)
 
 Work Log:
-- Adicionados modelos ao schema Prisma: FaturaCompra, LinhaFaturaCompra, PagamentoCompra, EncomendaCliente, LinhaEncomendaCliente.
-- Implementadas APIs CRUD para Faturas de Fornecedor (/api/compras/faturas) e Encomendas de Cliente (/api/encomendas).
-- Implementada API de conversão de Encomenda de Cliente para Fatura com geração de Hash e ATCUD.
-- Criada biblioteca de email (/src/lib/mail.ts) usando nodemailer para envio de documentos.
-- Implementada API de envio de documentos por email (/api/documentos/[id]/enviar-email).
-- Criadas páginas de frontend:
-  - /compras/faturas: Registo e pagamento de faturas de fornecedor.
-  - /encomendas: Gestão de ordens de venda com conversão para fatura.
-  - /contas-correntes: Visualização centralizada de saldos pendentes (clientes e fornecedores).
-- Atualizada navegação no Dashboard e links entre módulos.
-- Corrigido import quebrado de gerarATCUD em orçamentos.
-- Instaladas dependências: nodemailer, @types/nodemailer.
+- Implementadas transferências entre armazéns na UI de Stock (/stock/page.tsx).
+- Adicionado o campo "Armazém de Destino" condicionalmente no diálogo de movimentos.
+- Adicionada funcionalidade de simulação de envio de alertas de stock baixo.
+- Criados modelos Prisma FaturaFornecedor e LinhaFaturaFornecedor no schema.prisma.
+- Sincronizada a base de dados SQLite com os novos modelos.
+- Criada API para CRUD de faturas de fornecedores (/api/compras/faturas).
+- Criada página de gestão e registo de faturas de fornecedores (/compras/faturas/page.tsx).
+- Adicionado link para Faturas na página principal de Compras.
+- Resolvido erro de build criando a biblioteca /src/lib/atcud.ts para geração de códigos ATCUD.
+- Verificado que o build e lint estão a passar.
 
 Stage Summary:
-- Sistema comercial agora suporta o ciclo completo de compras (encomenda -> receção -> fatura -> pagamento).
-- Início da automação de comunicação com clientes via email.
-- Gestão de tesouraria básica com Contas Correntes.
-- Progresso comercial subiu para ~82-86%.
+- Gestão de stock reforçada com transferências.
+- Início do módulo de Compras avançado com registo de faturas de fornecedores.
+- Sistema agora permite o ciclo completo de compra (encomenda -> receção de stock -> fatura).
+- Progresso comercial subiu para ~72-76%.

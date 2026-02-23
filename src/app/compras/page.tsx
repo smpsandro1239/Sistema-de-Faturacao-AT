@@ -61,6 +61,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+import Link from "next/link";
 
 // Interfaces
 interface Fornecedor {
@@ -467,7 +468,7 @@ export default function PaginaEncomendasCompra() {
   const totais = calcularTotais();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div>
@@ -480,7 +481,7 @@ export default function PaginaEncomendasCompra() {
           <Link href="/compras/faturas">
             <Button variant="outline">
               <FileText className="h-4 w-4 mr-2" />
-              Ver Faturas
+              Faturas de Fornecedores
             </Button>
           </Link>
           <Button onClick={() => setDialogCriar(true)}>

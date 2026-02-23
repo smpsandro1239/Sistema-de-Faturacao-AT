@@ -4,238 +4,276 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Loader2, CreditCard, Search } from "lucide-react";
+import {
+  Search,
+  Plus,
+  FileText,
+  Truck,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Eye,
+  Trash2,
+  Loader2,
+  ArrowLeft,
+  Calendar,
+  Euro
+} from "lucide-react";
+import Link from "next/link";
 
-const estadosPagamentoConfig: Record<string, { label: string; color: string }> = {
-  PENDENTE: { label: "Pendente", color: "bg-red-100 text-red-800" },
-  PARCIAL: { label: "Parcial", color: "bg-yellow-100 text-yellow-800" },
-  PAGO: { label: "Pago", color: "bg-green-100 text-green-800" },
+interface Fornecedor {
+  id: string;
+  nome: string;
+  nif: string;
+}
+
+interface Fatura {
+  id: string;
+  numeroFatura: string;
+  fornecedorNome: string;
+  fornecedorNif: string;
+  dataFatura: string;
+  dataVencimento: string | null;
+  totalLiquido: number;
+  estado: string;
+}
+
+const estadosConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+  PENDENTE: { label: "Pendente", color: "bg-orange-100 text-orange-800", icon: <Clock className="h-3 w-3" /> },
+  PAGA: { label: "Paga", color: "bg-green-100 text-green-800", icon: <CheckCircle className="h-3 w-3" /> },
+  PAGA_PARCIAL: { label: "Paga Parcial", color: "bg-blue-100 text-blue-800", icon: <Euro className="h-3 w-3" /> },
+  CANCELADA: { label: "Cancelada", color: "bg-red-100 text-red-800", icon: <XCircle className="h-3 w-3" /> },
 };
 
-export default function FaturasCompraPage() {
+export default function FaturasFornecedoresPage() {
+  const [faturas, setFaturas] = useState<Fatura[]>([]);
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [faturas, setFaturas] = useState<any[]>([]);
-  const [fornecedores, setFornecedores] = useState<any[]>([]);
+  const [search, setSearch] = useState("");
   const [dialogCriar, setDialogCriar] = useState(false);
-  const [dialogPagamento, setDialogPagamento] = useState(false);
-  const [selecionada, setSelecionada] = useState<any>(null);
   const [saving, setSaving] = useState(false);
 
+  // Form
   const [form, setForm] = useState({
-    numero: "",
+    numeroFatura: "",
     fornecedorId: "",
-    dataEmissao: new Date().toISOString().split("T")[0],
-    linhas: [{ descricao: "Compra Geral", quantidade: 1, precoUnitario: 0, taxaIVAPercentagem: 23, taxaIVAId: "iva-normal" }],
+    dataFatura: new Date().toISOString().split('T')[0],
+    dataVencimento: "",
+    observacoes: "",
+    linhas: [] as any[],
   });
 
-  const [pagamentoForm, setPagamentoForm] = useState({
-    valor: 0,
-    metodo: "TRANSFERENCIA",
-  });
-
-  const carregarDados = useCallback(async () => {
+  const fetchFaturas = useCallback(async () => {
     setLoading(true);
     try {
-      const [resF, resP] = await Promise.all([
-        fetch("/api/compras/faturas"),
-        fetch("/api/fornecedores")
-      ]);
-      setFaturas(await resF.json());
-      setFornecedores((await resP.json()).fornecedores || []);
+      const params = new URLSearchParams();
+      if (search) params.append("search", search);
+      const response = await fetch(`/api/compras/faturas?${params}`);
+      const data = await response.json();
+      if (response.ok) setFaturas(data.faturas);
     } catch (error) {
-      toast.error("Erro ao carregar dados");
+      toast.error("Erro ao carregar faturas");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [search]);
 
   useEffect(() => {
-    carregarDados();
-  }, [carregarDados]);
+    fetchFaturas();
+    fetch("/api/fornecedores?limit=100")
+      .then(res => res.json())
+      .then(data => setFornecedores(data.fornecedores || []));
+  }, [fetchFaturas]);
 
-  const criarFatura = async () => {
-    if (!form.fornecedorId || !form.numero) return toast.error("Preencha os campos obrigatórios");
+  const handleSalvar = async () => {
+    if (!form.numeroFatura || !form.fornecedorId || form.linhas.length === 0) {
+      toast.error("Preencha os campos obrigatórios e adicione linhas");
+      return;
+    }
+
     setSaving(true);
     try {
-      const res = await fetch("/api/compras/faturas", {
+      const response = await fetch("/api/compras/faturas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      if (res.ok) {
-        toast.success("Fatura registada");
+      if (response.ok) {
+        toast.success("Fatura registada!");
         setDialogCriar(false);
-        carregarDados();
+        fetchFaturas();
+      } else {
+        const data = await response.json();
+        toast.error(data.error || "Erro ao salvar");
       }
+    } catch (error) {
+      toast.error("Erro ao salvar");
     } finally {
       setSaving(false);
     }
   };
 
-  const registarPagamento = async () => {
-    setSaving(true);
-    try {
-      const res = await fetch(`/api/compras/faturas/${selecionada.id}/pagamentos`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pagamentoForm),
-      });
-      if (res.ok) {
-        toast.success("Pagamento registado");
-        setDialogPagamento(false);
-        carregarDados();
-      }
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const formatarMoeda = (valor: number) => {
-    return new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(valor);
-  };
+  const formatCurrency = (val: number) => new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(val);
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Faturas de Fornecedor</h1>
-          <p className="text-muted-foreground">Registo de faturas de compra e despesas</p>
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <header className="bg-white border-b h-16 flex items-center px-6 sticky top-0 z-10">
+        <div className="flex items-center gap-4">
+          <Link href="/compras">
+            <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
+          </Link>
+          <h1 className="text-xl font-bold">Faturas de Fornecedores</h1>
         </div>
-        <Button onClick={() => setDialogCriar(true)}><Plus className="h-4 w-4 mr-2" /> Registar Fatura</Button>
-      </div>
+      </header>
 
-      <Card>
-        <CardContent className="pt-6">
-          {loading ? (
-            <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>
-          ) : (
+      <main className="flex-1 p-6 max-w-7xl mx-auto w-full space-y-6">
+        <div className="flex justify-between items-center">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Pesquisar faturas..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Button onClick={() => setDialogCriar(true)} className="bg-emerald-600 hover:bg-emerald-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Registar Fatura
+          </Button>
+        </div>
+
+        <Card>
+          <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Número</TableHead>
                   <TableHead>Fornecedor</TableHead>
                   <TableHead>Data</TableHead>
+                  <TableHead>Vencimento</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-right">Pago</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {faturas.map((f) => (
-                  <TableRow key={f.id}>
-                    <TableCell className="font-medium">{f.numero}</TableCell>
-                    <TableCell>{f.fornecedorNome}</TableCell>
-                    <TableCell>{new Date(f.dataEmissao).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={estadosPagamentoConfig[f.estadoPagamento]?.color}>
-                        {estadosPagamentoConfig[f.estadoPagamento]?.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">{formatarMoeda(f.totalLiquido)}</TableCell>
-                    <TableCell className="text-right text-green-600 font-medium">{formatarMoeda(f.valorPago)}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => { setSelecionada(f); setPagamentoForm({ ...pagamentoForm, valor: f.totalLiquido - f.valorPago }); setDialogPagamento(true); }} disabled={f.estadoPagamento === "PAGO"}>
-                        <CreditCard className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {loading ? (
+                  <TableRow><TableCell colSpan={6} className="text-center py-8">A carregar...</TableCell></TableRow>
+                ) : faturas.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} className="text-center py-8">Nenhuma fatura registada</TableCell></TableRow>
+                ) : (
+                  faturas.map((f) => (
+                    <TableRow key={f.id}>
+                      <TableCell className="font-medium">{f.numeroFatura}</TableCell>
+                      <TableCell>{f.fornecedorNome}</TableCell>
+                      <TableCell>{new Date(f.dataFatura).toLocaleDateString()}</TableCell>
+                      <TableCell>{f.dataVencimento ? new Date(f.dataVencimento).toLocaleDateString() : "-"}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={estadosConfig[f.estado]?.color}>
+                          {f.estado}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-bold">{formatCurrency(f.totalLiquido)}</TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </main>
 
-      {/* Dialog Criar */}
       <Dialog open={dialogCriar} onOpenChange={setDialogCriar}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Registar Fatura de Fornecedor</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Número da Fatura</Label>
-              <Input placeholder="Ex: FT 2024/123" value={form.numero} onChange={(e) => setForm({ ...form, numero: e.target.value })} />
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Registar Fatura de Fornecedor</DialogTitle>
+            <DialogDescription>Introduza os dados da fatura recebida</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Nº da Fatura *</Label>
+                <Input value={form.numeroFatura} onChange={e => setForm({...form, numeroFatura: e.target.value})} placeholder="Ex: FR 12345" />
+              </div>
+              <div className="space-y-2">
+                <Label>Fornecedor *</Label>
+                <Select value={form.fornecedorId} onValueChange={v => setForm({...form, fornecedorId: v})}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar fornecedor" /></SelectTrigger>
+                  <SelectContent>
+                    {fornecedores.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Data da Fatura *</Label>
+                <Input type="date" value={form.dataFatura} onChange={e => setForm({...form, dataFatura: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <Label>Data de Vencimento</Label>
+                <Input type="date" value={form.dataVencimento} onChange={e => setForm({...form, dataVencimento: e.target.value})} />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label>Fornecedor</Label>
-              <Select onValueChange={(v) => setForm({ ...form, fornecedorId: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione um fornecedor" /></SelectTrigger>
-                <SelectContent>
-                  {fornecedores.map((f) => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Taxa de IVA</Label>
-              <Select defaultValue="23" onValueChange={(v) => {
-                const taxa = parseFloat(v);
-                const currentTotal = form.linhas[0].precoUnitario * (1 + form.linhas[0].taxaIVAPercentagem / 100);
-                const newBase = currentTotal / (1 + taxa / 100);
-                setForm({
-                  ...form,
-                  linhas: [{
-                    ...form.linhas[0],
-                    taxaIVAPercentagem: taxa,
-                    taxaIVAId: taxa === 23 ? "iva-normal" : taxa === 13 ? "iva-intermedia" : "iva-reduzida",
-                    precoUnitario: newBase
-                  }]
-                });
-              }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="23">Normal (23%)</SelectItem>
-                  <SelectItem value="13">Intermédia (13%)</SelectItem>
-                  <SelectItem value="6">Reduzida (6%)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Valor Total (Líquido)</Label>
-              <Input type="number" placeholder="0.00" onChange={(e) => {
-                const total = parseFloat(e.target.value) || 0;
-                const base = total / (1 + form.linhas[0].taxaIVAPercentagem / 100);
-                setForm({ ...form, linhas: [{ ...form.linhas[0], precoUnitario: base }] });
-              }} />
+              <Label>Linhas (Simulação)</Label>
+              <Button variant="outline" size="sm" onClick={() => setForm({...form, linhas: [...form.linhas, { descricaoArtigo: "Artigo Genérico", quantidade: 1, precoUnitario: 0, taxaIVAPercentagem: 23 }]})}>
+                <Plus className="h-3 w-3 mr-1" /> Adicionar Linha
+              </Button>
+              {form.linhas.map((l, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <Input placeholder="Descrição" value={l.descricaoArtigo} onChange={e => {
+                    const nl = [...form.linhas];
+                    nl[i].descricaoArtigo = e.target.value;
+                    setForm({...form, linhas: nl});
+                  }} />
+                  <Input type="number" className="w-20" placeholder="Qtd" value={l.quantidade} onChange={e => {
+                    const nl = [...form.linhas];
+                    nl[i].quantidade = parseFloat(e.target.value);
+                    setForm({...form, linhas: nl});
+                  }} />
+                  <Input type="number" className="w-24" placeholder="Preço" value={l.precoUnitario} onChange={e => {
+                    const nl = [...form.linhas];
+                    nl[i].precoUnitario = parseFloat(e.target.value);
+                    setForm({...form, linhas: nl});
+                  }} />
+                  <Button variant="ghost" size="icon" onClick={() => setForm({...form, linhas: form.linhas.filter((_, idx) => idx !== i)})}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                </div>
+              ))}
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogCriar(false)}>Cancelar</Button>
-            <Button onClick={criarFatura} disabled={saving}>Registar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog Pagamento */}
-      <Dialog open={dialogPagamento} onOpenChange={setDialogPagamento}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Registar Pagamento</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-4">
-            <p>Registar pagamento para a fatura <strong>{selecionada?.numero}</strong></p>
-            <div className="space-y-2">
-              <Label>Valor a Pagar</Label>
-              <Input type="number" value={pagamentoForm.valor} onChange={(e) => setPagamentoForm({ ...pagamentoForm, valor: parseFloat(e.target.value) || 0 })} />
-            </div>
-            <div className="space-y-2">
-              <Label>Método de Pagamento</Label>
-              <Select value={pagamentoForm.metodo} onValueChange={(v) => setPagamentoForm({ ...pagamentoForm, metodo: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="TRANSFERENCIA">Transferência Bancária</SelectItem>
-                  <SelectItem value="NUMERARIO">Numerário</SelectItem>
-                  <SelectItem value="CARTAO_DEBITO">Cartão Débito</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogPagamento(false)}>Cancelar</Button>
-            <Button onClick={registarPagamento} disabled={saving}>Confirmar Pagamento</Button>
+            <Button onClick={handleSalvar} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Gravar Fatura"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
