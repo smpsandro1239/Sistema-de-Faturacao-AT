@@ -517,3 +517,21 @@ Work Log:
 Stage Summary:
 - Reforço da segurança e expansão da conectividade para e-commerce.
 - O sistema está mais robusto contra inputs inválidos e ataques comuns.
+
+---
+Task ID: 25
+Agent: Jules
+Task: Encomendas de Cliente, Avenças, Relatórios Excel e Dashboards Recharts
+
+Work Log:
+- Implementado ciclo de Encomendas de Cliente (Sales Orders): CRUD completo e motor de conversão para fatura com selagem AT (Hash/ATCUD).
+- Implementado módulo de Faturação Recorrente (Avenças): CRUD de subscrições e endpoint de processamento em lote (/api/subscricoes/processar) para geração automática de documentos fiscais.
+- Desenvolvido motor de Relatórios e Exportação: Integração com `exceljs` para exportar vendas e resumo de IVA detalhado por taxa para XLSX e CSV.
+- Upgrade do Dashboard: Adicionados gráficos Recharts dinâmicos para visualização de Vendas Mensais, Top 5 Clientes, Top 5 Artigos e Distribuição por Tipo de Documento.
+- Atualização do Layout PDF: Melhorado para suportar logótipo da empresa e design profissional.
+- Segurança: Garantida a autenticação JWT em todos os novos endpoints comerciais.
+
+Stage Summary:
+- O sistema comercial atingiu um nível de maturidade elevado, cobrindo o ciclo de venda assistida (encomendas) e automática (avenças).
+- Capacidade analítica reforçada com gráficos reais e exportação para contabilidade.
+- Progresso comercial subiu para ~82-86%.
