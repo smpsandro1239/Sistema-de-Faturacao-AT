@@ -157,6 +157,23 @@ export async function getSessionFromHeader(request: Request): Promise<JWTPayload
 }
 
 /**
+ * Valida se o pedido é legítimo (CSRF protection básica via Origin/Referer)
+ */
+export function validateCSRF(request: Request): boolean {
+  const origin = request.headers.get("origin");
+  const referer = request.headers.get("referer");
+  const host = request.headers.get("host");
+
+  // Em produção, verificar se origin ou referer pertencem ao host
+  if (process.env.NODE_ENV === "production") {
+    if (origin && !origin.includes(host!)) return false;
+    if (!origin && referer && !referer.includes(host!)) return false;
+  }
+
+  return true;
+}
+
+/**
  * Middleware helper para verificar autenticação em API routes
  */
 export async function authenticateRequest(request: Request): Promise<{

@@ -47,6 +47,7 @@ interface Documento {
   totalLiquido: number;
   hash: string | null;
   atcud: string | null;
+  logo?: string | null;
   estado: string;
   observacoes: string | null;
   linhas: Array<{
@@ -73,13 +74,17 @@ export default function DocumentoPage() {
     const carregarDocumento = async () => {
       try {
         // Tentar carregar da API primeiro
-        const response = await fetch(`/api/documentos?id=${params.id}`);
+        const response = await fetch(`/api/documentos/${params.id}`);
         
         if (response.ok) {
           const data = await response.json();
           
           if (data.documento) {
-            setDocumento(data.documento);
+            const docComLogo = {
+              ...data.documento,
+              logo: data.empresa?.logo || null
+            };
+            setDocumento(docComLogo);
             
             // Gerar QR Code
             if (data.documento.hash && data.documento.atcud) {
@@ -305,12 +310,17 @@ export default function DocumentoPage() {
         <Card className="p-8 print:shadow-none print:border-none" id="documento-impressao">
           {/* Cabeçalho da empresa */}
           <div className="flex justify-between items-start mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">{documento.empresaNome}</h1>
-              <div className="mt-2 text-sm text-slate-600 space-y-1">
-                <p>NIF: {documento.empresaNif}</p>
-                <p>{documento.empresaMorada}</p>
-                <p>{documento.empresaCodigoPostal} {documento.empresaLocalidade}</p>
+            <div className="flex items-start gap-4">
+              {documento.logo && (
+                <img src={documento.logo} alt="Logo" className="w-20 h-20 object-contain border rounded p-1 bg-white" />
+              )}
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900">{documento.empresaNome}</h1>
+                <div className="mt-2 text-sm text-slate-600 space-y-1">
+                  <p>NIF: {documento.empresaNif}</p>
+                  <p>{documento.empresaMorada}</p>
+                  <p>{documento.empresaCodigoPostal} {documento.empresaLocalidade}</p>
+                </div>
               </div>
             </div>
             

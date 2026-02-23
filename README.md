@@ -1,63 +1,64 @@
-# FaturaAT — Sistema de Faturação Certificado pela AT
+# FaturaAT — Sistema de Faturação Certificado (Portugal)
 
-Um sistema completo de faturação certificado pela Autoridade Tributária portuguesa (AT), desenvolvido com tecnologias modernas para PMEs reais.
+Sistema completo de faturação certificado pela Autoridade Tributária (AT), focado em PMEs reais. Concorrente direto de Moloni, Vendus e InvoiceXpress.
 
-## ✨ Funcionalidades Principais
+## 🚀 Funcionalidades Implementadas
 
-### ⚖️ Conformidade Fiscal AT
-- **Hash Encadeado**: Implementação rigorosa do algoritmo SHA-256 conforme a Portaria 363/2010.
-- **ATCUD**: Geração automática do Código Único de Documento.
-- **QR Code**: Integrado em todos os documentos conforme os requisitos legais.
-- **SAF-T (PT)**: Exportação e validação completa do ficheiro XML.
-- **Auditoria**: Registo detalhado de todas as operações críticas do sistema.
+### ⚖️ Fiscal & Conformidade (AT)
+- **Algoritmo de Hash Certificado**: Selagem de documentos com SHA1 encadeado.
+- **ATCUD & QR Code**: Geração automática de códigos obrigatórios.
+- **SAF-T PT**: Exportação completa do ficheiro de auditoria (XML 1.04).
+- **Validação AT**: Lógica pronta para submissão e conformidade total.
 
-### 📦 Gestão Comercial
-- **Documentos**: Faturas, Faturas-Recibo, Notas de Crédito e Orçamentos.
-- **Stocks**: Gestão multi-armazém, transferências entre armazéns e alertas de stock baixo.
-- **Compras**: Encomendas de compra a fornecedores com receção automática de stock.
-- **Fornecedores**: Gestão completa de base de dados de fornecedores.
-- **Faturas de Fornecedores**: Registo e controlo de faturas recebidas.
-- **Orçamentos**: Propostas comerciais com conversão direta para fatura.
+### 💼 Gestão Comercial
+- **Stocks & Inventário**: Suporte a múltiplos armazéns, movimentos automáticos e alertas de stock baixo.
+- **Compras & Fornecedores**: Ciclo completo de compras, registo de faturas de fornecedor e pagamentos.
+- **Vendas & Orçamentos**: Emissão de Faturas, Faturas-Recibo e Notas de Crédito. Conversão de orçamentos e encomendas.
+- **Avenças (Faturação Recorrente)**: Gestão de subscrições com processamento automático em lote.
+- **Contas Correntes**: Controlo de saldos pendentes de clientes e fornecedores.
 
-### 📊 Dashboard e Relatórios
-- **Estatísticas em tempo real**: Volume de faturação, faturas do dia, clientes ativos.
-- **Gráficos**: Vendas mensais e distribuição por tipo de documento.
-- **Alertas**: Notificações visuais de stock baixo e documentos pendentes.
+### 📊 Inteligência de Negócio
+- **Dashboard Avançado**: Gráficos de evolução de vendas, top de clientes e top de artigos (Recharts).
+- **Relatórios Profissionais**: Exportação de dados de vendas para Excel (XLSX) e CSV.
+- **Automação de Email**: Envio de faturas PDF diretamente para o cliente via SMTP/Nodemailer.
 
-## 🚀 Stack Tecnológica
+## 🛠️ Stack Tecnológica
 
-- **Framework**: Next.js 16 (App Router)
-- **Linguagem**: TypeScript
-- **Estilo**: Tailwind CSS + shadcn/ui
-- **Base de Dados**: Prisma ORM + SQLite (PostgreSQL recomendado para produção)
-- **Autenticação**: JWT (jose) + bcryptjs
-- **Notificações**: Sonner (Toasts)
+- **Framework**: Next.js 15 (App Router)
+- **Base de Dados**: Prisma ORM (SQLite em dev, PostgreSQL em prod)
+- **UI/UX**: Tailwind CSS 4, shadcn/ui, Lucide Icons
 - **Gráficos**: Recharts
+- **Relatórios**: ExcelJS
+- **Segurança**: JWT (jose), bcryptjs
+- **Email**: Nodemailer
 
-## 🛠️ Instalação e Desenvolvimento
+## 🚀 Início Rápido
 
-\`\`\`bash
-# Instalar dependências
-npm install
+1. **Instalar dependências**:
+   ```bash
+   npm install
+   ```
 
-# Configurar base de dados
-npx prisma generate
-npx prisma db push
+2. **Configurar Base de Dados**:
+   ```bash
+   npx prisma db push
+   ```
 
-# Povoar base de dados
-npm run seed
+3. **Iniciar Desenvolvimento**:
+   ```bash
+   npm run dev
+   ```
 
-# Iniciar servidor
-npm run dev
-\`\`\`
+## 🔒 Produção (PostgreSQL)
 
-## 🔐 Segurança
+Para ambiente de produção, é obrigatória a utilização de PostgreSQL. Consulte o ficheiro [POSTGRES_MIGRATION.md](./POSTGRES_MIGRATION.md) para instruções detalhadas de migração.
 
-O sistema implementa:
-- Gestão de sessões via JWT.
-- Hashing de passwords com bcrypt.
-- Bloqueio de documentos e séries após emissão/uso.
-- Logs de auditoria imutáveis.
+## 📁 Estrutura do Projeto
+
+- `src/app/api`: Endpoints REST protegidos.
+- `src/components`: Componentes UI reutilizáveis.
+- `src/lib`: Lógica de negócio (fiscal, hash, pdf, email).
+- `prisma/`: Esquema da base de dados.
 
 ---
-Desenvolvido como um sistema robusto e seguro para o mercado português. 🚀
+Desenvolvido para conformidade rigorosa com os requisitos fiscais portugueses.

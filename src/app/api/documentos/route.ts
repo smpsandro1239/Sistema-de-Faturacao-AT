@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { createHash } from "crypto";
+import { validateCSRF } from "@/lib/auth";
+import { fireWebhooks } from "@/lib/webhooks";
 
 // Função para calcular hash SHA-256 do documento
 function calcularHash(documento: {
@@ -42,6 +44,10 @@ export async function GET() {
 // POST - Criar novo documento
 export async function POST(request: Request) {
   try {
+    if (!validateCSRF(request)) {
+      return NextResponse.json({ error: "Pedido inválido (CSRF)" }, { status: 403 });
+    }
+
     const body = await request.json();
     const { serieId, clienteId, utilizadorId, tipo, linhas, observacoes, documentoOriginalId } = body;
 
@@ -192,6 +198,10 @@ export async function POST(request: Request) {
 // PATCH - Emitir documento (calcular hash e ATCUD)
 export async function PATCH(request: Request) {
   try {
+    if (!validateCSRF(request)) {
+      return NextResponse.json({ error: "Pedido inválido (CSRF)" }, { status: 403 });
+    }
+
     const body = await request.json();
     const { id } = body;
 
@@ -250,7 +260,14 @@ export async function PATCH(request: Request) {
         hashDocumentoAnterior: documentoAnterior?.hash || null,
         atcud,
       },
+      include: {
+        cliente: true,
+        linhas: true,
+      }
     });
+
+    // Disparar Webhooks
+    fireWebhooks("DOCUMENTO.EMITIDO", documentoEmitido).catch(console.error);
 
     return NextResponse.json(documentoEmitido);
   } catch (error) {

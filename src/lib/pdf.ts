@@ -33,6 +33,7 @@ interface DocumentoPDF {
   observacoes: string | null;
   linhas: LinhaDocumento[];
   qrCodeURL?: string;
+  logo?: string | null;
 }
 
 const getTipoDocumentoLabel = (tipo: string): string => {
@@ -74,8 +75,17 @@ export async function gerarPDFDocumento(documento: DocumentoPDF): Promise<void> 
   const margin = 20;
   const pageWidth = doc.internal.pageSize.getWidth();
   
-  // Header - Empresa
-  doc.setFontSize(20);
+  // Header - Logo and Empresa
+  if (documento.logo) {
+    try {
+      doc.addImage(documento.logo, 'PNG', margin, yPos, 30, 30);
+      yPos += 35;
+    } catch (e) {
+      console.error("Erro ao adicionar logo ao PDF", e);
+    }
+  }
+
+  doc.setFontSize(18);
   doc.setTextColor(...darkColor);
   doc.setFont('helvetica', 'bold');
   doc.text(documento.empresaNome, margin, yPos);

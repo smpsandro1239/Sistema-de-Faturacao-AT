@@ -38,6 +38,7 @@ interface Empresa {
   matricula: string | null;
   capitalSocial: number | null;
   certificadoAT: string | null;
+  logo: string | null;
 }
 
 export default function ConfiguracoesPage() {
@@ -58,6 +59,7 @@ export default function ConfiguracoesPage() {
     matricula: "",
     capitalSocial: "",
     certificadoAT: "",
+    logo: "",
   });
 
   useEffect(() => {
@@ -84,6 +86,7 @@ export default function ConfiguracoesPage() {
             matricula: data.matricula || "",
             capitalSocial: data.capitalSocial?.toString() || "",
             certificadoAT: data.certificadoAT || "",
+            logo: data.logo || "",
           });
         }
       }
@@ -92,6 +95,21 @@ export default function ConfiguracoesPage() {
       toast.error("Erro ao carregar dados da empresa");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 500000) {
+        toast.error("O logótipo deve ter menos de 500KB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, logo: reader.result as string });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -229,6 +247,38 @@ export default function ConfiguracoesPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Logótipo */}
+            <div className="flex flex-col items-center gap-4 p-4 border-2 border-dashed rounded-lg bg-slate-50">
+              {formData.logo ? (
+                <div className="relative group">
+                  <img src={formData.logo} alt="Logo" className="max-h-32 rounded border shadow-sm" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded">
+                    <Button variant="secondary" size="sm" onClick={() => setFormData({ ...formData, logo: "" })}>
+                      Remover
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center text-slate-400">
+                  <Building2 className="h-12 w-12 mb-2" />
+                  <p className="text-sm">Sem logótipo configurado</p>
+                </div>
+              )}
+              <div>
+                <input
+                  type="file"
+                  id="logo-upload"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleLogoChange}
+                />
+                <Button variant="outline" onClick={() => document.getElementById('logo-upload')?.click()}>
+                  Selecionar Logótipo
+                </Button>
+                <p className="text-[10px] text-center mt-2 text-slate-500">PNG ou JPG até 500KB</p>
+              </div>
+            </div>
+
             {/* Dados básicos */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">

@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { enviarEmailDocumento } from "@/lib/mail";
+import { authenticateRequest } from "@/lib/auth";
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const { id } = await params;
     const body = await request.json();
     const { email } = body;

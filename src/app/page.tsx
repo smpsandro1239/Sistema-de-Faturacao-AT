@@ -23,7 +23,8 @@ import {
   BarChart3,
   Truck,
   Warehouse,
-  AlertTriangle
+  AlertTriangle,
+  Repeat
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
@@ -65,6 +66,15 @@ interface Estatisticas {
     tipo: string;
     quantidade: number;
     total: number;
+  }>;
+  vendasPorCliente: Array<{
+    nome: string;
+    total: number;
+  }>;
+  vendasPorArtigo: Array<{
+    nome: string;
+    total: number;
+    quantidade: number;
   }>;
   ivaResumo: Array<{
     taxa: string;
@@ -267,6 +277,14 @@ export default function Dashboard() {
               <FileText className="h-4 w-4" />
               Encomendas
             </Link>
+            <Link href="/subscricoes" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
+              <Repeat className="h-4 w-4" />
+              Avenças
+            </Link>
+            <Link href="/relatorios" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
+              <FileSpreadsheet className="h-4 w-4" />
+              Relatórios
+            </Link>
             <Link href="/contas-correntes" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
               <Euro className="h-4 w-4" />
               Contas Correntes
@@ -274,6 +292,10 @@ export default function Dashboard() {
             <Link href="/series" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
               <Settings className="h-4 w-4" />
               Séries
+            </Link>
+            <Link href="/configuracoes/utilizadores" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
+              <Users className="h-4 w-4" />
+              Equipa
             </Link>
             <Link href="/saf-t" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
               <FileSpreadsheet className="h-4 w-4" />
@@ -434,6 +456,65 @@ export default function Dashboard() {
                 <div className="h-[250px] flex items-center justify-center text-slate-500">
                   Sem dados suficientes
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Top Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Top Clients */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-emerald-600" />
+                <CardTitle className="text-lg">Top 5 Clientes</CardTitle>
+              </div>
+              <CardDescription>Clientes com maior volume de faturação</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <Skeleton className="h-[200px] w-full" />
+              ) : stats?.vendasPorCliente && stats.vendasPorCliente.length > 0 ? (
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={stats.vendasPorCliente} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis type="number" tickFormatter={formatChartCurrency} />
+                    <YAxis type="category" dataKey="nome" width={100} tick={{ fontSize: 10 }} />
+                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    <Bar dataKey="total" fill="#059669" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[200px] flex items-center justify-center text-slate-500">Sem dados</div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Top Articles */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-teal-600" />
+                <CardTitle className="text-lg">Top 5 Artigos</CardTitle>
+              </div>
+              <CardDescription>Artigos/Serviços mais vendidos</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <Skeleton className="h-[200px] w-full" />
+              ) : stats?.vendasPorArtigo && stats.vendasPorArtigo.length > 0 ? (
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={stats.vendasPorArtigo} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis type="number" tickFormatter={formatChartCurrency} />
+                    <YAxis type="category" dataKey="nome" width={100} tick={{ fontSize: 10 }} />
+                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    <Bar dataKey="total" fill="#0d9488" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[200px] flex items-center justify-center text-slate-500">Sem dados</div>
               )}
             </CardContent>
           </Card>

@@ -63,6 +63,8 @@ export async function enviarEmailDocumento(documento: any, clienteEmail: string)
     ${documento.empresaNome}
   `;
 
+  const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/portal/documento/${documento.accessKey}`;
+
   const html = `
     <div style="font-family: sans-serif; padding: 20px; color: #333;">
       <h2>Fatura ${documento.numeroFormatado}</h2>
@@ -82,6 +84,10 @@ export async function enviarEmailDocumento(documento: any, clienteEmail: string)
           <td style="padding: 10px; border: 1px solid #dee2e6;"><strong>${documento.totalLiquido.toFixed(2)}€</strong></td>
         </tr>
       </table>
+      <p style="margin-top: 20px;">
+        Pode consultar e descarregar o PDF original no nosso portal seguro:<br>
+        <a href="${portalUrl}" style="display: inline-block; padding: 10px 20px; background-color: #10b981; color: white; text-decoration: none; border-radius: 5px; margin-top: 10px;">Ver Fatura Online</a>
+      </p>
       <p style="margin-top: 20px;">Obrigado pela sua preferência.</p>
       <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
       <p style="font-size: 12px; color: #777;">${documento.empresaNome} | NIF: ${documento.empresaNif}</p>

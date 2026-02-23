@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { authenticateRequest } from "@/lib/auth";
 
 // Stock baixo - função local para evitar problemas de importação
 async function obterArtigosStockBaixo() {
@@ -46,8 +47,13 @@ async function obterArtigosStockBaixo() {
 }
 
 // GET - Obter estatísticas para o dashboard
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const hoje = new Date();
     const inicioHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
     const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
@@ -191,6 +197,24 @@ export async function GET() {
     // Stock baixo
     const artigosStockBaixo = await obterArtigosStockBaixo();
 
+    // Vendas por Cliente (Top 5)
+    const vendasPorCliente = await db.documento.groupBy({
+      by: ['clienteId', 'clienteNome'],
+      where: { estado: "EMITIDO" },
+      _sum: { totalLiquido: true },
+      orderBy: { _sum: { totalLiquido: 'desc' } },
+      take: 5,
+    });
+
+    // Vendas por Artigo (Top 5)
+    const vendasPorArtigo = await db.linhaDocumento.groupBy({
+      by: ['artigoId', 'descricaoArtigo'],
+      where: { documento: { estado: "EMITIDO" } },
+      _sum: { totalLiquido: true, quantidade: true },
+      orderBy: { _sum: { totalLiquido: 'desc' } },
+      take: 5,
+    });
+
     // Fornecedores ativos
     let fornecedoresAtivos = 0;
     try {
@@ -226,6 +250,15 @@ export async function GET() {
       })),
       vendasMensais,
       vendasPorTipo,
+      vendasPorCliente: vendasPorCliente.map(c => ({
+        nome: c.clienteNome,
+        total: c._sum.totalLiquido || 0,
+      })),
+      vendasPorArtigo: vendasPorArtigo.map(a => ({
+        nome: a.descricaoArtigo,
+        quantidade: a._sum.quantidade || 0,
+        total: a._sum.totalLiquido || 0,
+      })),
       ivaResumo,
       stockBaixo: artigosStockBaixo,
       fornecedoresAtivos,

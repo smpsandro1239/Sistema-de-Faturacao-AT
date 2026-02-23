@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { validateSAFTStructure, getSAFTValidationSummary } from "@/lib/saft-validation";
+import { authenticateRequest, temPermissao } from "@/lib/auth";
 
 // GET - Gerar SAF-T XML ou validar
 export async function GET(request: Request) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated || !temPermissao(auth.user!.perfil, "export")) {
+      return NextResponse.json({ error: "Permissões insuficientes para exportar SAF-T" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const mes = parseInt(searchParams.get("mes") || "1");
     const ano = parseInt(searchParams.get("ano") || new Date().getFullYear().toString());
@@ -97,6 +103,11 @@ export async function GET(request: Request) {
 // POST - Validar SAF-T XML
 export async function POST(request: Request) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated || !temPermissao(auth.user!.perfil, "export")) {
+      return NextResponse.json({ error: "Permissões insuficientes para validar SAF-T" }, { status: 403 });
+    }
+
     const body = await request.json();
     const { xmlContent } = body;
 
