@@ -6,10 +6,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { EstadoOrcamento } from "@prisma/client";
+import { authenticateRequest } from "@/lib/auth";
 
 // GET - Listar orçamentos
 export async function GET(request: NextRequest) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated || !auth.user?.empresaId) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const estado = searchParams.get("estado");
     const clienteId = searchParams.get("clienteId");
@@ -20,6 +26,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     const where = {
+      empresaId: auth.user.empresaId,
       ...(estado && { estado: estado as EstadoOrcamento }),
       ...(clienteId && { clienteId }),
       ...(search && {
@@ -92,6 +99,11 @@ export async function GET(request: NextRequest) {
 // POST - Criar novo orçamento
 export async function POST(request: NextRequest) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated || !auth.user?.empresaId) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     // Verificar se o modelo existe
     if (!db.orcamento) {
       return NextResponse.json(
@@ -127,8 +139,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Buscar cliente
-    const cliente = await db.cliente.findUnique({
-      where: { id: clienteId },
+    const cliente = await db.cliente.findFirst({
+      where: {
+        id: clienteId,
+        empresaId: auth.user.empresaId
+      },
     });
 
     if (!cliente) {
@@ -142,6 +157,7 @@ export async function POST(request: NextRequest) {
     const anoAtual = new Date().getFullYear();
     const ultimoOrcamento = await db.orcamento.findFirst({
       where: {
+        empresaId: auth.user.empresaId,
         numeroFormatado: { contains: `${anoAtual}` },
       },
       orderBy: { numero: "desc" },
@@ -175,8 +191,11 @@ export async function POST(request: NextRequest) {
         // Buscar artigo se especificado
         let artigo = null;
         if (artigoId) {
-          artigo = await db.artigo.findUnique({
-            where: { id: artigoId },
+          artigo = await db.artigo.findFirst({
+            where: {
+              id: artigoId,
+              empresaId: auth.user!.empresaId
+            },
             include: { taxaIVA: true },
           });
         }
@@ -209,6 +228,7 @@ export async function POST(request: NextRequest) {
     // Criar orçamento
     const orcamento = await db.orcamento.create({
       data: {
+        empresaId: auth.user.empresaId,
         numero: proximoNumero,
         numeroFormatado,
         clienteId,

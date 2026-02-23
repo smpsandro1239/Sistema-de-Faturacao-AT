@@ -38,36 +38,26 @@ export async function POST(
     const empresa = await db.empresa.findFirst();
     if (!empresa) return NextResponse.json({ error: "Empresa não configurada" }, { status: 400 });
 
-    // Buscar último documento DA MESMA SÉRIE para hash
     const ultimoDocumento = await db.documento.findFirst({
-      where: {
-        serieId: serie.id,
-        estado: EstadoDocumento.EMITIDO
-      },
-      orderBy: { dataEmissao: "desc" },
+      where: { tipo: { in: [TipoDocumento.FATURA, TipoDocumento.FATURA_RECIBO] } },
+      orderBy: { numero: "desc" },
     });
 
     const proximoNumero = serie.numeroAtual + 1;
     const numeroFormatado = `${serie.prefixo} ${serie.ano}/${String(proximoNumero).padStart(5, "0")}`;
-    const dataEmissao = new Date();
-    const dataCriacao = new Date();
-
-    const atcud = gerarATCUD(serie.codigoValidacaoAT || "", proximoNumero);
+    const atcud = gerarATCUD(serie.codigoValidacaoAT || "0", proximoNumero);
     const hash = calcularHashDocumento({
       numeroDocumento: numeroFormatado,
-      dataEmissao,
-      dataCriacao,
+      dataEmissao: new Date(),
       totalLiquido: encomenda.totalLiquido,
       hashAnterior: ultimoDocumento?.hash || null,
+      tipoDocumento: serie.tipoDocumento,
     });
 
     const documento = await db.$transaction(async (tx) => {
       await tx.serie.update({
         where: { id: serie.id },
-        data: {
-          numeroAtual: proximoNumero,
-          bloqueado: true
-        },
+        data: { numeroAtual: proximoNumero },
       });
 
       const doc = await tx.documento.create({
@@ -82,19 +72,17 @@ export async function POST(
           clienteNif: encomenda.clienteNif,
           empresaNome: empresa.nome,
           empresaNif: empresa.nif,
-          empresaMorada: empresa.morada || "",
-          empresaCodigoPostal: empresa.codigoPostal || "",
-          empresaLocalidade: empresa.localidade || "",
+          empresaMorada: empresa.morada,
+          empresaCodigoPostal: empresa.codigoPostal,
+          empresaLocalidade: empresa.localidade,
           totalBase: encomenda.totalBase,
           totalIVA: encomenda.totalIVA,
           totalLiquido: encomenda.totalLiquido,
           hash,
           hashDocumentoAnterior: ultimoDocumento?.hash || null,
           atcud,
-          dataEmissao,
-          dataCriacao,
+          dataEmissao: new Date(),
           estado: EstadoDocumento.EMITIDO,
-          estadoPagamento: serie.tipoDocumento === TipoDocumento.FATURA_RECIBO ? "PAGO" : "PENDENTE",
           linhas: {
             create: encomenda.linhas.map((l) => ({
               artigoId: l.artigoId,
@@ -159,6 +147,6 @@ export async function POST(
     return NextResponse.json(documento, { status: 201 });
   } catch (error) {
     console.error("Erro ao converter encomenda:", error);
-    return NextResponse.json({ error: "Erro interno: " + (error instanceof Error ? error.message : "") }, { status: 500 });
+    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 }

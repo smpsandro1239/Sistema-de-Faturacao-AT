@@ -42,6 +42,12 @@ model Empresa {
   encomendasCliente EncomendaCliente[]
   fornecedores    Fornecedor[]
   armazens        Armazem[]
+  apiKeys         ApiKey[]
+  webhooks        WebhookConfig[]
+  faturasCompra   FaturaCompra[]
+  subscricoes     Subscricao[]
+  movimentosBancarios MovimentoBancario[]
+  encomendasCompra EncomendaCompra[]
 }
 
 // ============================================
@@ -525,6 +531,7 @@ model EncomendaCompra {
   numeroFormatado       String                // "EC 2024/00001"
   
   fornecedorId          String
+  empresaId             String?
   
   // Dados do fornecedor no momento da criação
   fornecedorNome        String
@@ -553,6 +560,7 @@ model EncomendaCompra {
   createdAt             DateTime              @default(now())
   updatedAt             DateTime              @updatedAt
 
+  empresa               Empresa?              @relation(fields: [empresaId], references: [id])
   fornecedor            Fornecedor            @relation(fields: [fornecedorId], references: [id])
   armazemDestino        Armazem?              @relation(fields: [armazemDestinoId], references: [id])
   linhas                LinhaEncomendaCompra[]
@@ -719,6 +727,7 @@ model FaturaCompra {
   id                    String                @id @default(cuid())
   numero                String                // Número da fatura do fornecedor
   fornecedorId          String
+  empresaId             String?
 
   // Dados do fornecedor no momento da criação
   fornecedorNome        String
@@ -743,6 +752,7 @@ model FaturaCompra {
   createdAt             DateTime              @default(now())
   updatedAt             DateTime              @updatedAt
 
+  empresa               Empresa?              @relation(fields: [empresaId], references: [id])
   fornecedor            Fornecedor            @relation(fields: [fornecedorId], references: [id])
   linhas                LinhaFaturaCompra[]
   pagamentos            PagamentoCompra[]
@@ -883,6 +893,7 @@ enum EstadoSubscricao {
 model Subscricao {
   id                    String               @id @default(cuid())
   clienteId             String
+  empresaId             String?
   clienteNome           String
   clienteNif            String
 
@@ -908,6 +919,7 @@ model Subscricao {
   createdAt             DateTime             @default(now())
   updatedAt             DateTime             @updatedAt
 
+  empresa               Empresa?             @relation(fields: [empresaId], references: [id])
   cliente               Cliente              @relation(fields: [clienteId], references: [id])
   serie                 Serie                @relation(fields: [serieId], references: [id])
   linhas                LinhaSubscricao[]
@@ -950,6 +962,7 @@ model LinhaSubscricao {
 model MovimentoBancario {
   id                String   @id @default(cuid())
   data              DateTime
+  empresaId         String?
   descricao         String
   valor             Float
   referencia        String?
@@ -959,6 +972,7 @@ model MovimentoBancario {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  empresa           Empresa? @relation(fields: [empresaId], references: [id])
   pagamento         Pagamento? @relation(fields: [pagamentoId], references: [id])
 }
 
@@ -971,11 +985,14 @@ model ApiKey {
   key           String    @unique
   nome          String    // Ex: "App Mobile", "E-commerce"
   utilizadorId  String?
+  empresaId     String?
   permissao     String    @default("READ_WRITE") // READ, READ_WRITE
   ativo         Boolean   @default(true)
   ultimaUtilizacao DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  empresa       Empresa?  @relation(fields: [empresaId], references: [id])
 }
 
 model WebhookConfig {
@@ -984,7 +1001,10 @@ model WebhookConfig {
   evento        String    // "DOCUMENTO.EMITIDO", "DOCUMENTO.PAGO", "*"
   descricao     String?
   secreto       String?   // Para assinatura do payload
+  empresaId     String?
   ativo         Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  empresa       Empresa?  @relation(fields: [empresaId], references: [id])
 }

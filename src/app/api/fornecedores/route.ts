@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { authenticateRequest } from "@/lib/auth";
 
 // GET - Listar fornecedores
 export async function GET(request: Request) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated || !auth.user?.empresaId) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
@@ -13,6 +19,7 @@ export async function GET(request: Request) {
     const skip = (page - 1) * limit;
 
     const where = {
+      empresaId: auth.user.empresaId,
       ...(search && {
         OR: [
           { nome: { contains: search } },
@@ -54,6 +61,11 @@ export async function GET(request: Request) {
 // POST - Criar fornecedor
 export async function POST(request: Request) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated || !auth.user?.empresaId) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const data = await request.json();
 
     // Validar NIF (9 dígitos)
@@ -64,9 +76,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verificar se já existe NIF ou código
+    // Verificar se já existe NIF ou código na mesma empresa
     const existente = await db.fornecedor.findFirst({
       where: {
+        empresaId: auth.user.empresaId,
         OR: [{ nif: data.nif }, { codigo: data.codigo }],
       },
     });
@@ -80,6 +93,7 @@ export async function POST(request: Request) {
 
     const fornecedor = await db.fornecedor.create({
       data: {
+        empresaId: auth.user.empresaId,
         codigo: data.codigo,
         nome: data.nome,
         nif: data.nif,

@@ -6,13 +6,16 @@ export async function GET(request: NextRequest) {
   const apiKey = getApiKeyFromRequest(request);
   const auth = await validateApiKey(apiKey);
 
-  if (!auth.valid) {
+  if (!auth.valid || !auth.empresaId) {
     return NextResponse.json({ error: auth.error }, { status: 401 });
   }
 
   try {
     const clientes = await db.cliente.findMany({
-      where: { ativo: true },
+      where: {
+        ativo: true,
+        empresaId: auth.empresaId
+      },
     });
     return NextResponse.json(clientes);
   } catch (error) {
@@ -24,7 +27,7 @@ export async function POST(request: NextRequest) {
   const apiKey = getApiKeyFromRequest(request);
   const auth = await validateApiKey(apiKey);
 
-  if (!auth.valid || auth.apiKey.permissao !== "READ_WRITE") {
+  if (!auth.valid || !auth.empresaId || auth.apiKey.permissao !== "READ_WRITE") {
     return NextResponse.json({ error: "Não autorizado para escrita" }, { status: 401 });
   }
 
@@ -38,6 +41,7 @@ export async function POST(request: NextRequest) {
 
     // Gerar código automático se não fornecido
     const ultimoCliente = await db.cliente.findFirst({
+      where: { empresaId: auth.empresaId },
       orderBy: { createdAt: "desc" },
     });
     const numeroSequencial = ultimoCliente
@@ -47,6 +51,7 @@ export async function POST(request: NextRequest) {
 
     const cliente = await db.cliente.create({
       data: {
+        empresaId: auth.empresaId,
         codigo,
         nome,
         nif,

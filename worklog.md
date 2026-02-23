@@ -527,3 +527,20 @@ Stage Summary:
 - Sistema em conformidade antecipada com requisitos fiscais 2027.
 - Gestão de permissões robusta e profissional.
 - Layout de saída PDF de alta qualidade.
+
+---
+Task ID: 34
+Agent: Jules
+Task: Reserva de Stock, Hardening de API v1 e Isolamento Multi-empresa Rigoroso
+Work Log:
+- Implementada Reserva Temporária de Stock: as encomendas de cliente agora reservam stock ao serem marcadas como `CONFIRMADA` e libertam a reserva na faturação ou cancelamento.
+- Refactor completo do schema Prisma para garantir isolamento multi-empresa em todos os modelos: adicionado `empresaId` a `ApiKey`, `WebhookConfig`, `Subscricao`, `FaturaCompra`, `MovimentoBancario` e `EncomendaCompra`.
+- Correção de falha de segurança no processamento de subscrições: o motor de avenças agora utiliza os dados fiscais da empresa correta para cada cliente, em vez de assumir a primeira empresa da base de dados.
+- Hardening da API Pública (v1): atualizados endpoints de Artigos, Clientes e Documentos para isolamento multi-empresa rigoroso via API Key.
+- Isolamento de Utilizadores: atualizada a API de utilizadores para que gestores apenas visualizem e criem utilizadores dentro da sua própria organização.
+- Hardening de APIs Core: atualizadas APIs de Fornecedores, Armazéns, Encomendas de Compra e Orçamentos com filtros de `empresaId`.
+- Implementada biblioteca de cache em memória (`src/lib/cache.ts`) para otimização de performance.
+Stage Summary:
+- Sistema SaaS totalmente isolado e seguro para múltiplos inquilinos.
+- Lógica comercial de inventário refinada com reservas funcionais.
+- Infraestrutura de integração externa profissional com segurança por empresa.

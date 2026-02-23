@@ -1,14 +1,21 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { authenticateRequest } from "@/lib/auth";
 
 // GET - Listar armazéns
 export async function GET(request: Request) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated || !auth.user?.empresaId) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const ativo = searchParams.get("ativo");
 
     const armazens = await db.armazem.findMany({
       where: {
+        empresaId: auth.user.empresaId,
         ...(ativo !== null && { ativo: ativo === "true" }),
       },
       orderBy: [{ principal: "desc" }, { nome: "asc" }],
@@ -32,11 +39,19 @@ export async function GET(request: Request) {
 // POST - Criar armazém
 export async function POST(request: Request) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated || !auth.user?.empresaId) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const data = await request.json();
 
-    // Verificar se já existe código
-    const existente = await db.armazem.findUnique({
-      where: { codigo: data.codigo },
+    // Verificar se já existe código na empresa
+    const existente = await db.armazem.findFirst({
+      where: {
+        codigo: data.codigo,
+        empresaId: auth.user.empresaId
+      },
     });
 
     if (existente) {
@@ -46,16 +61,20 @@ export async function POST(request: Request) {
       );
     }
 
-    // Se for principal, remover flag dos outros
+    // Se for principal, remover flag dos outros na mesma empresa
     if (data.principal) {
       await db.armazem.updateMany({
-        where: { principal: true },
+        where: {
+          empresaId: auth.user.empresaId,
+          principal: true
+        },
         data: { principal: false },
       });
     }
 
     const armazem = await db.armazem.create({
       data: {
+        empresaId: auth.user.empresaId,
         codigo: data.codigo,
         nome: data.nome,
         morada: data.morada || null,

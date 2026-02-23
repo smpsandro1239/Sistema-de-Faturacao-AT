@@ -6,10 +6,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { EstadoEncomendaCompra } from "@prisma/client";
+import { authenticateRequest } from "@/lib/auth";
 
 // GET - Listar encomendas de compra
 export async function GET(request: NextRequest) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated || !auth.user?.empresaId) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const estado = searchParams.get("estado");
     const fornecedorId = searchParams.get("fornecedorId");
@@ -20,6 +26,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     const where = {
+      empresaId: auth.user.empresaId,
       ...(estado && { estado: estado as EstadoEncomendaCompra }),
       ...(fornecedorId && { fornecedorId }),
       ...(search && {
@@ -102,6 +109,11 @@ export async function GET(request: NextRequest) {
 // POST - Criar nova encomenda de compra
 export async function POST(request: NextRequest) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated || !auth.user?.empresaId) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     // Verificar se o modelo existe
     if (!db.encomendaCompra) {
       return NextResponse.json(
@@ -136,8 +148,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Buscar fornecedor
-    const fornecedor = await db.fornecedor.findUnique({
-      where: { id: fornecedorId },
+    const fornecedor = await db.fornecedor.findFirst({
+      where: {
+        id: fornecedorId,
+        empresaId: auth.user.empresaId
+      },
     });
 
     if (!fornecedor) {
@@ -151,6 +166,7 @@ export async function POST(request: NextRequest) {
     const anoAtual = new Date().getFullYear();
     const ultimaEncomenda = await db.encomendaCompra.findFirst({
       where: {
+        empresaId: auth.user.empresaId,
         numeroFormatado: { contains: `${anoAtual}` },
       },
       orderBy: { numero: "desc" },
@@ -183,8 +199,11 @@ export async function POST(request: NextRequest) {
         // Buscar artigo se especificado
         let artigo = null;
         if (artigoId) {
-          artigo = await db.artigo.findUnique({
-            where: { id: artigoId },
+          artigo = await db.artigo.findFirst({
+            where: {
+              id: artigoId,
+              empresaId: auth.user!.empresaId
+            },
             include: { taxaIVA: true },
           });
         }
@@ -217,6 +236,7 @@ export async function POST(request: NextRequest) {
     // Criar encomenda
     const encomenda = await db.encomendaCompra.create({
       data: {
+        empresaId: auth.user.empresaId,
         numero: proximoNumero,
         numeroFormatado,
         fornecedorId,
