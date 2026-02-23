@@ -22,6 +22,12 @@ export const metadata: Metadata = {
   icons: {
     icon: "/logo.svg",
   },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "FaturaAT",
+  },
 };
 
 export default function RootLayout({

@@ -606,3 +606,18 @@ O sistema agora cobre todo o ciclo comercial essencial para PMEs (Compras, Venda
 Reforço significativo na segurança da aplicação e entrega da primeira versão funcional do POS. O sistema está agora muito mais próximo de um estado pronto para produção, com proteção contra ataques comuns e um portal de cliente privado.
 
 **Status:** Concluído
+
+## [23-02-2026] - Task ID: 7 - Agent: Jules
+
+**Work Log:**
+- API Pública (v1): Implementado sistema de autenticação via `x-api-key` e criados endpoints para listagem e criação de Artigos e Clientes.
+- Webhooks: Desenvolvido motor de webhooks (`src/lib/webhooks.ts`) que dispara notificações HTTP POST para URLs configuradas sempre que um documento é emitido ou pago.
+- Pagamentos Online: Adicionado campo `estadoPagamento` ao modelo de Documentos de venda. Implementada interface de pagamento no Portal do Cliente com suporte a Stripe/MBWay (Mock).
+- Portal do Cliente: Refinada a interface do portal seguro para incluir visualização detalhada de linhas e histórico de pagamento.
+- PWA: Configurado `manifest.json` e metadados para suporte a Progressive Web App, permitindo a instalação do POS e Portal em dispositivos móveis.
+- Base de Dados: Atualizado schema Prisma com modelos `ApiKey` e `WebhookConfig`.
+
+**Stage Summary:**
+O sistema deu um salto gigante na conectividade externa e facilidade de pagamento para o cliente final. Com a API Pública e Webhooks, a integração com e-commerce torna-se possível. O suporte PWA garante mobilidade total para o POS.
+
+**Status:** Concluído

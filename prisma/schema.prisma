@@ -244,6 +244,7 @@ model Documento {
   
   // Estado
   estado                EstadoDocumento  @default(RASCUNHO)
+  estadoPagamento       EstadoPagamento  @default(PENDENTE)
   
   // Referências (para notas de crédito)
   documentoOriginalId   String?
@@ -909,4 +910,31 @@ model LinhaSubscricao {
 
   subscricao            Subscricao @relation(fields: [subscricaoId], references: [id], onDelete: Cascade)
   artigo                Artigo?    @relation(fields: [artigoId], references: [id])
+}
+
+// ============================================
+// API E INTEGRAÇÕES
+// ============================================
+
+model ApiKey {
+  id            String    @id @default(cuid())
+  key           String    @unique
+  nome          String    // Ex: "App Mobile", "E-commerce"
+  utilizadorId  String?
+  permissao     String    @default("READ_WRITE") // READ, READ_WRITE
+  ativo         Boolean   @default(true)
+  ultimaUtilizacao DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model WebhookConfig {
+  id            String    @id @default(cuid())
+  url           String
+  evento        String    // "DOCUMENTO.EMITIDO", "DOCUMENTO.PAGO", "*"
+  descricao     String?
+  secreto       String?   // Para assinatura do payload
+  ativo         Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }

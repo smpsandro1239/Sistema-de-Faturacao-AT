@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { createHash } from "crypto";
 import { validateCSRF } from "@/lib/auth";
+import { fireWebhooks } from "@/lib/webhooks";
 
 // Função para calcular hash SHA-256 do documento
 function calcularHash(documento: {
@@ -259,7 +260,14 @@ export async function PATCH(request: Request) {
         hashDocumentoAnterior: documentoAnterior?.hash || null,
         atcud,
       },
+      include: {
+        cliente: true,
+        linhas: true,
+      }
     });
+
+    // Disparar Webhooks
+    fireWebhooks("DOCUMENTO.EMITIDO", documentoEmitido).catch(console.error);
 
     return NextResponse.json(documentoEmitido);
   } catch (error) {
