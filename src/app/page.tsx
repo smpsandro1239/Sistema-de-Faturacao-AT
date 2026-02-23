@@ -281,6 +281,10 @@ export default function Dashboard() {
               <Repeat className="h-4 w-4" />
               Avenças
             </Link>
+            <Link href="/relatorios" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
+              <FileSpreadsheet className="h-4 w-4" />
+              Relatórios
+            </Link>
             <Link href="/contas-correntes" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
               <Euro className="h-4 w-4" />
               Contas Correntes

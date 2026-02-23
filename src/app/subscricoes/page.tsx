@@ -29,6 +29,7 @@ const estadoConfig: Record<string, { label: string; color: string }> = {
 
 export default function SubscricoesPage() {
   const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
   const [subscricoes, setSubscricoes] = useState<any[]>([]);
   const [clientes, setClientes] = useState<any[]>([]);
   const [series, setSeries] = useState<any[]>([]);
@@ -85,6 +86,24 @@ export default function SubscricoesPage() {
     }
   };
 
+  const processarAvencas = async () => {
+    setProcessing(true);
+    try {
+      const res = await fetch("/api/subscricoes/processar", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message);
+        if (data.sucesso > 0) carregarDados();
+      } else {
+        toast.error(data.error);
+      }
+    } catch {
+      toast.error("Erro ao processar avenças");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const formatarMoeda = (valor: number) => {
     return new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(valor);
   };
@@ -96,7 +115,13 @@ export default function SubscricoesPage() {
           <h1 className="text-3xl font-bold">Faturação Recorrente (Avenças)</h1>
           <p className="text-muted-foreground">Gestão de subscrições e faturas automáticas</p>
         </div>
-        <Button onClick={() => setDialogCriar(true)}><Plus className="h-4 w-4 mr-2" /> Nova Subscrição</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={processarAvencas} disabled={processing}>
+            {processing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Repeat className="h-4 w-4 mr-2" />}
+            Processar Pendentes
+          </Button>
+          <Button onClick={() => setDialogCriar(true)}><Plus className="h-4 w-4 mr-2" /> Nova Subscrição</Button>
+        </div>
       </div>
 
       <Card>

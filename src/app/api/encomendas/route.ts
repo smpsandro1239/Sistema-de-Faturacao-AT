@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { authenticateRequest } from "@/lib/auth";
 
 // GET - Listar encomendas de cliente
 export async function GET(request: NextRequest) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const clienteId = searchParams.get("clienteId");
     const estado = searchParams.get("estado");
@@ -30,6 +36,11 @@ export async function GET(request: NextRequest) {
 // POST - Criar nova encomenda de cliente
 export async function POST(request: NextRequest) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { clienteId, dataEntregaPrevista, linhas, observacoes, utilizadorId } = body;
 

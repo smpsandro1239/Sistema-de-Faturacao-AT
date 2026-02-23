@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { authenticateRequest } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     // Buscar faturas de compra e pagamentos
     const faturasCompra = await db.faturaCompra.findMany({
       include: { pagamentos: true },

@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { authenticateRequest } from "@/lib/auth";
 
 // GET - Listar faturas de compra
 export async function GET(request: NextRequest) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const fornecedorId = searchParams.get("fornecedorId");
     const estado = searchParams.get("estado");
@@ -34,6 +40,11 @@ export async function GET(request: NextRequest) {
 // POST - Criar nova fatura de compra
 export async function POST(request: NextRequest) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const body = await request.json();
     const {
       numero,

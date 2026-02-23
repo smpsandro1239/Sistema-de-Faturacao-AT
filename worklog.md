@@ -548,3 +548,46 @@ Stage Summary:
 - O Dashboard fornece insights de negócio mais profundos (clientes e produtos top).
 - Iniciada a área de auto-serviço para clientes finais (Portal).
 - Progresso comercial subiu para ~88-92%.
+
+
+---
+Task ID: 26
+Agent: Jules
+Task: Automação de Avenças, Relatórios Excel e Logotipo no PDF
+
+Work Log:
+- Adicionado campo 'logo' ao modelo Empresa no Prisma.
+- Implementado endpoint de processamento automático de avenças (/api/subscricoes/processar) que gera faturas em lote.
+- Adicionado suporte a upload e visualização de logotipo nas Configurações da Empresa.
+- Instalada biblioteca 'exceljs' para exportação profissional de dados.
+- Implementada página de Relatórios (/relatorios) com exportação de vendas para XLSX e CSV.
+- Criado endpoint de exportação de dados com filtros por período (/api/relatorios/exportar).
+- Otimizado layout do PDF (/src/lib/pdf.ts) para incluir logotipo e design mais corporativo.
+- Criado endpoint de detalhes de documento (/api/documentos/[id]) para melhor gestão de dados e logo.
+
+Stage Summary:
+- O sistema agora automatiza o trabalho administrativo recorrente.
+- Gestores podem exportar dados para ferramentas externas como Excel.
+- Documentos emitidos ganharam uma identidade visual profissional com o logotipo.
+- Progresso comercial subiu para ~92-95%.
+
+
+## [23-02-2026] - Task ID: 5 - Agent: Jules
+
+**Work Log:**
+- Implementação completa do ciclo de Compras e Fornecedores: CRUD de Fornecedores, Faturas de Compra e Pagamentos.
+- Implementação de Encomendas de Cliente com fluxo de conversão para Fatura.
+- Sistema de Contas Correntes (Clientes e Fornecedores) com agregação server-side.
+- Módulo de Faturação Recorrente (Avenças): CRUD de subscrições e motor de processamento em lote para geração automática de faturas.
+- Exportação de Relatórios: Implementação de motor de exportação para Excel (XLSX) e CSV usando `exceljs`.
+- Dashboard Avançado: Adicionados gráficos Recharts para Top 5 Clientes, Top 5 Artigos e evolução mensal de vendas.
+- Automação de Email: Criada biblioteca `lib/mail.ts` com `nodemailer` e endpoint para envio de documentos por email.
+- Layout PDF Profissional: Melhorado o design dos documentos e adicionado suporte a logótipo da empresa (configurável em definições).
+- Segurança: Implementada autenticação em todas as novas rotas API comerciais e auditoria de segurança inicial.
+- Documentação: Criado guia de migração para PostgreSQL (`POSTGRES_MIGRATION.md`) conforme requisitos de produção.
+- Limpeza: Removidos ficheiros binários da base de dados e atualizado `.gitignore`.
+
+**Stage Summary:**
+O sistema agora cobre todo o ciclo comercial essencial para PMEs (Compras, Vendas, Stocks, Avenças, Contas Correntes). A base fiscal está sólida e a interface comercial está pronta para uso real. Segurança reforçada em todos os novos endpoints.
+
+**Status:** Concluído

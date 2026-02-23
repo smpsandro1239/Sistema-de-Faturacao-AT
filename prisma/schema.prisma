@@ -24,6 +24,7 @@ model Empresa {
   telefone        String?
   email           String?
   website         String?
+  logo            String?  // Logotipo da empresa (Base64 ou URL)
   certificadoAT   String?  // Número do certificado AT
   conservatoria   String?
   matricula       String?

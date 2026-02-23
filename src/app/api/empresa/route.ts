@@ -32,6 +32,7 @@ export async function PUT(request: Request) {
       matricula,
       capitalSocial,
       certificadoAT,
+      logo,
     } = body;
 
     // Buscar empresa existente
@@ -54,6 +55,7 @@ export async function PUT(request: Request) {
           matricula,
           capitalSocial,
           certificadoAT,
+          logo,
         },
       });
     } else {
@@ -72,6 +74,7 @@ export async function PUT(request: Request) {
           matricula,
           capitalSocial,
           certificadoAT,
+          logo,
         },
       });
     }
