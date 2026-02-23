@@ -96,6 +96,7 @@ export default function StockMovimentosPage() {
   const [formData, setFormData] = useState({
     artigoId: "",
     armazemId: "",
+    armazemDestinoId: "",
     tipo: "ENTRADA",
     quantidade: "",
     observacoes: "",
@@ -161,6 +162,17 @@ export default function StockMovimentosPage() {
         return;
       }
 
+      if (formData.tipo === "TRANSFERENCIA") {
+        if (!formData.armazemDestinoId) {
+          toast.error("Selecione o armazém de destino");
+          return;
+        }
+        if (formData.armazemId === formData.armazemDestinoId) {
+          toast.error("O armazém de destino deve ser diferente do de origem");
+          return;
+        }
+      }
+
       // Utilizador mockado (em produção, obter da sessão)
       const utilizadorId = "utilizador-admin";
 
@@ -180,7 +192,7 @@ export default function StockMovimentosPage() {
       if (response.ok) {
         toast.success("Movimento registado com sucesso!");
         setDialogOpen(false);
-        setFormData({ artigoId: "", armazemId: "", tipo: "ENTRADA", quantidade: "", observacoes: "" });
+        setFormData({ artigoId: "", armazemId: "", armazemDestinoId: "", tipo: "ENTRADA", quantidade: "", observacoes: "" });
         fetchMovimentos();
       } else {
         toast.error(data.error || "Erro ao registar movimento");
@@ -319,6 +331,12 @@ export default function StockMovimentosPage() {
                           Saída
                         </div>
                       </SelectItem>
+                      <SelectItem value="TRANSFERENCIA">
+                        <div className="flex items-center gap-2">
+                          <ArrowRightLeft className="h-4 w-4 text-blue-600" />
+                          Transferência
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -338,7 +356,7 @@ export default function StockMovimentosPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Armazém</Label>
+                  <Label>{formData.tipo === "TRANSFERENCIA" ? "Armazém de Origem" : "Armazém"}</Label>
                   <Select value={formData.armazemId} onValueChange={(v) => setFormData({ ...formData, armazemId: v })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecionar armazém" />
@@ -353,6 +371,25 @@ export default function StockMovimentosPage() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {formData.tipo === "TRANSFERENCIA" && (
+                  <div className="space-y-2">
+                    <Label>Armazém de Destino</Label>
+                    <Select value={formData.armazemDestinoId} onValueChange={(v) => setFormData({ ...formData, armazemDestinoId: v })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar armazém de destino" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {armazens.map((armazem) => (
+                          <SelectItem key={armazem.id} value={armazem.id} disabled={armazem.id === formData.armazemId}>
+                            {armazem.codigo} - {armazem.nome}
+                            {armazem.principal && " (Principal)"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label>Quantidade</Label>
                   <Input

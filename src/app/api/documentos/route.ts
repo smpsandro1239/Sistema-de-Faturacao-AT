@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { createHash } from "crypto";
 import { validateCSRF } from "@/lib/auth";
 import { fireWebhooks } from "@/lib/webhooks";
+import { enviarEmailDocumento } from "@/lib/mail";
 
 // Função para calcular hash SHA-256 do documento
 function calcularHash(documento: {
@@ -282,6 +283,16 @@ export async function PATCH(request: Request) {
 
     // Disparar Webhooks
     fireWebhooks("DOCUMENTO.EMITIDO", documentoEmitido).catch(console.error);
+
+    // Envio Automático de Email se configurado no cliente
+    if (documentoEmitido.cliente.envioEmailAutomatico && documentoEmitido.cliente.email) {
+      enviarEmailDocumento(documentoEmitido, documentoEmitido.cliente.email)
+        .then(res => {
+          if (res.success) console.log(`Email automático enviado para ${documentoEmitido.cliente.email}`);
+          else console.error(`Erro no email automático:`, res.error);
+        })
+        .catch(console.error);
+    }
 
     return NextResponse.json(documentoEmitido);
   } catch (error) {

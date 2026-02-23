@@ -37,9 +37,13 @@ import {
   Edit,
   Shield,
   ArrowLeft,
-  Tag
+  Tag,
+  Upload,
+  Loader2
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useCallback } from "react";
+import { toast } from "sonner";
 
 interface Artigo {
   id: string;
@@ -48,29 +52,51 @@ interface Artigo {
   tipo: "PRODUTO" | "SERVICO" | "OUTRO";
   precoUnitario: number;
   unidade: string;
-  taxaIVA: string;
-  taxaIVAPercentagem: number;
+  taxaIVAId: string;
+  taxaIVA?: {
+    codigo: string;
+    taxa: number;
+  };
   ativo: boolean;
 }
 
-const artigosMock: Artigo[] = [
-  { id: "1", codigo: "A001", descricao: "Consultoria Técnica", tipo: "SERVICO", precoUnitario: 75.00, unidade: "H", taxaIVA: "NOR", taxaIVAPercentagem: 23, ativo: true },
-  { id: "2", codigo: "A002", descricao: "Desenvolvimento de Software", tipo: "SERVICO", precoUnitario: 85.00, unidade: "H", taxaIVA: "NOR", taxaIVAPercentagem: 23, ativo: true },
-  { id: "3", codigo: "A003", descricao: "Licença de Software", tipo: "PRODUTO", precoUnitario: 299.00, unidade: "UN", taxaIVA: "NOR", taxaIVAPercentagem: 23, ativo: true },
-  { id: "4", codigo: "A004", descricao: "Formação Profissional", tipo: "SERVICO", precoUnitario: 50.00, unidade: "H", taxaIVA: "RED", taxaIVAPercentagem: 6, ativo: true },
-  { id: "5", codigo: "A005", descricao: "Suporte Técnico Mensal", tipo: "SERVICO", precoUnitario: 150.00, unidade: "MÊS", taxaIVA: "NOR", taxaIVAPercentagem: 23, ativo: true },
-  { id: "6", codigo: "A006", descricao: "Equipamento Informático", tipo: "PRODUTO", precoUnitario: 450.00, unidade: "UN", taxaIVA: "NOR", taxaIVAPercentagem: 23, ativo: false },
-];
-
-const taxasIVA = [
-  { codigo: "NOR", descricao: "Normal (23%)", taxa: 23 },
-  { codigo: "INT", descricao: "Intermédia (13%)", taxa: 13 },
-  { codigo: "RED", descricao: "Reduzida (6%)", taxa: 6 },
-];
-
 export default function ArtigosPage() {
-  const [artigos, setArtigos] = useState<Artigo[]>(artigosMock);
+  const [artigos, setArtigos] = useState<Artigo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
+  const [taxasIVA, setTaxasIVA] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const carregarDados = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [resA, resT] = await Promise.all([
+        fetch("/api/artigos"),
+        fetch("/api/taxas-iva")
+      ]);
+      const dataA = await resA.json();
+      setArtigos(dataA);
+      // Fallback taxaIVA data if not exists as endpoint
+      try {
+        const dataT = await resT.json();
+        setTaxasIVA(dataT);
+      } catch {
+        setTaxasIVA([
+          { id: "iva-normal", codigo: "NOR", descricao: "Normal (23%)", taxa: 23 },
+          { id: "iva-intermedia", codigo: "INT", descricao: "Intermédia (13%)", taxa: 13 },
+          { id: "iva-reduzida", codigo: "RED", descricao: "Reduzida (6%)", taxa: 6 },
+        ]);
+      }
+    } catch (error) {
+      toast.error("Erro ao carregar artigos");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    carregarDados();
+  }, [carregarDados]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingArtigo, setEditingArtigo] = useState<Artigo | null>(null);
   const [formData, setFormData] = useState({
@@ -112,30 +138,57 @@ export default function ArtigosPage() {
   };
 
   const handleSaveArtigo = async () => {
-    const codigo = editingArtigo?.codigo || `A${String(artigos.length + 1).padStart(3, "0")}`;
-    const taxa = taxasIVA.find(t => t.codigo === formData.taxaIVA)!;
-    
-    if (editingArtigo) {
-      setArtigos(artigos.map(a => 
-        a.id === editingArtigo.id 
-          ? { ...a, ...formData, precoUnitario: parseFloat(formData.precoUnitario), taxaIVAPercentagem: taxa.taxa }
-          : a
-      ));
-    } else {
-      const newArtigo: Artigo = {
-        id: String(artigos.length + 1),
-        codigo,
-        descricao: formData.descricao,
-        tipo: formData.tipo,
+    try {
+      const payload = {
+        ...formData,
         precoUnitario: parseFloat(formData.precoUnitario),
-        unidade: formData.unidade,
-        taxaIVA: formData.taxaIVA,
-        taxaIVAPercentagem: taxa.taxa,
-        ativo: true,
+        taxaIVAId: taxasIVA.find(t => t.codigo === formData.taxaIVA)?.id,
       };
-      setArtigos([...artigos, newArtigo]);
+
+      const res = await fetch("/api/artigos", {
+        method: editingArtigo ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editingArtigo ? { ...payload, id: editingArtigo.id } : payload),
+      });
+
+      if (res.ok) {
+        toast.success(editingArtigo ? "Artigo atualizado" : "Artigo criado");
+        carregarDados();
+        setDialogOpen(false);
+      } else {
+        const err = await res.json();
+        toast.error(err.error || "Erro ao guardar artigo");
+      }
+    } catch (error) {
+      toast.error("Erro de ligação");
     }
-    setDialogOpen(false);
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/artigos/importar", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message);
+        carregarDados();
+      } else {
+        toast.error(data.error);
+      }
+    } catch (error) {
+      toast.error("Erro ao importar");
+    } finally {
+      setImporting(false);
+    }
   };
 
   const toggleArtigoStatus = (id: string) => {
@@ -206,96 +259,111 @@ export default function ArtigosPage() {
             <h2 className="text-2xl font-bold text-slate-900">Gestão de Artigos</h2>
             <p className="text-slate-500">Gerir artigos e serviços para faturação</p>
           </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={handleNewArtigo} className="bg-emerald-600 hover:bg-emerald-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Artigo
+          <div className="flex gap-2">
+            <div className="relative">
+              <Button variant="outline" disabled={importing} className="relative">
+                {importing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+                Importar CSV
+                <Input
+                  type="file"
+                  accept=".csv"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  onChange={handleImport}
+                />
               </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>{editingArtigo ? "Editar Artigo" : "Novo Artigo"}</DialogTitle>
-                <DialogDescription>
-                  {editingArtigo ? "Altere os dados do artigo abaixo." : "Preencha os dados do novo artigo."}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="descricao" className="text-right">Descrição*</Label>
-                  <Input
-                    id="descricao"
-                    value={formData.descricao}
-                    onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-                    className="col-span-3"
-                    placeholder="Descrição do artigo/serviço"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="tipo" className="text-right">Tipo</Label>
-                  <Select value={formData.tipo} onValueChange={(value: "PRODUTO" | "SERVICO" | "OUTRO") => setFormData({ ...formData, tipo: value })}>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="SERVICO">Serviço</SelectItem>
-                      <SelectItem value="PRODUTO">Produto</SelectItem>
-                      <SelectItem value="OUTRO">Outro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="preco" className="text-right">Preço*</Label>
-                  <Input
-                    id="preco"
-                    type="number"
-                    step="0.01"
-                    value={formData.precoUnitario}
-                    onChange={(e) => setFormData({ ...formData, precoUnitario: e.target.value })}
-                    className="col-span-3"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="unidade" className="text-right">Unidade</Label>
-                  <Select value={formData.unidade} onValueChange={(value) => setFormData({ ...formData, unidade: value })}>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Selecione a unidade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="UN">Unidade (UN)</SelectItem>
-                      <SelectItem value="H">Hora (H)</SelectItem>
-                      <SelectItem value="DIA">Dia</SelectItem>
-                      <SelectItem value="MÊS">Mês</SelectItem>
-                      <SelectItem value="KG">Quilograma (KG)</SelectItem>
-                      <SelectItem value="M">Metro (M)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="iva" className="text-right">Taxa IVA</Label>
-                  <Select value={formData.taxaIVA} onValueChange={(value) => setFormData({ ...formData, taxaIVA: value })}>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Selecione a taxa" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {taxasIVA.map((taxa) => (
-                        <SelectItem key={taxa.codigo} value={taxa.codigo}>
-                          {taxa.descricao}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                <Button onClick={handleSaveArtigo} className="bg-emerald-600 hover:bg-emerald-700">
-                  {editingArtigo ? "Guardar" : "Criar Artigo"}
+            </div>
+
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={handleNewArtigo} className="bg-emerald-600 hover:bg-emerald-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Artigo
                 </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>{editingArtigo ? "Editar Artigo" : "Novo Artigo"}</DialogTitle>
+                  <DialogDescription>
+                    {editingArtigo ? "Altere os dados do artigo abaixo." : "Preencha os dados do novo artigo."}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="descricao" className="text-right">Descrição*</Label>
+                    <Input
+                      id="descricao"
+                      value={formData.descricao}
+                      onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                      className="col-span-3"
+                      placeholder="Descrição do artigo/serviço"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="tipo" className="text-right">Tipo</Label>
+                    <Select value={formData.tipo} onValueChange={(value: "PRODUTO" | "SERVICO" | "OUTRO") => setFormData({ ...formData, tipo: value })}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="SERVICO">Serviço</SelectItem>
+                        <SelectItem value="PRODUTO">Produto</SelectItem>
+                        <SelectItem value="OUTRO">Outro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="preco" className="text-right">Preço*</Label>
+                    <Input
+                      id="preco"
+                      type="number"
+                      step="0.01"
+                      value={formData.precoUnitario}
+                      onChange={(e) => setFormData({ ...formData, precoUnitario: e.target.value })}
+                      className="col-span-3"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="unidade" className="text-right">Unidade</Label>
+                    <Select value={formData.unidade} onValueChange={(value) => setFormData({ ...formData, unidade: value })}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Selecione a unidade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="UN">Unidade (UN)</SelectItem>
+                        <SelectItem value="H">Hora (H)</SelectItem>
+                        <SelectItem value="DIA">Dia</SelectItem>
+                        <SelectItem value="MÊS">Mês</SelectItem>
+                        <SelectItem value="KG">Quilograma (KG)</SelectItem>
+                        <SelectItem value="M">Metro (M)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="iva" className="text-right">Taxa IVA</Label>
+                    <Select value={formData.taxaIVA} onValueChange={(value) => setFormData({ ...formData, taxaIVA: value })}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Selecione a taxa" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {taxasIVA.map((taxa) => (
+                          <SelectItem key={taxa.codigo} value={taxa.codigo}>
+                            {taxa.descricao}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+                  <Button onClick={handleSaveArtigo} className="bg-emerald-600 hover:bg-emerald-700">
+                    {editingArtigo ? "Guardar" : "Criar Artigo"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         {/* Search */}
@@ -317,6 +385,11 @@ export default function ArtigosPage() {
         {/* Table */}
         <Card>
           <CardContent className="p-0">
+            {loading ? (
+              <div className="flex justify-center p-12">
+                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+              </div>
+            ) : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -349,7 +422,7 @@ export default function ArtigosPage() {
                     <TableCell>{artigo.unidade}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">
-                        {artigo.taxaIVAPercentagem}%
+                        {artigo.taxaIVA?.taxa || 23}%
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -371,6 +444,7 @@ export default function ArtigosPage() {
                 ))}
               </TableBody>
             </Table>
+            )}
           </CardContent>
         </Card>
       </main>

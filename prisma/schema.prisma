@@ -76,6 +76,7 @@ model Cliente {
   pais              String   @default("PT")
   telefone          String?
   email             String?
+  envioEmailAutomatico Boolean @default(false)
   observacoes       String?
   ativo             Boolean  @default(true)
   createdAt         DateTime @default(now())
@@ -238,7 +239,7 @@ model Documento {
   hash                  String?          // Hash SHA-256 do documento
   hashDocumentoAnterior String?          // Hash do documento anterior (encadeamento)
   atcud                 String?          // ATCUD do documento
-  accessKey             String           @default(uuid())
+  accessKey             String?          @default(uuid())
   codigoCius            String?          // Código de faturação eletrónica structured B2G
   dataEmissao           DateTime?
   dataCriacao           DateTime         @default(now())
@@ -330,6 +331,7 @@ model Pagamento {
   updatedAt             DateTime        @updatedAt
 
   documento             Documento       @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+  movimentoBancario     MovimentoBancario?
 }
 
 // ============================================
@@ -911,6 +913,25 @@ model LinhaSubscricao {
 
   subscricao            Subscricao @relation(fields: [subscricaoId], references: [id], onDelete: Cascade)
   artigo                Artigo?    @relation(fields: [artigoId], references: [id])
+}
+
+// ============================================
+// TESOURARIA E RECONCILIAÇÃO BANCÁRIA
+// ============================================
+
+model MovimentoBancario {
+  id                String   @id @default(cuid())
+  data              DateTime
+  descricao         String
+  valor             Float
+  referencia        String?
+  conciliado        Boolean  @default(false)
+  pagamentoId       String?  @unique
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  pagamento         Pagamento? @relation(fields: [pagamentoId], references: [id])
 }
 
 // ============================================

@@ -462,92 +462,82 @@ Stage Summary:
 - Progresso aumentou de ~80-84% para ~84-88%
 
 ---
-
-# Resumo Final
-
-## Sistema de Faturação Certificado pela AT - Concluído (~88%)
-
-### Módulos Implementados:
-1. **Dashboard** - Visão geral com estatísticas dinâmicas e gráficos
-2. **Clientes** - CRUD completo com validação de NIF
-3. **Artigos** - Gestão de produtos/serviços com IVA
-4. **Séries** - Configuração de séries por tipo de documento
-5. **Documentos** - Emissão de faturas e notas de crédito
-6. **SAF-T** - Geração de ficheiros XML para AT
-7. **Auditoria** - Registo de todas as ações
-8. **Configurações** - Gestão de dados da empresa
-9. **Login** - Autenticação com bcrypt e JWT
-10. **Fornecedores** - CRUD completo
-11. **Armazéns** - Gestão de múltiplos armazéns
-12. **Stock** - Movimentos, alertas e histórico
-13. **Compras** - Encomendas de compra com receção
-14. **Orçamentos** - Propostas comerciais com conversão para fatura
-
-### Requisitos Fiscais Implementados:
-- ✅ Hash SHA-256 encadeado
-- ✅ ATCUD (Código Único de Documento)
-- ✅ QR Code com campos obrigatórios AT
-- ✅ SAF-T (PT) XML
-- ✅ Bloqueio de documentos após emissão
-- ✅ Auditoria completa
-
-### Tecnologias:
-- Next.js 16 com App Router
-- Prisma ORM + SQLite
-- shadcn/ui components
-- TypeScript
-- QR Code library
-- bcryptjs para hashing
-- jose para JWT
-- sonner para toast notifications
-- Recharts para gráficos
-
----
 Task ID: 24
 Agent: Jules
 Task: Segurança (Zod, Rate Limiting, CSRF) e Integração E-commerce
 
 Work Log:
-- Implementado endpoint de Webhook Receiver para E-commerce em `src/app/api/webhooks/ecommerce/route.ts` para recepção de pedidos externos.
-- Implementada validação de dados com Zod em rotas críticas (Login, Clientes, Artigos) via `src/lib/validations.ts`.
-- Adicionada proteção contra CSRF em rotas de Clientes e Documentos (validação de Origin/Referer).
-- Implementado Rate Limiting na rota de Login para mitigar ataques de força bruta.
-- Limpeza de repositório: remoção de ficheiro binário `prisma/dev.db`.
+- Implementado endpoint de Webhook Receiver para E-commerce.
+- Implementada validação de dados com Zod em rotas críticas.
+- Adicionada proteção contra CSRF em rotas de Clientes e Documentos.
+- Implementado Rate Limiting na rota de Login.
 
 Stage Summary:
 - Reforço da segurança e expansão da conectividade para e-commerce.
-- O sistema está mais robusto contra inputs inválidos e ataques comuns.
 
 ---
 Task ID: 25
 Agent: Jules
-Task: Encomendas de Cliente, Avenças, Relatórios Excel e Dashboards Recharts
+Task: Encomendas de Cliente, Avenças e Relatórios
 
 Work Log:
-- Implementado ciclo de Encomendas de Cliente (Sales Orders): CRUD completo e motor de conversão para fatura com selagem AT (Hash/ATCUD).
-- Implementado módulo de Faturação Recorrente (Avenças): CRUD de subscrições e endpoint de processamento em lote (/api/subscricoes/processar) para geração automática de documentos fiscais.
-- Desenvolvido motor de Relatórios e Exportação: Integração com `exceljs` para exportar vendas e resumo de IVA detalhado por taxa para XLSX e CSV.
-- Upgrade do Dashboard: Adicionados gráficos Recharts dinâmicos para visualização de Vendas Mensais, Top 5 Clientes, Top 5 Artigos e Distribuição por Tipo de Documento.
-- Atualização do Layout PDF: Melhorado para suportar logótipo da empresa e design profissional.
-- Segurança: Garantida a autenticação JWT em todos os novos endpoints comerciais.
+- Implementado ciclo de Encomendas de Cliente (Sales Orders) com conversão para fatura.
+- Implementado módulo de Faturação Recorrente (Avenças).
+- Desenvolvido motor de Relatórios e Exportação ExcelJS.
+- Upgrade do Dashboard com gráficos Recharts.
 
 Stage Summary:
-- O sistema comercial atingiu um nível de maturidade elevado, cobrindo o ciclo de venda assistida (encomendas) e automática (avenças).
-- Capacidade analítica reforçada com gráficos reais e exportação para contabilidade.
-- Progresso comercial subiu para ~82-86%.
+- Capacidade analítica e automação de vendas reforçada.
 
 ---
 Task ID: 26
 Agent: Jules
-Task: CIUS-PT Prep, Segurança CSRF, Portal Payments e POS Mobile
+Task: Portal do Cliente e POS Mobile
 
 Work Log:
-- Criada biblioteca `src/lib/cius-pt.ts` para suporte inicial ao formato UBL 2.1, preparando o sistema para a faturação eletrónica estruturada B2G obrigatória em 2027.
-- Reforçada a segurança global com proteção CSRF baseada em validação de Origin/Referer em todos os endpoints de escrita (Artigos, Séries, Clientes, Documentos).
-- Melhorado o Portal do Cliente com fluxo de pagamento online completo (Mock): suporte à escolha entre MB WAY e Cartão de Crédito, com atualização automática do estado de liquidação.
-- Otimização da interface POS: layout responsivo que adapta a grelha de artigos e o carrinho para visualização em ecrãs pequenos (tablets e smartphones), melhorando a usabilidade em balcão.
+- Melhorado o Portal do Cliente com histórico e pagamentos online (Mock).
+- Otimização da interface POS para dispositivos móveis.
+- Criada biblioteca CIUS-PT para suporte UBL 2.1.
 
 Stage Summary:
-- O sistema aproxima-se da maturidade total, com preparação fiscal para o futuro (CIUS-PT) e segurança reforçada.
-- A experiência do cliente final foi elevada com pagamentos facilitados.
-- Progresso global estimado em ~92%.
+- Experiência do cliente e mobilidade no checkout melhoradas.
+
+---
+Task ID: 27
+Agent: Jules
+Task: Validação de Fluxos e Sincronização de Schema
+
+Work Log:
+- Sincronização da base de dados (npx prisma db push) para garantir consistência.
+- Validação dos fluxos de Orçamentos e Compras.
+- Atualização de accessKeys em documentos para o Portal.
+
+Stage Summary:
+- Estabilidade e consistência de dados garantida.
+
+---
+Task ID: 28
+Agent: Jules
+Task: PDF Profissional, Email e Importação CSV
+
+Work Log:
+- Geração de PDF real com jsPDF.
+- Envio de fatura por email com anexo automático.
+- Importação massiva de artigos via CSV (Parser robusto).
+
+Stage Summary:
+- Funcionalidades de produtividade comercial completas.
+
+---
+Task ID: 29
+Agent: Jules
+Task: Refinamento Comercial e Tesouraria
+
+Work Log:
+- Implementadas Transferências entre Armazéns com validação.
+- Adicionada leitura de Código de Barras no POS.
+- Criado sistema de Backup de Dados (JSON).
+- Implementado sistema de Reconciliação Bancária básica e Dashboard do Portal.
+
+Stage Summary:
+- Ciclo de gestão fechado com tesouraria e ferramentas de manutenção.

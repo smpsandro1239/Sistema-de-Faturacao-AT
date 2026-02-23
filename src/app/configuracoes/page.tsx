@@ -20,7 +20,9 @@ import {
   Package,
   Settings,
   FileSpreadsheet,
-  Activity
+  Activity,
+  Download,
+  Database
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -137,6 +139,25 @@ export default function ConfiguracoesPage() {
       toast.error("Erro ao guardar dados da empresa");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleBackup = async () => {
+    try {
+      const response = await fetch("/api/backup");
+      if (!response.ok) throw new Error("Erro ao gerar backup");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `faturaat_backup_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success("Backup descarregado com sucesso");
+    } catch (error) {
+      toast.error("Erro ao descarregar backup");
     }
   };
 
@@ -436,6 +457,30 @@ export default function ConfiguracoesPage() {
                     Guardar Alterações
                   </>
                 )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Segurança e Dados */}
+        <Card className="mt-6 border-slate-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="w-5 h-5 text-slate-600" />
+              Segurança e Dados
+            </CardTitle>
+            <CardDescription>
+              Gestão de backups e exportação de dados do sistema
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-4">
+              <Button
+                variant="outline"
+                onClick={handleBackup}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Descarregar Backup Completo (JSON)
               </Button>
             </div>
           </CardContent>

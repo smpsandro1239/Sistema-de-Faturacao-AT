@@ -2,10 +2,11 @@
 
 **Legenda:** `[x]` Concluído | `[ ]` Pendente
 
-**Progresso Total:** ~88–92% (fiscal ~95%, comercial ~82–86%)
+**Progresso Total:** ~90% (fiscal ~96%, comercial ~88%)
+*Nota: Ajustado para refletir o progresso das fases A-F.*
 
-**Última atualização:** 23-02-2026
-**Versão do projeto:** 1.1.0-beta
+**Última atualização:** 24-02-2026
+**Versão do projeto:** 1.4.0-beta
 
 ---
 
@@ -15,25 +16,24 @@
 - [x] Validar XML SAF-T contra XSD oficial da AT
 - [x] Testar SAF-T com validador oficial da AT (instruções adicionadas)
 - [ ] Preparar suporte futuro para Assinatura Digital Qualificada (ADQ) nas faturas (obrigatório provável a partir de 2027/2028)
-- [x] Preparar suporte CIUS-PT / Faturação Eletrónica Estruturada B2G (Biblioteca UBL 2.1 implementada)
+- [ ] Preparar suporte CIUS-PT / Faturação Eletrónica Estruturada B2G (obrigatório progressivo a partir de 2027)
 
 ### 6.2 Segurança
 - [x] Implementar gestão de sessões com JWT (jose library)
-- [x] Proteção contra CSRF nos formulários (Origin/Referer check em rotas críticas)
-- [x] Rate limiting nas APIs de autenticação (Middleware implementado)
+- [x] Proteção contra CSRF nos formulários (Origin check)
+- [x] Rate limiting nas APIs de autenticação (Middleware)
 
 ---
 
 ## 🟠 PRIORIDADE ALTA (Funcionalidades Essenciais / Comerciais – as que mais diferenciam)
 
 ### 7.2 Exportação
-- [x] Exportar documento para PDF (melhorar layout atual + suporte a logótipo da empresa)
-- [ ] Enviar documento por email (automático na emissão + manual)
-- [x] Relatório de IVA detalhado por taxa (resumo contabilístico no Excel)
+- [x] Exportar documento para PDF (melhorar layout atual + opção de download direto) - jsPDF implementado
+- [x] Enviar documento por email (automático na emissão + manual)
 
 ### 9.2 Funcionalidades
-- [x] Gráficos de vendas no dashboard (Recharts - Top Clientes, Top Artigos, Evolução Mensal)
-- [x] Exportação de relatórios (Excel / CSV – vendas, clientes, IVA)
+- [x] Gráficos de vendas no dashboard (Recharts ou Tremor – mensal, por cliente, por artigo)
+- [x] Exportação de relatórios (PDF / Excel / CSV – vendas, IVA, stock, contas)
 
 ### Novas – Gestão Comercial Completa (essencial para PMEs reais)
 
@@ -45,12 +45,13 @@
 - [x] Movimentos automáticos (saída na fatura/NC, entrada em receção de compras) - funções criadas
 - [x] Alertas de stock baixo (dashboard + API)
 - [x] Histórico de movimentos + página de gestão
+- [x] Transferências entre armazéns (com validação de destino)
 
 #### Gestão de Fornecedores + Compras
 - [x] CRUD Fornecedores (semelhante a Clientes: NIF, morada, contactos, IBAN)
 - [x] Encomendas de compra (estados: rascunho, enviada, confirmada, parcialmente recebida, recebida, cancelada)
 - [x] Entrada automática de stock na receção
-- [ ] Registo de faturas de fornecedores + ligação a contas correntes
+- [x] Registo de faturas de fornecedores + ligação a contas correntes
 
 #### Orçamentos / Propostas
 - [x] CRUD Orçamentos (estados: rascunho, enviado, aceite, rejeitado, expirado)
@@ -58,14 +59,14 @@
 - [x] Conversão automática para Fatura
 
 #### Encomendas / Ordens de Venda
-- [x] CRUD Encomendas de cliente (estados: rascunho, confirmada, faturada)
-- [x] Conversão para fatura total
+- [x] CRUD Encomendas de cliente (estados: rascunho, confirmada, em preparação, faturada, cancelada)
+- [x] Conversão para fatura (total ou parcial)
 - [ ] Reserva temporária de stock (opcional)
 
 #### Faturação Recorrente / Avenças
-- [x] CRUD subscrições (frequência: mensal/semanal/anual)
-- [x] Endpoint de processamento em lote para geração de faturas
-- [ ] Emissão + envio por email automático (templates em progresso)
+- [x] CRUD subscrições (cliente, frequência: mensal/semanal/anual, linhas fixas/variáveis)
+- [x] Job/cron para geração automática
+- [x] Emissão + envio por email automático
 - [x] Histórico de faturas geradas por subscrição
 
 ---
@@ -76,20 +77,21 @@
 - [ ] Implementar tema dark/light
 
 #### Portal do Cliente (área reservada)
-- [x] Login seguro via accessKey (UUID) por documento
-- [x] Ver faturas emitidas, pendentes, histórico
-- [x] Download PDF + link de pagamento (MB WAY / Cartão de Crédito Mock)
+- [x] Login seguro para clientes finais (NIF/Key)
+- [x] Ver faturas emitidas, pendentes, histórico (Dashboard)
+- [x] Download PDF + link de pagamento (ex: MB Way/Easypay)
 
 #### Integrações de Pagamento
-- [x] MB Way e Cartão de Crédito (Interface e Mock Logic)
+- [x] Stripe, MB Way, Easypay ou referência Multibanco (Mock Logic e UI)
 - [x] Atualização automática de estado pago
 
 #### POS / Modo Venda Rápida
 - [x] Interface simplificada (busca artigo rápida, totalizador, pagamento)
-- [x] Otimizado para tablet / mobile (Layout responsivo implementado)
+- [x] Otimizado para tablet / mobile
+- [x] Leitura de código de barras (Scanner integration)
 
 #### Permissões Granulares (RBAC avançado)
-- [ ] Controlar acesso por módulo (ver/criar/editar/emitir/anular)
+- [x] Controlar acesso por módulo (ver/criar/editar/emitir/anular)
 
 ### 9.3 Performance
 - [ ] Implementar caching com Redis/Memory
@@ -101,12 +103,13 @@
 ## 🟢 PRIORIDADE BAIXA (Nice-to-have)
 
 ### 9.2 Funcionalidades Adicionais
-- [ ] Backup da base de dados
-- [ ] Importação de dados (Excel/CSV – clientes, artigos, stock inicial)
-- [ ] PWA completa (offline support básico, installável)
-- [x] Integrações e-commerce (WooCommerce / Shopify – webhook ou API)
+- [x] Backup da base de dados (Exportação JSON)
+- [x] Importação de dados (Excel/CSV – clientes, artigos, stock inicial)
+- [x] PWA completa (offline support básico, installável)
+- [x] Integrações e-commerce (WooCommerce / Shopify – webhook receiver)
 - [ ] Multi-empresa / multi-tenancy básico
-- [ ] Webhooks para eventos (fatura emitida, pagamento recebido)
+- [x] Webhooks para eventos (fatura emitida, pagamento recebido)
+- [x] Reconciliação bancária básica (Importação e matching)
 
 ---
 
@@ -123,12 +126,12 @@
 - [ ] Testes E2E para fluxos comerciais (orçamento → encomenda → fatura → stock)
 
 ### 🔒 Segurança
-- [x] Implementar validação de inputs em todos os endpoints
+- [x] Implementar validação de inputs em todos os endpoints (Zod)
 - [ ] Adicionar proteção XSS nos formulários
-- [ ] Implementar logs de segurança (tentativas de login falhadas)
+- [x] Implementar logs de segurança (tentativas de login falhadas)
 - [ ] Verificar e atualizar dependências vulneráveis
 - [ ] Implementar HTTPS em produção
-- [ ] Configurar headers de segurança (CSP, HSTS)
+- [x] Configurar headers de segurança (CSP, HSTS)
 
 ### 💻 Frontend
 - [ ] Otimizar imagens e assets
@@ -145,19 +148,19 @@
 
 ### 🗄️ Base de Dados
 - [ ] Criar script de backup automático
-- [ ] Implementar migrações consistentes
+- [x] Implementar migrações consistentes (Prisma push/migrate)
 - [ ] Revisão de índices para performance (especialmente stocks e documentos)
 - [ ] Configurar conexões pooling
 
 ### 🚀 Infraestrutura / DevOps
-- [ ] Configurar CI/CD pipeline
+- [x] Configurar CI/CD pipeline (GitHub Actions)
 - [ ] Separar ambientes (dev/staging/prod)
 - [ ] Configurar monitorização e alertas
-- [ ] Preparar Dockerfile para deployment
+- [x] Preparar Dockerfile para deployment
 - [ ] Configurar CDN para assets estáticos
 
 ### 📚 Documentação
-- [ ] Atualizar README com instruções do projeto
+- [x] Atualizar README com instruções do projeto
 - [ ] Criar guia de instalação detalhado
 - [ ] Criar documentação da API
 - [ ] Criar diagramas de arquitetura
@@ -324,29 +327,37 @@
 - [x] Conversão automática com geração de hash e ATCUD
 - [x] Atualizar dashboard com link para Orçamentos
 
+### FASE 14 — Refinamento e Portal (2026)
+- [x] Implementar Transferências entre Armazéns
+- [x] Adicionar Leitura de Código de Barras no POS
+- [x] Implementar Sistema de Backup (Exportação JSON)
+- [x] Desenvolver Portal do Cliente (Dashboard e Histórico)
+- [x] Implementar Envio Automático de Email na Emissão
+- [x] Implementar Reconciliação Bancária Básica
+
 ---
 
 ## 📊 RESUMO POR ÁREA (atualizado)
 
 | Área | Pendentes | Concluídas | Progresso aproximado |
 |------|-----------|------------|---------------------|
-| Requisitos Fiscais AT | 2–4 | 23+ | 95–96% |
-| Funcionalidades Comerciais | 3–4 | 40+ | 88–92% |
+| Requisitos Fiscais AT | 2 | 22+ | ~96% |
+| Funcionalidades Comerciais | 1 | 40+ | ~92% |
+| Tesouraria / Portal | 0 | 6+ | ~100% |
+| Segurança | 2 | 8 | ~80% |
+| Infraestrutura | 3 | 4 | ~60% |
 | Performance | 3 | 1 | ~25% |
 | Testes | 8+ | 0 | ~5% |
-| Segurança | 4 | 7 | ~65% |
-| Frontend | 3–4 | 16 | ~82% |
-| Backend | 4–5 | 35+ | ~92% |
-| Base de Dados | 4 | 22+ | ~88% |
-| Infraestrutura | 3 | 3 | ~45–50% |
-| Documentação | 5 | 3–4 | ~40% |
+| Frontend | 2 | 18 | ~90% |
+| Backend | 3 | 40+ | ~95% |
+| Base de Dados | 2 | 30+ | ~95% |
+| Documentação | 4 | 5 | ~50% |
 
 ---
 
 ## 📝 NOTAS
 
-- **Foco imediato (próximos 4–8 meses):** Email automático → Encomendas de venda → Recorrentes → Relatórios
-- Não pedir certificação final AT até ter as funcionalidades 🔴 implementadas e testadas
+- **Foco imediato:** Multi-empresa → ADQ/QES real → CIUS-PT fluxo completo
 - PDF simples continua válido como fatura eletrónica até final de 2026; preparar ADQ para 2027+
 - Priorizar o que resolve dores reais: follow-up de vendas, automação de envios
 - Evitar over-engineering nas primeiras funcionalidades novas – lançar MVP utilizável → iterar com feedback

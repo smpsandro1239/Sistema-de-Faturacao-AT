@@ -38,6 +38,7 @@ interface ItemCarrinho extends Artigo {
 export default function POSPage() {
   const [artigos, setArtigos] = useState<Artigo[]>([]);
   const [filtro, setFiltro] = useState("");
+  const [barcode, setBarcode] = useState("");
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
   const [loading, setLoading] = useState(true);
   const [processando, setProcessando] = useState(false);
@@ -82,6 +83,20 @@ export default function POSPage() {
     a.descricao.toLowerCase().includes(filtro.toLowerCase()) ||
     a.codigo.toLowerCase().includes(filtro.toLowerCase())
   );
+
+  const handleBarcodeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!barcode) return;
+
+    const artigo = artigos.find(a => a.codigo === barcode);
+    if (artigo) {
+      adicionarAoCarrinho(artigo);
+      setBarcode("");
+      toast.success(`Adicionado: ${artigo.descricao}`);
+    } else {
+      toast.error("Artigo não encontrado pelo código de barras");
+    }
+  };
 
   const adicionarAoCarrinho = (artigo: Artigo) => {
     const existe = carrinho.find(item => item.id === artigo.id);
@@ -184,6 +199,25 @@ export default function POSPage() {
             />
           </div>
         </header>
+
+        {/* Barcode Input Bar */}
+        <div className="bg-emerald-50 border border-emerald-100 p-3 rounded-lg flex items-center gap-3">
+          <div className="bg-emerald-600 p-1.5 rounded text-white">
+            <Package className="w-5 h-5" />
+          </div>
+          <form onSubmit={handleBarcodeSubmit} className="flex-1 flex gap-2">
+            <Input
+              placeholder="Ler código de barras..."
+              className="bg-white border-emerald-200 focus-visible:ring-emerald-500"
+              value={barcode}
+              onChange={(e) => setBarcode(e.target.value)}
+              autoFocus
+            />
+            <Button type="submit" variant="secondary" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200">
+              Adicionar
+            </Button>
+          </form>
+        </div>
 
         <ScrollArea className="flex-1">
           {loading ? (
