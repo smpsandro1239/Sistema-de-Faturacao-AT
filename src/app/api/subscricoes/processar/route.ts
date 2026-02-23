@@ -38,22 +38,27 @@ export async function POST(request: NextRequest) {
     // 2. Processar cada subscrição
     for (const sub of subscricoes) {
       try {
-        // Obter último documento para encadeamento de hash
+        // Buscar último documento DA MESMA SÉRIE para hash
         const ultimoDoc = await db.documento.findFirst({
-          where: { tipo: sub.tipoDocumento },
-          orderBy: { numero: "desc" },
+          where: {
+            serieId: sub.serieId,
+            estado: EstadoDocumento.EMITIDO
+          },
+          orderBy: { dataEmissao: "desc" },
         });
 
         const proximoNumero = sub.serie.numeroAtual + 1;
         const numeroFormatado = `${sub.serie.prefixo} ${sub.serie.ano}/${String(proximoNumero).padStart(5, "0")}`;
-        const dataEmissao = new Date(); // Emitir com a data de hoje
-        const atcud = gerarATCUD(sub.serie.codigoValidacaoAT || "0", proximoNumero);
+        const dataEmissao = new Date();
+        const dataCriacao = new Date();
+
+        const atcud = gerarATCUD(sub.serie.codigoValidacaoAT || "", proximoNumero);
         const hash = calcularHashDocumento({
           numeroDocumento: numeroFormatado,
           dataEmissao,
+          dataCriacao,
           totalLiquido: sub.totalLiquido,
           hashAnterior: ultimoDoc?.hash || null,
-          tipoDocumento: sub.tipoDocumento,
         });
 
         // Transação para criar documento e atualizar subscrição
@@ -71,9 +76,9 @@ export async function POST(request: NextRequest) {
               clienteNif: sub.clienteNif,
               empresaNome: empresa.nome,
               empresaNif: empresa.nif,
-              empresaMorada: empresa.morada,
-              empresaCodigoPostal: empresa.codigoPostal,
-              empresaLocalidade: empresa.localidade,
+              empresaMorada: empresa.morada || "",
+              empresaCodigoPostal: empresa.codigoPostal || "",
+              empresaLocalidade: empresa.localidade || "",
               totalBase: sub.totalBase,
               totalIVA: sub.totalIVA,
               totalLiquido: sub.totalLiquido,
@@ -81,7 +86,9 @@ export async function POST(request: NextRequest) {
               hashDocumentoAnterior: ultimoDoc?.hash || null,
               atcud,
               dataEmissao,
+              dataCriacao,
               estado: EstadoDocumento.EMITIDO,
+              estadoPagamento: sub.tipoDocumento === TipoDocumento.FATURA_RECIBO ? "PAGO" : "PENDENTE",
               observacoes: `Fatura gerada automaticamente pela subscrição: ${sub.descricao}`,
               linhas: {
                 create: sub.linhas.map((l) => ({
@@ -104,7 +111,10 @@ export async function POST(request: NextRequest) {
           // Atualizar série
           await tx.serie.update({
             where: { id: sub.serieId },
-            data: { numeroAtual: proximoNumero },
+            data: {
+              numeroAtual: proximoNumero,
+              bloqueado: true
+            },
           });
 
           // Calcular próxima data
