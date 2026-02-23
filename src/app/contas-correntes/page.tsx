@@ -53,7 +53,7 @@ export default function ContasCorrentesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatarMoeda(fornecedores.reduce((sum, f) => sum + f.totalDevido, 0))}
+              {formatarMoeda(fornecedores.reduce((sum, f) => sum + f.saldo, 0))}
             </div>
           </CardContent>
         </Card>
@@ -64,7 +64,7 @@ export default function ContasCorrentesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatarMoeda(clientes.reduce((sum, c) => sum + c.totalReceber, 0))}
+              {formatarMoeda(clientes.reduce((sum, c) => sum + c.saldo, 0))}
             </div>
           </CardContent>
         </Card>

@@ -18,6 +18,7 @@ Sistema completo de faturação certificado pela Autoridade Tributária (AT), fo
 - **Vendas & Orçamentos**: Emissão de Faturas, Faturas-Recibo e Notas de Crédito. Conversão de orçamentos e encomendas.
 - **Avenças (Faturação Recorrente)**: Gestão de subscrições com processamento automático em lote.
 - **Contas Correntes**: Controlo de saldos pendentes de clientes e fornecedores.
+- **Reconciliação Bancária**: Importação de extratos e matching automático com faturas pendentes.
 
 ### 📊 Inteligência de Negócio & Conectividade
 - **API Pública (v1)**: Integração via API Key para Clientes e Artigos.

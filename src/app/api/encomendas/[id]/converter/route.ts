@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { EstadoEncomendaCliente, EstadoDocumento, TipoDocumento } from "@prisma/client";
 import { calcularHashDocumento, gerarATCUD } from "@/lib/hash";
+import { libertarStock, saidaStockFatura } from "@/lib/stock";
 
 export async function POST(
   request: NextRequest,
@@ -111,6 +112,38 @@ export async function POST(
           },
         },
       });
+
+      // Libertar stock reservado e fazer a saída real
+      const armazemPrincipal = await tx.armazem.findFirst({ where: { principal: true } });
+      if (armazemPrincipal) {
+        for (const linha of encomenda.linhas) {
+          if (linha.artigoId) {
+            await libertarStock({
+              artigoId: linha.artigoId,
+              armazemId: armazemPrincipal.id,
+              quantidade: linha.quantidade
+            });
+          }
+        }
+
+        // Saída real de stock
+        const linhasStock = encomenda.linhas
+          .filter(l => l.artigoId)
+          .map(l => ({
+            artigoId: l.artigoId!,
+            quantidade: l.quantidade,
+            precoUnitario: l.precoUnitario,
+          }));
+
+        if (linhasStock.length > 0) {
+          await saidaStockFatura({
+            linhas: linhasStock,
+            armazemId: armazemPrincipal.id,
+            documentoId: doc.id,
+            utilizadorId: doc.utilizadorId,
+          });
+        }
+      }
 
       await tx.encomendaCliente.update({
         where: { id },

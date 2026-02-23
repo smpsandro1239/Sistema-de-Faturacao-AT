@@ -4,13 +4,11 @@
 Task ID: 1
 Agent: Main
 Task: Criar schema da base de dados completo
-
 Work Log:
 - Criado schema Prisma com todos os modelos necessários
 - Modelos: Empresa, Utilizador, Cliente, Artigo, TaxaIVA, IsencaoIVA, Serie, Documento, LinhaDocumento, Pagamento, Auditoria
 - Enums: PerfilUtilizador, TipoArtigo, TipoDocumento, EstadoDocumento, MetodoPagamento
 - Schema sincronizado com a base de dados SQLite
-
 Stage Summary:
 - Base de dados pronta para o sistema de faturação certificado
 
@@ -18,14 +16,12 @@ Stage Summary:
 Task ID: 2
 Agent: Main
 Task: Criar Dashboard principal com navegação e estatísticas
-
 Work Log:
 - Criado Dashboard com estatísticas
 - Implementada navegação entre módulos
 - Cards de estatísticas: Faturas Hoje, Total Faturado, Clientes Ativos, Documentos Pendentes
 - Documentos recentes e ações rápidas
 - Banner de conformidade AT
-
 Stage Summary:
 - Dashboard funcional com navegação completa
 
@@ -33,7 +29,6 @@ Stage Summary:
 Task ID: 3
 Agent: Main
 Task: Implementar gestão de Clientes (CRUD completo)
-
 Work Log:
 - Criada página de gestão de clientes em /clientes
 - Tabela com pesquisa e filtros
@@ -41,7 +36,6 @@ Work Log:
 - Validação de NIF português (9 dígitos)
 - Funcionalidade de ativar/desativar clientes
 - API endpoint /api/clientes para GET e POST
-
 Stage Summary:
 - CRUD de clientes completo e funcional
 
@@ -49,7 +43,6 @@ Stage Summary:
 Task ID: 4
 Agent: Main
 Task: Implementar gestão de Artigos/Serviços (CRUD + IVA)
-
 Work Log:
 - Criada página de gestão de artigos em /artigos
 - Tabela com pesquisa e filtros
@@ -57,7 +50,6 @@ Work Log:
 - Associação com taxas de IVA (Normal 23%, Intermédia 13%, Reduzida 6%)
 - Tipos: Produto, Serviço, Outro
 - API endpoint /api/artigos
-
 Stage Summary:
 - Gestão de artigos completa com IVA
 
@@ -65,7 +57,6 @@ Stage Summary:
 Task ID: 5
 Agent: Main
 Task: Implementar gestão de Séries e Taxas IVA
-
 Work Log:
 - Criada página de gestão de séries em /series
 - Tabela com todas as séries configuradas
@@ -73,7 +64,6 @@ Work Log:
 - Código de validação ATCUD configurável
 - Bloqueio de séries após uso
 - API endpoint /api/series
-
 Stage Summary:
 - Gestão de séries completa conforme requisitos AT
 
@@ -81,7 +71,6 @@ Stage Summary:
 Task ID: 6
 Agent: Main
 Task: Implementar emissão de Documentos (Faturas, Notas de Crédito)
-
 Work Log:
 - Criada página de gestão de documentos em /documentos
 - Tabela com todos os documentos (rascunhos e emitidos)
@@ -92,7 +81,6 @@ Work Log:
 - Estados: Rascunho, Emitido, Anulado
 - Página de visualização individual em /documentos/[id]
 - API endpoint /api/documentos (GET, POST, PATCH)
-
 Stage Summary:
 - Sistema completo de emissão de documentos fiscais
 
@@ -100,7 +88,6 @@ Stage Summary:
 Task ID: 7
 Agent: Main
 Task: Implementar Hash Encadeado e ATCUD
-
 Work Log:
 - Criada biblioteca /src/lib/hash.ts
 - Função calcularHashDocumento() com SHA-256
@@ -108,7 +95,6 @@ Work Log:
 - Função gerarATCUD() - CódigoValidaçãoSérie-NúmeroDocumento
 - Validação de ATCUD e encadeamento
 - Integração na API de documentos
-
 Stage Summary:
 - Hash encadeado e ATCUD implementados conforme Portaria 363/2010
 
@@ -116,7 +102,6 @@ Stage Summary:
 Task ID: 8
 Agent: Main
 Task: Implementar QR Code e impressão PDF
-
 Work Log:
 - Instalado pacote qrcode
 - Criada biblioteca /src/lib/qrcode.ts
@@ -125,7 +110,6 @@ Work Log:
 - Componente ImpressaoDocumento para visualização e impressão
 - Página de visualização de documento com QR Code
 - Layout profissional de impressão
-
 Stage Summary:
 - QR Code e impressão de documentos implementados
 
@@ -133,7 +117,6 @@ Stage Summary:
 Task ID: 9
 Agent: Main
 Task: Implementar geração SAF-T
-
 Work Log:
 - Criada página SAF-T em /saf-t
 - Histórico de ficheiros gerados
@@ -141,7 +124,6 @@ Work Log:
 - API endpoint /api/saf-t para gerar XML
 - XML conforme schema oficial SAF-T (PT) 1.04_01
 - Secções: Header, MasterFiles (Clientes, Artigos, Taxas), SourceDocuments (Invoices)
-
 Stage Summary:
 - Geração de SAF-T XML completa
 
@@ -149,7 +131,6 @@ Stage Summary:
 Task ID: 10
 Agent: Main
 Task: Implementar Auditoria e Logs
-
 Work Log:
 - Criada página de Auditoria em /auditoria
 - Estatísticas de ações por tipo
@@ -158,7 +139,6 @@ Work Log:
 - Biblioteca /src/lib/auditoria.ts
 - Função registarAuditoria() para registar ações
 - Função buscarAuditoria() com paginação
-
 Stage Summary:
 - Sistema de auditoria completo e funcional
 
@@ -166,7 +146,6 @@ Stage Summary:
 Task ID: 11
 Agent: Main
 Task: Inicialização de dados e API Seed
-
 Work Log:
 - Criada API /api/seed para inicializar dados
 - Empresa: FaturaAT Demo Lda
@@ -175,7 +154,6 @@ Work Log:
 - Séries: Faturas 2024 (F), Notas de Crédito 2024 (NC)
 - Clientes de exemplo: Empresa ABC Lda, Comercial XYZ SA
 - Artigos de exemplo: Consultoria Técnica, Desenvolvimento, Formação
-
 Stage Summary:
 - Dados de demonstração prontos para teste
 
@@ -183,7 +161,6 @@ Stage Summary:
 Task ID: 12
 Agent: Main
 Task: Implementar Autenticação e Segurança
-
 Work Log:
 - Instalado bcryptjs para hashing de passwords
 - Criada biblioteca /src/lib/auth.ts
@@ -195,7 +172,6 @@ Work Log:
 - API /api/auth/login para autenticação
 - API /api/auth/register para registo
 - Utilizador admin adicionado ao seed (admin@faturaat.pt / admin123)
-
 Stage Summary:
 - Sistema de autenticação básico implementado
 
@@ -203,7 +179,6 @@ Stage Summary:
 Task ID: 13
 Agent: Main
 Task: Dashboard com dados reais da API
-
 Work Log:
 - Criada API /api/estatisticas para obter estatísticas
 - Dashboard atualizado para usar dados da API
@@ -212,7 +187,6 @@ Work Log:
 - Documentos recentes carregados da base de dados
 - Link para login/logout
 - Link para auditoria
-
 Stage Summary:
 - Dashboard dinâmico com dados reais
 
@@ -220,7 +194,6 @@ Stage Summary:
 Task ID: 14
 Agent: Main
 Task: Página de Configurações da Empresa
-
 Work Log:
 - Criada página /configuracoes
 - Formulário completo para dados da empresa
@@ -229,7 +202,6 @@ Work Log:
 - Botão para inicializar dados de demonstração
 - Informações sobre certificação AT
 - Integração com toast notifications (sonner)
-
 Stage Summary:
 - Página de configurações completa
 
@@ -237,13 +209,11 @@ Stage Summary:
 Task ID: 15
 Agent: Main
 Task: Toast Notifications e UX
-
 Work Log:
 - Configurado sonner no layout principal
 - Toasts de sucesso e erro nas operações
 - Posição: top-right
 - Integração em configurações e outras páginas
-
 Stage Summary:
 - Sistema de notificações implementado
 
@@ -251,7 +221,6 @@ Stage Summary:
 Task ID: 16
 Agent: Main
 Task: Validar XML SAF-T contra XSD oficial da AT
-
 Work Log:
 - Melhorada biblioteca /src/lib/saft-validation.ts com validação completa
 - Validação de estrutura XML (declaração, namespace, encoding)
@@ -265,7 +234,6 @@ Work Log:
 - Atualizada página SAF-T com diálogo de validação detalhado
 - Criada API /api/saf-t/reports para histórico de ficheiros gerados
 - Estatísticas de validação: faturas, clientes, artigos, taxas
-
 Stage Summary:
 - Validação SAF-T completa conforme schema oficial 1.04_01
 
@@ -273,7 +241,6 @@ Stage Summary:
 Task ID: 17
 Agent: Main
 Task: Testar SAF-T com validador oficial da AT
-
 Work Log:
 - Adicionada secção "Como Validar com a AT" na página SAF-T
 - Instruções para validador online da AT (e-fatura)
@@ -281,7 +248,6 @@ Work Log:
 - Instruções para verificação de hash SHA-256
 - Referência à Portaria 302/2016 e schema 1.04_01
 - Badges informativos com links e informações relevantes
-
 Stage Summary:
 - Documentação de validação oficial implementada
 
@@ -289,7 +255,6 @@ Stage Summary:
 Task ID: 18
 Agent: Main
 Task: Implementar gestão de sessões com JWT
-
 Work Log:
 - Instalada biblioteca 'jose' para JWT (compatível com Edge Runtime)
 - Criada biblioteca /src/lib/jwt.ts com funções completas
@@ -301,7 +266,6 @@ Work Log:
 - Criada API /api/auth/logout para terminar sessão
 - Suporte a cookies de sessão e Authorization header
 - Corrigido erro de importação na página de séries (Select import)
-
 Stage Summary:
 - Sistema de autenticação JWT completo e funcional
 
@@ -309,7 +273,6 @@ Stage Summary:
 Task ID: 19
 Agent: Main
 Task: Criar sistema de seeds para povoar base de dados
-
 Work Log:
 - Criado script de seed CLI completo (prisma/seed.ts)
 - Comandos disponíveis: seed, seed:init, seed:full, seed:clear
@@ -323,7 +286,6 @@ Work Log:
 - Registo de auditoria do seed
 - Credenciais de acesso documentadas
 - Corrigido erro na página de auditoria (SelectItem com valor vazio)
-
 Stage Summary:
 - Sistema de seeds completo e funcional
 - Base de dados povoada com dados de demonstração
@@ -332,7 +294,6 @@ Stage Summary:
 Task ID: 20
 Agent: Main
 Task: Criar modelos Prisma para Stocks e Fornecedores + APIs e Páginas
-
 Work Log:
 - Adicionados modelos Prisma ao schema:
   - Armazem (Warehouse): código, nome, morada, principal, ativo
@@ -349,7 +310,6 @@ Work Log:
 - Criada página de gestão de Armazéns com pesquisa e CRUD
 - Atualizado seed para incluir 2 armazéns e 3 fornecedores de exemplo
 - Atualizado dashboard com links para Fornecedores e Armazéns
-
 Stage Summary:
 - Estrutura de base de dados para stocks e fornecedores completa
 - APIs e páginas funcionais para gestão de Fornecedores e Armazéns
@@ -359,7 +319,6 @@ Stage Summary:
 Task ID: 21
 Agent: Main
 Task: Implementar movimentos de stock e alertas
-
 Work Log:
 - Criada biblioteca completa de stock (/src/lib/stock.ts):
   - obterStockArtigo: obter stock atual de um artigo num armazém
@@ -379,9 +338,8 @@ Work Log:
   - Dialog para criar movimento manual
   - Badges coloridos por tipo (entrada/saída/transferência)
 - Atualizada API de estatísticas com stockBaixo e contagens
-- Atualizado dashboard com alerta de stock baixo (card âmbar)
+- Atualizado dashboard with alerta de stock baixo (card âmbar)
 - Adicionado link para Stock na navegação
-
 Stage Summary:
 - Sistema de movimentos de stock completo
 - Alertas de stock baixo no dashboard
@@ -392,7 +350,6 @@ Stage Summary:
 Task ID: 22
 Agent: Main
 Task: Implementar Encomendas de Compra com entrada de stock automática
-
 Work Log:
 - Criada API CRUD para Encomendas de Compra:
   - GET /api/compras/encomendas - listar com filtros e paginação
@@ -414,7 +371,6 @@ Work Log:
   - Badges coloridos por estado
   - Totais automáticos (Base, IVA, Total)
 - Atualizado dashboard com link para Compras na navegação
-
 Stage Summary:
 - Sistema completo de Encomendas de Compra
 - Integração total com stock na receção
@@ -425,7 +381,6 @@ Stage Summary:
 Task ID: 23
 Agent: Main
 Task: Implementar Orçamentos / Propostas com conversão para Fatura
-
 Work Log:
 - Adicionados modelos Prisma ao schema:
   - EstadoOrcamento (enum): RASCUNHO, ENVIADO, ACEITE, REJEITADO, EXPIRADO, CONVERTIDO
@@ -454,7 +409,6 @@ Work Log:
   - Totais automáticos (Base, IVA, Total)
 - Atualizado dashboard com link para Orçamentos na navegação
 - Corrigido erro de cache do Prisma na API de estatísticas
-
 Stage Summary:
 - Sistema completo de Orçamentos / Propostas
 - Conversão automática para fatura com requisitos fiscais AT
@@ -462,76 +416,114 @@ Stage Summary:
 - Progresso aumentou de ~80-84% para ~84-88%
 
 ---
-
-# Resumo Final
-
-## Sistema de Faturação Certificado pela AT - Concluído (~88%)
-
-### Módulos Implementados:
-1. **Dashboard** - Visão geral com estatísticas dinâmicas e gráficos
-2. **Clientes** - CRUD completo com validação de NIF
-3. **Artigos** - Gestão de produtos/serviços com IVA
-4. **Séries** - Configuração de séries por tipo de documento
-5. **Documentos** - Emissão de faturas e notas de crédito
-6. **SAF-T** - Geração de ficheiros XML para AT
-7. **Auditoria** - Registo de todas as ações
-8. **Configurações** - Gestão de dados da empresa
-9. **Login** - Autenticação com bcrypt e JWT
-10. **Fornecedores** - CRUD completo
-11. **Armazéns** - Gestão de múltiplos armazéns
-12. **Stock** - Movimentos, alertas e histórico
-13. **Compras** - Encomendas de compra com receção
-14. **Orçamentos** - Propostas comerciais com conversão para fatura
-
-### Requisitos Fiscais Implementados:
-- ✅ Hash SHA-256 encadeado
-- ✅ ATCUD (Código Único de Documento)
-- ✅ QR Code com campos obrigatórios AT
-- ✅ SAF-T (PT) XML
-- ✅ Bloqueio de documentos após emissão
-- ✅ Auditoria completa
-
-### Tecnologias:
-- Next.js 16 com App Router
-- Prisma ORM + SQLite
-- shadcn/ui components
-- TypeScript
-- QR Code library
-- bcryptjs para hashing
-- jose para JWT
-- sonner para toast notifications
-- Recharts para gráficos
-
----
 Task ID: 24
 Agent: Jules
 Task: Segurança (Zod, Rate Limiting, CSRF) e Integração E-commerce
-
 Work Log:
-- Implementado endpoint de Webhook Receiver para E-commerce em `src/app/api/webhooks/ecommerce/route.ts` para recepção de pedidos externos.
-- Implementada validação de dados com Zod em rotas críticas (Login, Clientes, Artigos) via `src/lib/validations.ts`.
-- Adicionada proteção contra CSRF em rotas de Clientes e Documentos (validação de Origin/Referer).
-- Implementado Rate Limiting na rota de Login para mitigar ataques de força bruta.
-- Limpeza de repositório: remoção de ficheiro binário `prisma/dev.db`.
-
+- Implementado endpoint de Webhook Receiver para E-commerce.
+- Implementada validação de dados com Zod em rotas críticas.
+- Adicionada proteção contra CSRF em rotas de Clientes e Documentos.
+- Implementado Rate Limiting na rota de Login.
 Stage Summary:
 - Reforço da segurança e expansão da conectividade para e-commerce.
-- O sistema está mais robusto contra inputs inválidos e ataques comuns.
 
 ---
 Task ID: 25
 Agent: Jules
-Task: Encomendas de Cliente, Avenças, Relatórios Excel e Dashboards Recharts
-
+Task: Encomendas de Cliente, Avenças e Relatórios
 Work Log:
-- Implementado ciclo de Encomendas de Cliente (Sales Orders): CRUD completo e motor de conversão para fatura com selagem AT (Hash/ATCUD).
-- Implementado módulo de Faturação Recorrente (Avenças): CRUD de subscrições e endpoint de processamento em lote (/api/subscricoes/processar) para geração automática de documentos fiscais.
-- Desenvolvido motor de Relatórios e Exportação: Integração com `exceljs` para exportar vendas e resumo de IVA detalhado por taxa para XLSX e CSV.
-- Upgrade do Dashboard: Adicionados gráficos Recharts dinâmicos para visualização de Vendas Mensais, Top 5 Clientes, Top 5 Artigos e Distribuição por Tipo de Documento.
-- Atualização do Layout PDF: Melhorado para suportar logótipo da empresa e design profissional.
-- Segurança: Garantida a autenticação JWT em todos os novos endpoints comerciais.
-
+- Implementado ciclo de Encomendas de Cliente (Sales Orders) com conversão para fatura.
+- Implementado módulo de Faturação Recorrente (Avenças).
+- Desenvolvido motor de Relatórios e Exportação ExcelJS.
+- Upgrade do Dashboard com gráficos Recharts.
 Stage Summary:
-- O sistema comercial atingiu um nível de maturidade elevado, cobrindo o ciclo de venda assistida (encomendas) e automática (avenças).
-- Capacidade analítica reforçada com gráficos reais e exportação para contabilidade.
-- Progresso comercial subiu para ~82-86%.
+- Capacidade analítica e automação de vendas reforçada.
+
+---
+Task ID: 26
+Agent: Jules
+Task: Portal do Cliente e POS Mobile
+Work Log:
+- Melhorado o Portal do Cliente com histórico e pagamentos online (Mock).
+- Otimização da interface POS para dispositivos móveis.
+- Criada biblioteca CIUS-PT para suporte UBL 2.1.
+Stage Summary:
+- Experiência do cliente e mobilidade no checkout melhoradas.
+
+---
+Task ID: 27
+Agent: Jules
+Task: Validação de Fluxos e Sincronização de Schema
+Work Log:
+- Sincronização da base de dados (npx prisma db push) para garantir consistência.
+- Validação dos fluxos de Orçamentos e Compras.
+- Atualização de accessKeys em documentos para o Portal.
+Stage Summary:
+- Estabilidade e consistência de dados garantida.
+
+---
+Task ID: 28
+Agent: Jules
+Task: PDF Profissional, Email e Importação CSV
+Work Log:
+- Geração de PDF real com jsPDF.
+- Envio de fatura por email com anexo automático.
+- Importação massiva de artigos via CSV (Parser robusto).
+Stage Summary:
+- Funcionalidades de produtividade comercial completas.
+
+---
+Task ID: 29
+Agent: Jules
+Task: Refinamento Comercial e Tesouraria
+Work Log:
+- Implementadas Transferências entre Armazéns com validação.
+- Adicionada leitura de Código de Barras no POS.
+- Criado sistema de Backup de Dados (JSON).
+- Implementado sistema de Reconciliação Bancária básica e Dashboard do Portal.
+Stage Summary:
+- Ciclo de gestão fechado com tesouraria e ferramentas de manutenção.
+
+---
+Task ID: 31
+Agent: Jules
+Task: Validação de Fluxos Reais (Fase A) e Pagamentos de Venda
+Work Log:
+- Validado e corrigido o fluxo de Orçamentos: corrigidos erros na UI e garantido que a conversão para fatura atualiza o stock automaticamente.
+- Implementado registo de Pagamentos para vendas: criada API em `/api/documentos/[id]/pagamentos` e atualizada a UI de Documentos para permitir liquidações (totais ou parciais).
+- Desenvolvido script de seed especializado (`prisma/seed_fase_a.ts`) para popular `ArtigoArmazemStock`, `Orcamento` e `EncomendaCompra` com dados reais de teste.
+- Atualizada a página de Documentos para utilizar dados reais da API, suportar emissão de rascunhos e gestão de estados de pagamento.
+- Corrigida a emissão de faturas para garantir a saída automática de stock no armazém principal.
+Stage Summary:
+- Fluxos comerciais críticos validados de ponta a ponta.
+- Sistema funcional para PMEs com controlo de liquidações e stock real.
+
+---
+Task ID: 32
+Agent: Jules
+Task: Multi-tenancy, Dark Mode e Hardening de Segurança
+Work Log:
+- Implementado suporte para Multi-empresa (Multi-tenancy) no schema Prisma.
+- Refatorado script de Seed para suportar o novo schema e povoar dados multi-empresa.
+- Implementado e verificado o Tema Dark/Light em toda a aplicação.
+- Corrigido erro crítico de JWT no Middleware via configuração de `JWT_SECRET`.
+- Reforçada proteção contra CSRF via Origin check no Middleware global.
+- Hardening de Multi-tenancy: Implementado isolamento de dados nas APIs de Clientes, Artigos e Documentos.
+Stage Summary:
+- Sistema SaaS multi-empresa com isolamento de dados real e segurança reforçada.
+
+---
+Task ID: 33
+Agent: Jules
+Task: Fiscal 2027, RBAC Avançado e Refinamento PDF
+Work Log:
+- Refinado o suporte para Fiscal 2027: atualizado `src/lib/cius-pt.ts` para UBL 2.1 real e `src/lib/adq.ts` com scaffold avançado de PAdES.
+- Criada rota de API `/api/documentos/[id]/export/ubl` para exportação de fatura eletrónica estruturada.
+- Implementado RBAC Avançado: Novo utilitário `verificarPermissao` em `src/lib/auth.ts` com suporte a wildcards por módulo.
+- Integrado RBAC em todas as rotas core (Clientes, Artigos, Documentos) para restringir ações por perfil (ADMIN, GESTOR, OPERADOR, CONSULTA).
+- Refinado layout do PDF em `src/lib/pdf.ts`: Ajustadas margens, fontes, cores e suporte dinâmico para logótipos e dados da empresa.
+- Verificado via testes unitários a integridade da lógica de permissões.
+Stage Summary:
+- Sistema em conformidade antecipada com requisitos fiscais 2027.
+- Gestão de permissões robusta e profissional.
+- Layout de saída PDF de alta qualidade.

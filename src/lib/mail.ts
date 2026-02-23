@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { gerarPDFDocumento } from "./pdf";
 
 /**
  * Biblioteca de envio de emails
@@ -49,10 +50,25 @@ export async function enviarEmail(params: EnviarEmailParams) {
 }
 
 /**
- * Envia um documento por email para o cliente
+ * Envia um documento por email para o cliente com PDF em anexo
  */
 export async function enviarEmailDocumento(documento: any, clienteEmail: string) {
   const subject = `Fatura ${documento.numeroFormatado} - ${documento.empresaNome}`;
+
+  // Gerar PDF para anexo
+  const pdfBuffer = await gerarPDFDocumento({
+    ...documento,
+    dataEmissao: documento.dataEmissao ? documento.dataEmissao.toISOString() : null,
+    linhas: documento.linhas.map((l: any) => ({
+      codigoArtigo: l.codigoArtigo,
+      descricaoArtigo: l.descricaoArtigo,
+      quantidade: l.quantidade,
+      precoUnitario: l.precoUnitario,
+      taxaIVAPercentagem: l.taxaIVAPercentagem,
+      base: l.base,
+      valorIVA: l.valorIVA,
+    })),
+  }, false) as Uint8Array;
 
   const text = `
     Olá ${documento.clienteNome},
@@ -99,5 +115,11 @@ export async function enviarEmailDocumento(documento: any, clienteEmail: string)
     subject,
     text,
     html,
+    attachments: [
+      {
+        filename: `${documento.numeroFormatado.replace(/\//g, '-')}.pdf`,
+        content: Buffer.from(pdfBuffer),
+      },
+    ],
   });
 }

@@ -1,11 +1,25 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { articleSchema } from "@/lib/validations";
+import { validateCSRF, authenticateRequest, verificarPermissao } from "@/lib/auth";
 
 // GET - Listar todos os artigos
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { authenticated, user, error } = await authenticateRequest(request);
+    if (!authenticated || !user?.empresaId) {
+      return NextResponse.json({ error: error || "Não autorizado" }, { status: 401 });
+    }
+
+    const permission = await verificarPermissao(user.perfil, "artigos.read");
+    if (!permission.authorized) {
+      return NextResponse.json({ error: permission.error }, { status: 403 });
+    }
+
     const artigos = await db.artigo.findMany({
+      where: {
+        empresaId: user.empresaId,
+      },
       include: {
         taxaIVA: true,
         isencao: true,
@@ -25,6 +39,20 @@ export async function GET() {
 // POST - Criar novo artigo
 export async function POST(request: Request) {
   try {
+    const { authenticated, user, error: authError } = await authenticateRequest(request);
+    if (!authenticated || !user?.empresaId) {
+      return NextResponse.json({ error: authError || "Não autorizado" }, { status: 401 });
+    }
+
+    const permission = await verificarPermissao(user.perfil, "artigos.create");
+    if (!permission.authorized) {
+      return NextResponse.json({ error: permission.error }, { status: 403 });
+    }
+
+    if (!validateCSRF(request)) {
+      return NextResponse.json({ error: "Pedido inválido (CSRF)" }, { status: 403 });
+    }
+
     const body = await request.json();
 
     // Validação com Zod
@@ -38,9 +66,12 @@ export async function POST(request: Request) {
 
     const { codigo, descricao, tipo, precoUnitario, unidade, taxaIVAId, isencaoId, observacoes } = validation.data;
 
-    // Verificar se código já existe
-    const artigoExistente = await db.artigo.findUnique({
-      where: { codigo },
+    // Verificar se código já existe nesta empresa
+    const artigoExistente = await db.artigo.findFirst({
+      where: {
+        codigo,
+        empresaId: user.empresaId
+      },
     });
 
     if (artigoExistente) {
@@ -52,6 +83,7 @@ export async function POST(request: Request) {
 
     const artigo = await db.artigo.create({
       data: {
+        empresaId: user.empresaId,
         codigo,
         descricao,
         tipo: tipo || "PRODUTO",

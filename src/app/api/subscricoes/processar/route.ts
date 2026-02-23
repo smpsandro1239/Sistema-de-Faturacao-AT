@@ -4,6 +4,7 @@ import { EstadoSubscricao, EstadoDocumento, TipoDocumento, FrequenciaSubscricao 
 import { calcularHashDocumento, gerarATCUD } from "@/lib/hash";
 import { addWeeks, addMonths, addYears } from "date-fns";
 import { authenticateRequest } from "@/lib/auth";
+import { enviarEmailDocumento } from "@/lib/mail";
 
 export async function POST(request: NextRequest) {
   try {
@@ -62,9 +63,9 @@ export async function POST(request: NextRequest) {
         });
 
         // Transação para criar documento e atualizar subscrição
-        await db.$transaction(async (tx) => {
+        const documentoGerado = await db.$transaction(async (tx) => {
           // Criar Fatura
-          await tx.documento.create({
+          const doc = await tx.documento.create({
             data: {
               numero: proximoNumero,
               numeroFormatado,
@@ -106,6 +107,10 @@ export async function POST(request: NextRequest) {
                 })),
               },
             },
+            include: {
+              cliente: true,
+              linhas: true,
+            }
           });
 
           // Atualizar série
@@ -142,7 +147,14 @@ export async function POST(request: NextRequest) {
               estado: novoEstado,
             }
           });
+
+          return doc;
         });
+
+        // Envio Automático de Email se configurado no cliente
+        if (documentoGerado.cliente.envioEmailAutomatico && documentoGerado.cliente.email) {
+          enviarEmailDocumento(documentoGerado, documentoGerado.cliente.email).catch(console.error);
+        }
 
         resultados.push({ id: sub.id, status: "sucesso", numero: numeroFormatado });
       } catch (err) {

@@ -9,6 +9,8 @@ export async function POST(
 ) {
   try {
     const { key } = await params;
+    const body = await request.json().catch(() => ({}));
+    const { metodo } = body;
 
     const documento = await db.documento.findFirst({
       where: { accessKey: key, estado: "EMITIDO" },
@@ -29,6 +31,7 @@ export async function POST(
       where: { id: documento.id },
       data: {
         estadoPagamento: "PAGO",
+        metodoPagamento: metodo === 'MBWAY' ? 'NUMERARIO' : 'CARTAO_CREDITO', // Mapeamento simplificado
       },
       include: {
         cliente: true,
@@ -39,9 +42,9 @@ export async function POST(
     await db.pagamento.create({
       data: {
         documentoId: documento.id,
-        metodo: "CARTAO_CREDITO",
+        metodo: metodo === 'MBWAY' ? 'NUMERARIO' : 'CARTAO_CREDITO',
         valor: documento.totalLiquido,
-        observacoes: "Pagamento via Portal do Cliente (Mock)",
+        observacoes: `Pagamento via Portal do Cliente (${metodo || 'Mock'})`,
       }
     });
 

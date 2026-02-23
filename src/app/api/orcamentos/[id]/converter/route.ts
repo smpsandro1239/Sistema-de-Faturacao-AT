@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { EstadoOrcamento, EstadoDocumento, TipoDocumento } from "@prisma/client";
 import { calcularHashDocumento, gerarATCUD } from "@/lib/hash";
+import { saidaStockFatura } from "@/lib/stock";
 
 // POST - Converter orçamento em fatura
 export async function POST(
@@ -179,6 +180,27 @@ export async function POST(
           linhas: true,
         },
       });
+
+      // Atualizar stock se houver armazém principal
+      const armazemPrincipal = await tx.armazem.findFirst({ where: { principal: true } });
+      if (armazemPrincipal) {
+        const linhasStock = novoDocumento.linhas
+          .filter(l => l.artigoId)
+          .map(l => ({
+            artigoId: l.artigoId!,
+            quantidade: l.quantidade,
+            precoUnitario: l.precoUnitario,
+          }));
+
+        if (linhasStock.length > 0) {
+          await saidaStockFatura({
+            linhas: linhasStock,
+            armazemId: armazemPrincipal.id,
+            documentoId: novoDocumento.id,
+            utilizadorId: novoDocumento.utilizadorId,
+          });
+        }
+      }
 
       // Atualizar orçamento
       await tx.orcamento.update({

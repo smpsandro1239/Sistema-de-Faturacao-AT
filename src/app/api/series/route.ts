@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { validateCSRF } from "@/lib/auth";
 
 // GET - Listar todas as séries
 export async function GET() {
@@ -20,6 +21,10 @@ export async function GET() {
 // POST - Criar nova série
 export async function POST(request: Request) {
   try {
+    if (!validateCSRF(request)) {
+      return NextResponse.json({ error: "Pedido inválido (CSRF)" }, { status: 403 });
+    }
+
     const body = await request.json();
     const { codigo, descricao, tipoDocumento, prefixo, codigoValidacaoAT, ano } = body;
 

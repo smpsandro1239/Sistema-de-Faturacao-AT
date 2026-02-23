@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -30,6 +31,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { 
   FileText, 
@@ -41,18 +49,22 @@ import {
   Printer,
   CreditCard,
   Trash2,
-  QrCode,
-  Hash
+  MoreHorizontal,
+  Loader2,
+  AlertCircle,
+  CheckCircle2
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 interface LinhaDocumento {
-  id: string;
+  artigoId?: string;
   codigoArtigo: string;
   descricaoArtigo: string;
   quantidade: number;
   precoUnitario: number;
   desconto: number;
+  taxaIVAId: string;
   taxaIVAPercentagem: number;
   base: number;
   valorIVA: number;
@@ -60,600 +72,395 @@ interface LinhaDocumento {
 
 interface Documento {
   id: string;
-  numero: number;
   numeroFormatado: string;
   tipo: string;
   clienteNome: string;
   clienteNif: string;
   totalLiquido: number;
-  totalIVA: number;
-  totalBase: number;
   estado: string;
+  estadoPagamento: string;
   dataEmissao: string | null;
-  hash: string | null;
-  atcud: string | null;
+  createdAt: string;
 }
 
-const documentosMock: Documento[] = [
-  { id: "1", numero: 123, numeroFormatado: "F 2024/00123", tipo: "FATURA", clienteNome: "Empresa ABC Lda", clienteNif: "509123456", totalLiquido: 1518.44, totalIVA: 283.94, totalBase: 1234.50, estado: "EMITIDO", dataEmissao: "2024-01-15", hash: "ABC123DEF456...", atcud: "ABC123-123" },
-  { id: "2", numero: 122, numeroFormatado: "F 2024/00122", tipo: "FATURA", clienteNome: "Comercial XYZ SA", clienteNif: "508765432", totalLiquido: 4250.88, totalIVA: 795.12, totalBase: 3456.00, estado: "EMITIDO", dataEmissao: "2024-01-15", hash: "DEF456GHI789...", atcud: "ABC123-122" },
-  { id: "3", numero: 15, numeroFormatado: "NC 2024/00015", tipo: "NOTA_CREDITO", clienteNome: "Empresa ABC Lda", clienteNif: "509123456", totalLiquido: -151.84, totalIVA: -28.39, totalBase: -123.45, estado: "EMITIDO", dataEmissao: "2024-01-14", hash: "GHI789JKL012...", atcud: "GHI789-15" },
-  { id: "4", numero: 121, numeroFormatado: "F 2024/00121", tipo: "FATURA", clienteNome: "Serviços Premium", clienteNif: "507654321", totalLiquido: 1094.70, totalIVA: 204.70, totalBase: 890.00, estado: "RASCUNHO", dataEmissao: null, hash: null, atcud: null },
-  { id: "5", numero: 120, numeroFormatado: "F 2024/00120", tipo: "FATURA", clienteNome: "Negócios Globais", clienteNif: "506543210", totalLiquido: 6984.95, totalIVA: 1306.05, totalBase: 5678.90, estado: "EMITIDO", dataEmissao: "2024-01-13", hash: "JKL012MNO345...", atcud: "ABC123-120" },
-];
-
-const clientesMock = [
-  { id: "1", nome: "Empresa ABC Lda", nif: "509123456" },
-  { id: "2", nome: "Comercial XYZ SA", nif: "508765432" },
-  { id: "3", nome: "Serviços Premium", nif: "507654321" },
-  { id: "4", nome: "Negócios Globais", nif: "506543210" },
-];
-
-const artigosMock = [
-  { id: "1", codigo: "A001", descricao: "Consultoria Técnica", precoUnitario: 75.00, taxaIVA: 23 },
-  { id: "2", codigo: "A002", descricao: "Desenvolvimento de Software", precoUnitario: 85.00, taxaIVA: 23 },
-  { id: "3", codigo: "A003", descricao: "Licença de Software", precoUnitario: 299.00, taxaIVA: 23 },
-  { id: "4", codigo: "A004", descricao: "Formação Profissional", precoUnitario: 50.00, taxaIVA: 6 },
-];
-
 export default function DocumentosPage() {
-  const [documentos, setDocumentos] = useState<Documento[]>(documentosMock);
+  const [documentos, setDocumentos] = useState<Documento[]>([]);
+  const [clientes, setClientes] = useState<any[]>([]);
+  const [artigos, setArtigos] = useState<any[]>([]);
+  const [series, setSeries] = useState<any[]>([]);
+  const [taxasIVA, setTaxasIVA] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [selectedDocumento, setSelectedDocumento] = useState<Documento | null>(null);
-  const [linhas, setLinhas] = useState<LinhaDocumento[]>([]);
+  const [dialogPagamento, setDialogPagamento] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState<Documento | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Form novo documento
+  const [formLinhas, setFormLinhas] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     clienteId: "",
-    tipoDocumento: "FATURA",
+    serieId: "",
+    tipo: "FATURA",
     observacoes: "",
   });
 
-  const filteredDocumentos = documentos.filter(
-    doc =>
-      doc.numeroFormatado.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.clienteNome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.clienteNif.includes(searchTerm)
-  );
+  // Form pagamento
+  const [pagamentoData, setPagamentoData] = useState({
+    valor: 0,
+    metodo: "TRANSFERENCIA",
+    referencia: "",
+    data: new Date().toISOString().split('T')[0]
+  });
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value);
-  };
+  const carregarDados = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [docRes, cliRes, artRes, serRes, taxRes] = await Promise.all([
+        fetch("/api/documentos"),
+        fetch("/api/clientes"),
+        fetch("/api/artigos"),
+        fetch("/api/series"),
+        fetch("/api/taxas-iva")
+      ]);
 
-  const handleNewDocumento = () => {
-    setLinhas([]);
-    setFormData({
-      clienteId: "",
-      tipoDocumento: "FATURA",
-      observacoes: "",
-    });
-    setDialogOpen(true);
-  };
+      if (docRes.ok) setDocumentos(await docRes.json());
+      if (cliRes.ok) setClientes((await cliRes.json()).clientes || []);
+      if (artRes.ok) setArtigos((await artRes.json()).artigos || []);
+      if (serRes.ok) setSeries((await serRes.json()).series || []);
 
-  const handleViewDocumento = (doc: Documento) => {
-    setSelectedDocumento(doc);
-    setViewDialogOpen(true);
-  };
+      // Fallback para taxas se API falhar
+      try {
+        if (taxRes.ok) setTaxasIVA(await taxRes.json());
+        else throw new Error();
+      } catch {
+        setTaxasIVA([
+          { id: "iva-normal", codigo: "NOR", taxa: 23 },
+          { id: "iva-intermedia", codigo: "INT", taxa: 13 },
+          { id: "iva-reduzida", codigo: "RED", taxa: 6 },
+        ]);
+      }
+    } catch (error) {
+      toast.error("Erro ao carregar dados");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const handleEmitirDocumento = (id: string) => {
-    const doc = documentos.find(d => d.id === id);
-    if (doc?.estado === "RASCUNHO") {
-      // Simular emissão com hash e ATCUD
-      const hash = `HASH${Date.now().toString(36).toUpperCase()}...`;
-      const atcud = `ATCUD-${doc.numero}`;
-      
-      setDocumentos(documentos.map(d => 
-        d.id === id 
-          ? { 
-              ...d, 
-              estado: "EMITIDO", 
-              dataEmissao: new Date().toISOString().split('T')[0],
-              hash,
-              atcud
-            }
-          : d
-      ));
+  useEffect(() => {
+    carregarDados();
+  }, [carregarDados]);
+
+  const handleEmitir = async (id: string) => {
+    try {
+      const res = await fetch("/api/documentos", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        toast.success("Documento emitido com sucesso");
+        carregarDados();
+      } else {
+        const err = await res.json();
+        toast.error(err.error || "Erro ao emitir");
+      }
+    } catch {
+      toast.error("Erro de ligação");
     }
   };
 
-  const handleDeleteDocumento = (id: string) => {
-    const doc = documentos.find(d => d.id === id);
-    if (doc?.estado === "RASCUNHO") {
-      setDocumentos(documentos.filter(d => d.id !== id));
+  const handleSaveDocumento = async () => {
+    if (!formData.clienteId || !formData.serieId || formLinhas.length === 0) {
+      toast.error("Preencha todos os campos obrigatórios");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch("/api/documentos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          linhas: formLinhas
+        }),
+      });
+
+      if (res.ok) {
+        toast.success("Rascunho criado");
+        setDialogOpen(false);
+        carregarDados();
+      } else {
+        const err = await res.json();
+        toast.error(err.error || "Erro ao criar");
+      }
+    } catch {
+      toast.error("Erro de ligação");
+    } finally {
+      setSaving(false);
     }
   };
 
   const addLinha = () => {
-    const newLinha: LinhaDocumento = {
-      id: String(linhas.length + 1),
+    setFormLinhas([...formLinhas, {
+      artigoId: "",
       codigoArtigo: "",
       descricaoArtigo: "",
       quantidade: 1,
       precoUnitario: 0,
       desconto: 0,
       taxaIVAPercentagem: 23,
+      taxaIVAId: taxasIVA.find(t => t.codigo === "NOR")?.id || "",
       base: 0,
-      valorIVA: 0,
-    };
-    setLinhas([...linhas, newLinha]);
+      valorIVA: 0
+    }]);
   };
 
-  const updateLinha = (id: string, field: string, value: string | number) => {
-    setLinhas(linhas.map(linha => {
-      if (linha.id === id) {
-        const updated = { ...linha, [field]: value };
-        
-        // Se selecionou um artigo, preencher dados
-        if (field === "codigoArtigo") {
-          const artigo = artigosMock.find(a => a.codigo === value);
-          if (artigo) {
-            updated.descricaoArtigo = artigo.descricao;
-            updated.precoUnitario = artigo.precoUnitario;
-            updated.taxaIVAPercentagem = artigo.taxaIVA;
-          }
-        }
-        
-        // Recalcular totais
-        updated.base = updated.quantidade * updated.precoUnitario - updated.desconto;
-        updated.valorIVA = updated.base * (updated.taxaIVAPercentagem / 100);
-        
-        return updated;
+  const updateLinha = (index: number, field: string, value: any) => {
+    const novas = [...formLinhas];
+    novas[index][field] = value;
+
+    if (field === "artigoId") {
+      const art = artigos.find(a => a.id === value);
+      if (art) {
+        novas[index].codigoArtigo = art.codigo;
+        novas[index].descricaoArtigo = art.descricao;
+        novas[index].precoUnitario = art.precoUnitario;
+        novas[index].taxaIVAPercentagem = art.taxaIVA?.taxa || 23;
+        novas[index].taxaIVAId = art.taxaIVAId;
       }
-      return linha;
-    }));
-  };
-
-  const removeLinha = (id: string) => {
-    setLinhas(linhas.filter(l => l.id !== id));
-  };
-
-  const calcularTotais = () => {
-    const totalBase = linhas.reduce((sum, l) => sum + l.base, 0);
-    const totalIVA = linhas.reduce((sum, l) => sum + l.valorIVA, 0);
-    const totalLiquido = totalBase + totalIVA;
-    return { totalBase, totalIVA, totalLiquido };
-  };
-
-  const handleSaveDocumento = () => {
-    const totais = calcularTotais();
-    const cliente = clientesMock.find(c => c.id === formData.clienteId);
-    
-    if (!cliente || linhas.length === 0) {
-      alert("Selecione um cliente e adicione pelo menos uma linha.");
-      return;
     }
 
-    const newDocumento: Documento = {
-      id: String(documentos.length + 1),
-      numero: documentos.length + 100,
-      numeroFormatado: `F 2024/${String(documentos.length + 100).padStart(5, "0")}`,
-      tipo: formData.tipoDocumento,
-      clienteNome: cliente.nome,
-      clienteNif: cliente.nif,
-      totalLiquido: totais.totalLiquido,
-      totalIVA: totais.totalIVA,
-      totalBase: totais.totalBase,
-      estado: "RASCUNHO",
-      dataEmissao: null,
-      hash: null,
-      atcud: null,
-    };
+    const l = novas[index];
+    l.base = l.quantidade * l.precoUnitario - l.desconto;
+    l.valorIVA = l.base * (l.taxaIVAPercentagem / 100);
 
-    setDocumentos([newDocumento, ...documentos]);
-    setDialogOpen(false);
+    setFormLinhas(novas);
   };
 
-  const getEstadoBadge = (estado: string) => {
-    switch (estado) {
-      case "EMITIDO":
-        return <Badge className="bg-green-100 text-green-700">Emitido</Badge>;
-      case "RASCUNHO":
-        return <Badge className="bg-yellow-100 text-yellow-700">Rascunho</Badge>;
-      case "ANULADO":
-        return <Badge className="bg-red-100 text-red-700">Anulado</Badge>;
-      default:
-        return <Badge variant="secondary">{estado}</Badge>;
+  const handlePagamento = async () => {
+    if (!selectedDoc) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/documentos/${selectedDoc.id}/pagamentos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pagamentoData),
+      });
+
+      if (res.ok) {
+        toast.success("Pagamento registado");
+        setDialogPagamento(false);
+        carregarDados();
+      } else {
+        const err = await res.json();
+        toast.error(err.error || "Erro ao registar");
+      }
+    } catch {
+      toast.error("Erro de ligação");
+    } finally {
+      setSaving(false);
     }
   };
+
+  const formatCurrency = (v: number) => new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(v);
+
+  const filtered = documentos.filter(d =>
+    d.numeroFormatado.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    d.clienteNome.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-2 rounded-lg">
-                <Shield className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-slate-900">FaturaAT</h1>
-                <p className="text-xs text-slate-500">Sistema Certificado AT</p>
-              </div>
-            </Link>
-            <div className="hidden sm:flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-full">
-              <Shield className="h-4 w-4 text-emerald-600" />
-              <span className="text-sm font-medium text-emerald-700">Certificado</span>
-            </div>
-          </div>
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Documentos Fiscais</h1>
+          <p className="text-muted-foreground">Emissão e gestão de faturas certificadas</p>
         </div>
-      </header>
+        <Button onClick={() => setDialogOpen(true)} className="bg-emerald-600 hover:bg-emerald-700">
+          <Plus className="w-4 h-4 mr-2" /> Novo Documento
+        </Button>
+      </div>
 
-      {/* Navigation */}
-      <nav className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-1 overflow-x-auto py-2">
-            <Link href="/" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
-              <ArrowLeft className="h-4 w-4" />
-              Dashboard
-            </Link>
-            <Link href="/documentos" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-100 text-emerald-700 font-medium">
-              <FileText className="h-4 w-4" />
-              Documentos
-            </Link>
-            <Link href="/clientes" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
-              Clientes
-            </Link>
-            <Link href="/artigos" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
-              Artigos
-            </Link>
-            <Link href="/series" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
-              Séries
-            </Link>
-            <Link href="/saf-t" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
-              SAF-T
-            </Link>
-          </div>
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            placeholder="Pesquisar por número ou cliente..."
+            className="pl-10"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
         </div>
-      </nav>
+      </div>
 
-      {/* Main Content */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900">Documentos Fiscais</h2>
-            <p className="text-slate-500">Emitir e gerir documentos fiscais certificados</p>
-          </div>
-          <Button onClick={handleNewDocumento} className="bg-emerald-600 hover:bg-emerald-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Documento
-          </Button>
-        </div>
-
-        {/* Search */}
-        <div className="flex items-center gap-4 mb-6">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input
-              placeholder="Pesquisar documentos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Badge variant="secondary" className="text-sm">
-            {filteredDocumentos.length} documentos
-          </Badge>
-        </div>
-
-        {/* Table */}
-        <Card>
-          <CardContent className="p-0">
+      <Card>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex justify-center p-12"><Loader2 className="animate-spin h-8 w-8 text-emerald-600" /></div>
+          ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nº Documento</TableHead>
-                  <TableHead>Tipo</TableHead>
+                  <TableHead>Número</TableHead>
                   <TableHead>Cliente</TableHead>
-                  <TableHead>Total</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
                   <TableHead>Estado</TableHead>
+                  <TableHead>Pagamento</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredDocumentos.map((doc) => (
+                {filtered.map((doc) => (
                   <TableRow key={doc.id}>
                     <TableCell className="font-medium">{doc.numeroFormatado}</TableCell>
+                    <TableCell>{doc.clienteNome}</TableCell>
+                    <TableCell className="text-right font-mono">{formatCurrency(doc.totalLiquido)}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">
-                        {doc.tipo === "FATURA" ? "Fatura" : doc.tipo === "NOTA_CREDITO" ? "Nota de Crédito" : doc.tipo}
+                      <Badge variant={doc.estado === "EMITIDO" ? "default" : "secondary"}>
+                        {doc.estado}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <p className="font-medium">{doc.clienteNome}</p>
-                        <p className="text-sm text-slate-500">{doc.clienteNif}</p>
-                      </div>
+                      <Badge variant={doc.estadoPagamento === "PAGO" ? "default" : "outline"} className={doc.estadoPagamento === "PAGO" ? "bg-green-100 text-green-700" : ""}>
+                        {doc.estadoPagamento}
+                      </Badge>
                     </TableCell>
-                    <TableCell className="font-mono font-medium">{formatCurrency(doc.totalLiquido)}</TableCell>
-                    <TableCell>{getEstadoBadge(doc.estado)}</TableCell>
-                    <TableCell className="text-sm text-slate-500">{doc.dataEmissao || "-"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {doc.dataEmissao ? new Date(doc.dataEmissao).toLocaleDateString("pt-PT") : "-"}
+                    </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => handleViewDocumento(doc)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        {doc.estado === "RASCUNHO" && (
-                          <>
-                            <Button variant="ghost" size="icon" onClick={() => handleEmitirDocumento(doc.id)} className="text-green-600">
-                              <FileText className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteDocumento(doc.id)} className="text-red-600">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                        {doc.estado === "EMITIDO" && (
-                          <Button variant="ghost" size="icon">
-                            <Printer className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/documentos/${doc.id}`}><Eye className="w-4 h-4 mr-2" /> Ver / Imprimir</Link>
+                          </DropdownMenuItem>
+                          {doc.estado === "RASCUNHO" && (
+                            <DropdownMenuItem onClick={() => handleEmitir(doc.id)} className="text-emerald-600 font-bold">
+                              <CheckCircle2 className="w-4 h-4 mr-2" /> Emitir Documento
+                            </DropdownMenuItem>
+                          )}
+                          {doc.estado === "EMITIDO" && doc.estadoPagamento !== "PAGO" && (
+                            <DropdownMenuItem onClick={() => { setSelectedDoc(doc); setPagamentoData({...pagamentoData, valor: doc.totalLiquido}); setDialogPagamento(true); }}>
+                              <CreditCard className="w-4 h-4 mr-2" /> Registar Pagamento
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
+                          {doc.estado === "RASCUNHO" && (
+                             <DropdownMenuItem className="text-red-600"><Trash2 className="w-4 h-4 mr-2" /> Eliminar</DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+          )}
+        </CardContent>
+      </Card>
 
-        {/* New Document Dialog */}
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Novo Documento</DialogTitle>
-              <DialogDescription>
-                Criar um novo documento fiscal
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="grid gap-4 py-4">
-              {/* Tipo e Cliente */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Tipo de Documento</Label>
-                  <Select value={formData.tipoDocumento} onValueChange={(value) => setFormData({ ...formData, tipoDocumento: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="FATURA">Fatura</SelectItem>
-                      <SelectItem value="FATURA_RECIBO">Fatura-Recibo</SelectItem>
-                      <SelectItem value="NOTA_CREDITO">Nota de Crédito</SelectItem>
-                      <SelectItem value="NOTA_DEBITO">Nota de Débito</SelectItem>
-                      <SelectItem value="ORCAMENTO">Orçamento</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Cliente*</Label>
-                  <Select value={formData.clienteId} onValueChange={(value) => setFormData({ ...formData, clienteId: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clientesMock.map((cliente) => (
-                        <SelectItem key={cliente.id} value={cliente.id}>
-                          {cliente.nome} - {cliente.nif}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+      {/* Dialog Novo Documento */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Emitir Novo Documento</DialogTitle></DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Série*</Label>
+                <Select value={formData.serieId} onValueChange={v => setFormData({...formData, serieId: v})}>
+                  <SelectTrigger><SelectValue placeholder="Selecione a série" /></SelectTrigger>
+                  <SelectContent>
+                    {series.map(s => <SelectItem key={s.id} value={s.id}>{s.descricao} ({s.prefixo})</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
-
-              {/* Linhas */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label>Linhas do Documento</Label>
-                  <Button variant="outline" size="sm" onClick={addLinha}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Adicionar Linha
-                  </Button>
-                </div>
-                
-                {linhas.length > 0 ? (
-                  <div className="border rounded-lg overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-slate-50">
-                          <TableHead className="w-[120px]">Artigo</TableHead>
-                          <TableHead>Descrição</TableHead>
-                          <TableHead className="w-[80px]">Qtd</TableHead>
-                          <TableHead className="w-[100px]">Preço</TableHead>
-                          <TableHead className="w-[80px]">IVA %</TableHead>
-                          <TableHead className="w-[100px]">Base</TableHead>
-                          <TableHead className="w-[50px]"></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {linhas.map((linha) => (
-                          <TableRow key={linha.id}>
-                            <TableCell>
-                              <Select value={linha.codigoArtigo} onValueChange={(value) => updateLinha(linha.id, "codigoArtigo", value)}>
-                                <SelectTrigger className="h-8">
-                                  <SelectValue placeholder="Artigo" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {artigosMock.map((artigo) => (
-                                    <SelectItem key={artigo.id} value={artigo.codigo}>
-                                      {artigo.codigo}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell>
-                              <Input 
-                                value={linha.descricaoArtigo} 
-                                onChange={(e) => updateLinha(linha.id, "descricaoArtigo", e.target.value)}
-                                className="h-8"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Input 
-                                type="number" 
-                                value={linha.quantidade} 
-                                onChange={(e) => updateLinha(linha.id, "quantidade", parseFloat(e.target.value) || 0)}
-                                className="h-8 w-16"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Input 
-                                type="number" 
-                                step="0.01"
-                                value={linha.precoUnitario} 
-                                onChange={(e) => updateLinha(linha.id, "precoUnitario", parseFloat(e.target.value) || 0)}
-                                className="h-8 w-20"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <span className="font-mono text-sm">{linha.taxaIVAPercentagem}%</span>
-                            </TableCell>
-                            <TableCell>
-                              <span className="font-mono">{formatCurrency(linha.base)}</span>
-                            </TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="icon" onClick={() => removeLinha(linha.id)}>
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                ) : (
-                  <div className="border-2 border-dashed rounded-lg p-8 text-center text-slate-500">
-                    Clique em "Adicionar Linha" para começar
-                  </div>
-                )}
-              </div>
-
-              {/* Totais */}
-              {linhas.length > 0 && (
-                <div className="bg-slate-50 rounded-lg p-4">
-                  <div className="grid grid-cols-3 gap-4 text-right">
-                    <div>
-                      <p className="text-sm text-slate-500">Base Tributável</p>
-                      <p className="font-mono font-medium">{formatCurrency(calcularTotais().totalBase)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500">Total IVA</p>
-                      <p className="font-mono font-medium">{formatCurrency(calcularTotais().totalIVA)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500">Total Líquido</p>
-                      <p className="font-mono font-bold text-lg">{formatCurrency(calcularTotais().totalLiquido)}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Observações */}
-              <div>
-                <Label>Observações</Label>
-                <Textarea 
-                  value={formData.observacoes}
-                  onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
-                  placeholder="Observações adicionais..."
-                  rows={2}
-                />
+              <div className="space-y-2">
+                <Label>Cliente*</Label>
+                <Select value={formData.clienteId} onValueChange={v => setFormData({...formData, clienteId: v})}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
+                  <SelectContent>
+                    {clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleSaveDocumento} className="bg-emerald-600 hover:bg-emerald-700">
-                Guardar Rascunho
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* View Document Dialog */}
-        <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Detalhes do Documento</DialogTitle>
-            </DialogHeader>
             
-            {selectedDocumento && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-slate-500">Nº Documento</p>
-                    <p className="font-bold text-lg">{selectedDocumento.numeroFormatado}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Estado</p>
-                    {getEstadoBadge(selectedDocumento.estado)}
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <p className="text-sm text-slate-500 mb-1">Cliente</p>
-                  <p className="font-medium">{selectedDocumento.clienteNome}</p>
-                  <p className="text-sm text-slate-500">NIF: {selectedDocumento.clienteNif}</p>
-                </div>
-
-                <Separator />
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm text-slate-500">Base</p>
-                    <p className="font-mono">{formatCurrency(selectedDocumento.totalBase)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">IVA</p>
-                    <p className="font-mono">{formatCurrency(selectedDocumento.totalIVA)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Total</p>
-                    <p className="font-mono font-bold">{formatCurrency(selectedDocumento.totalLiquido)}</p>
-                  </div>
-                </div>
-
-                {selectedDocumento.hash && (
-                  <>
-                    <Separator />
-                    <div className="bg-emerald-50 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Shield className="h-4 w-4 text-emerald-600" />
-                        <p className="font-medium text-emerald-700">Documento Certificado</p>
-                      </div>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center gap-2">
-                          <Hash className="h-4 w-4 text-slate-400" />
-                          <span className="text-slate-500">Hash:</span>
-                          <span className="font-mono text-xs">{selectedDocumento.hash}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <QrCode className="h-4 w-4 text-slate-400" />
-                          <span className="text-slate-500">ATCUD:</span>
-                          <span className="font-mono">{selectedDocumento.atcud}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label className="font-bold">Linhas</Label>
+                <Button variant="outline" size="sm" onClick={addLinha}><Plus className="w-4 h-4 mr-1" /> Adicionar</Button>
               </div>
-            )}
-          </DialogContent>
-        </Dialog>
-      </main>
+              {formLinhas.map((linha, idx) => (
+                <div key={idx} className="grid grid-cols-12 gap-2 border p-2 rounded items-center">
+                  <div className="col-span-4">
+                    <Select value={linha.artigoId} onValueChange={v => updateLinha(idx, "artigoId", v)}>
+                      <SelectTrigger><SelectValue placeholder="Artigo" /></SelectTrigger>
+                      <SelectContent>
+                        {artigos.map(a => <SelectItem key={a.id} value={a.id}>{a.codigo} - {a.descricao}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-2">
+                    <Input type="number" value={linha.quantidade} onChange={e => updateLinha(idx, "quantidade", parseFloat(e.target.value))} />
+                  </div>
+                  <div className="col-span-3">
+                    <Input type="number" value={linha.precoUnitario} onChange={e => updateLinha(idx, "precoUnitario", parseFloat(e.target.value))} />
+                  </div>
+                  <div className="col-span-2 font-bold text-right">{formatCurrency(linha.base + linha.valorIVA)}</div>
+                  <div className="col-span-1 text-right">
+                    <Button variant="ghost" size="icon" onClick={() => setFormLinhas(formLinhas.filter((_, i) => i !== idx))}><Trash2 className="w-4 h-4 text-red-500" /></Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSaveDocumento} disabled={saving} className="bg-emerald-600">Guardar Rascunho</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <p className="text-sm text-slate-500 text-center">
-            © 2024 FaturaAT - Sistema de Faturação Certificado pela AT
-          </p>
-        </div>
-      </footer>
+      {/* Dialog Pagamento */}
+      <Dialog open={dialogPagamento} onOpenChange={setDialogPagamento}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Registar Pagamento</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-4">
+             <div className="space-y-2">
+                <Label>Valor (€)</Label>
+                <Input type="number" value={pagamentoData.valor} onChange={e => setPagamentoData({...pagamentoData, valor: parseFloat(e.target.value)})} />
+             </div>
+             <div className="space-y-2">
+                <Label>Método</Label>
+                <Select value={pagamentoData.metodo} onValueChange={v => setPagamentoData({...pagamentoData, metodo: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NUMERARIO">Numerário</SelectItem>
+                    <SelectItem value="TRANSFERENCIA">Transferência Bancária</SelectItem>
+                    <SelectItem value="CARTAO_DEBITO">Cartão Débito</SelectItem>
+                    <SelectItem value="CARTAO_CREDITO">Cartão Crédito</SelectItem>
+                    <SelectItem value="MBWAY">MB WAY</SelectItem>
+                  </SelectContent>
+                </Select>
+             </div>
+             <div className="space-y-2">
+                <Label>Referência / Observações</Label>
+                <Input value={pagamentoData.referencia} onChange={e => setPagamentoData({...pagamentoData, referencia: e.target.value})} placeholder="Nº transação..." />
+             </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogPagamento(false)}>Cancelar</Button>
+            <Button onClick={handlePagamento} disabled={saving} className="bg-emerald-600">Confirmar Pagamento</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

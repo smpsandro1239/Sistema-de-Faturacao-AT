@@ -121,14 +121,16 @@ export async function verificarStockMultiplo(
 /**
  * Registar movimento de stock
  */
-export async function registarMovimentoStock(params: MovimentoStockParams) {
+export async function registarMovimentoStock(params: MovimentoStockParams, tx?: any) {
+  const prisma = tx || db;
+
   // Validar quantidade positiva
   if (params.quantidade <= 0) {
     throw new Error("A quantidade deve ser maior que zero");
   }
 
   // Obter ou criar registo de stock
-  let stock = await db.artigoArmazemStock.findUnique({
+  let stock = await prisma.artigoArmazemStock.findUnique({
     where: {
       artigoId_armazemId: {
         artigoId: params.artigoId,
@@ -138,7 +140,7 @@ export async function registarMovimentoStock(params: MovimentoStockParams) {
   });
 
   if (!stock) {
-    stock = await db.artigoArmazemStock.create({
+    stock = await prisma.artigoArmazemStock.create({
       data: {
         artigoId: params.artigoId,
         armazemId: params.armazemId,
@@ -177,10 +179,10 @@ export async function registarMovimentoStock(params: MovimentoStockParams) {
     ? params.quantidade * params.precoUnitario
     : null;
 
-  // Criar movimento e atualizar stock em transação
-  const resultado = await db.$transaction(async (tx) => {
+  // Executar lógica
+  const executar = async (currentPrisma: any) => {
     // Criar movimento
-    const movimento = await tx.movimentoStock.create({
+    const movimento = await currentPrisma.movimentoStock.create({
       data: {
         artigoId: params.artigoId,
         armazemId: params.armazemId,
@@ -200,14 +202,14 @@ export async function registarMovimentoStock(params: MovimentoStockParams) {
     });
 
     // Atualizar stock no armazém de origem
-    await tx.artigoArmazemStock.update({
+    await currentPrisma.artigoArmazemStock.update({
       where: { id: stock!.id },
       data: { quantidade: quantidadeFinal },
     });
 
     // Se for transferência, atualizar armazém de destino
     if (params.tipo === "TRANSFERENCIA" && params.armazemDestinoId) {
-      const stockDestino = await tx.artigoArmazemStock.findUnique({
+      const stockDestino = await currentPrisma.artigoArmazemStock.findUnique({
         where: {
           artigoId_armazemId: {
             artigoId: params.artigoId,
@@ -220,12 +222,12 @@ export async function registarMovimentoStock(params: MovimentoStockParams) {
       const quantidadeDestinoFinal = quantidadeDestinoAnterior + params.quantidade;
 
       if (stockDestino) {
-        await tx.artigoArmazemStock.update({
+        await currentPrisma.artigoArmazemStock.update({
           where: { id: stockDestino.id },
           data: { quantidade: quantidadeDestinoFinal },
         });
       } else {
-        await tx.artigoArmazemStock.create({
+        await currentPrisma.artigoArmazemStock.create({
           data: {
             artigoId: params.artigoId,
             armazemId: params.armazemDestinoId,
@@ -237,9 +239,14 @@ export async function registarMovimentoStock(params: MovimentoStockParams) {
     }
 
     return movimento;
-  });
+  };
 
-  return resultado;
+  // Se já estamos numa transação, não abrir outra
+  if (tx) {
+    return executar(tx);
+  } else {
+    return db.$transaction(executar);
+  }
 }
 
 /**
@@ -250,12 +257,13 @@ export async function saidaStockFatura(params: {
   armazemId: string;
   documentoId: string;
   utilizadorId: string;
-}) {
+}, tx?: any) {
+  const prisma = tx || db;
   const resultados = [];
 
   for (const linha of params.linhas) {
     // Verificar se o artigo controla stock
-    const artigo = await db.artigo.findUnique({
+    const artigo = await prisma.artigo.findUnique({
       where: { id: linha.artigoId },
       select: { controlaStock: true, tipo: true },
     });
@@ -274,7 +282,7 @@ export async function saidaStockFatura(params: {
       documentoId: params.documentoId,
       utilizadorId: params.utilizadorId,
       observacoes: "Saída por emissão de documento",
-    });
+    }, tx);
 
     resultados.push(movimento);
   }
@@ -290,12 +298,13 @@ export async function entradaStockNotaCredito(params: {
   armazemId: string;
   documentoId: string;
   utilizadorId: string;
-}) {
+}, tx?: any) {
+  const prisma = tx || db;
   const resultados = [];
 
   for (const linha of params.linhas) {
     // Verificar se o artigo controla stock
-    const artigo = await db.artigo.findUnique({
+    const artigo = await prisma.artigo.findUnique({
       where: { id: linha.artigoId },
       select: { controlaStock: true, tipo: true },
     });
@@ -314,7 +323,7 @@ export async function entradaStockNotaCredito(params: {
       documentoId: params.documentoId,
       utilizadorId: params.utilizadorId,
       observacoes: "Entrada por nota de crédito",
-    });
+    }, tx);
 
     resultados.push(movimento);
   }
@@ -330,7 +339,7 @@ export async function entradaStockRececao(params: {
   armazemId: string;
   encomendaCompraId: string;
   utilizadorId: string;
-}) {
+}, tx?: any) {
   const resultados = [];
 
   for (const linha of params.linhas) {
@@ -344,7 +353,7 @@ export async function entradaStockRececao(params: {
       encomendaCompraId: params.encomendaCompraId,
       utilizadorId: params.utilizadorId,
       observacoes: "Entrada por receção de encomenda de compra",
-    });
+    }, tx);
 
     resultados.push(movimento);
   }
@@ -494,4 +503,54 @@ export async function obterStockTotalArtigo(artigoId: string): Promise<{
       quantidade: s.quantidade,
     })),
   };
+}
+
+/**
+ * Reservar stock para uma encomenda
+ */
+export async function reservarStock(params: {
+  artigoId: string;
+  armazemId: string;
+  quantidade: number;
+}, tx?: any) {
+  const prisma = tx || db;
+  const stock = await prisma.artigoArmazemStock.findUnique({
+    where: { artigoId_armazemId: { artigoId: params.artigoId, armazemId: params.armazemId } }
+  });
+
+  if (!stock) {
+    throw new Error("Registo de stock não encontrado para reserva");
+  }
+
+  return prisma.artigoArmazemStock.update({
+    where: { id: stock.id },
+    data: {
+      quantidadeReservada: stock.quantidadeReservada + params.quantidade
+    }
+  });
+}
+
+/**
+ * Libertar stock reservado
+ */
+export async function libertarStock(params: {
+  artigoId: string;
+  armazemId: string;
+  quantidade: number;
+}, tx?: any) {
+  const prisma = tx || db;
+  const stock = await prisma.artigoArmazemStock.findUnique({
+    where: { artigoId_armazemId: { artigoId: params.artigoId, armazemId: params.armazemId } }
+  });
+
+  if (!stock) return;
+
+  const novaReserva = Math.max(0, stock.quantidadeReservada - params.quantidade);
+
+  return prisma.artigoArmazemStock.update({
+    where: { id: stock.id },
+    data: {
+      quantidadeReservada: novaReserva
+    }
+  });
 }

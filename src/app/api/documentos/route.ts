@@ -5,9 +5,22 @@ import { fireWebhooks } from "@/lib/webhooks";
 import { calcularHashDocumento, gerarATCUD } from "@/lib/hash";
 
 // GET - Listar todos os documentos
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { authenticated, user, error } = await authenticateRequest(request);
+    if (!authenticated || !user?.empresaId) {
+      return NextResponse.json({ error: error || "Não autorizado" }, { status: 401 });
+    }
+
+    const permission = await verificarPermissao(user.perfil, "documentos.read");
+    if (!permission.authorized) {
+      return NextResponse.json({ error: permission.error }, { status: 403 });
+    }
+
     const documentos = await db.documento.findMany({
+      where: {
+        empresaId: user.empresaId,
+      },
       include: {
         cliente: true,
         serie: true,
@@ -28,6 +41,16 @@ export async function GET() {
 // POST - Criar novo documento
 export async function POST(request: Request) {
   try {
+    const { authenticated, user, error: authError } = await authenticateRequest(request);
+    if (!authenticated || !user?.empresaId) {
+      return NextResponse.json({ error: authError || "Não autorizado" }, { status: 401 });
+    }
+
+    const permission = await verificarPermissao(user.perfil, "documentos.create");
+    if (!permission.authorized) {
+      return NextResponse.json({ error: permission.error }, { status: 403 });
+    }
+
     if (!validateCSRF(request)) {
       return NextResponse.json({ error: "Pedido inválido (CSRF)" }, { status: 403 });
     }
@@ -45,8 +68,11 @@ export async function POST(request: Request) {
     } = body;
 
     // Buscar série
-    const serie = await db.serie.findUnique({
-      where: { id: serieId },
+    const serie = await db.serie.findFirst({
+      where: {
+        id: serieId,
+        empresaId: user.empresaId
+      },
     });
 
     if (!serie) {
@@ -57,8 +83,11 @@ export async function POST(request: Request) {
     }
 
     // Buscar cliente
-    const cliente = await db.cliente.findUnique({
-      where: { id: clienteId },
+    const cliente = await db.cliente.findFirst({
+      where: {
+        id: clienteId,
+        empresaId: user.empresaId
+      },
     });
 
     if (!cliente) {
@@ -68,8 +97,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Buscar empresa (assumindo que existe apenas uma)
-    const empresa = await db.empresa.findFirst();
+    // Buscar empresa do utilizador
+    const empresa = await db.empresa.findUnique({
+      where: { id: user.empresaId },
+    });
 
     if (!empresa) {
       return NextResponse.json(
@@ -118,6 +149,7 @@ export async function POST(request: Request) {
     // Criar documento
     const documento = await db.documento.create({
       data: {
+        empresaId: user.empresaId,
         numero: novoNumero,
         numeroFormatado,
         tipo,
@@ -196,6 +228,16 @@ export async function POST(request: Request) {
 // PATCH - Emitir documento (calcular hash e ATCUD)
 export async function PATCH(request: Request) {
   try {
+    const { authenticated, user, error: authError } = await authenticateRequest(request);
+    if (!authenticated || !user?.empresaId) {
+      return NextResponse.json({ error: authError || "Não autorizado" }, { status: 401 });
+    }
+
+    const permission = await verificarPermissao(user.perfil, "documentos.emit");
+    if (!permission.authorized) {
+      return NextResponse.json({ error: permission.error }, { status: 403 });
+    }
+
     if (!validateCSRF(request)) {
       return NextResponse.json({ error: "Pedido inválido (CSRF)" }, { status: 403 });
     }
@@ -204,8 +246,11 @@ export async function PATCH(request: Request) {
     const { id } = body;
 
     // Buscar documento
-    const documento = await db.documento.findUnique({
-      where: { id },
+    const documento = await db.documento.findFirst({
+      where: {
+        id,
+        empresaId: user.empresaId
+      },
       include: { serie: true },
     });
 
@@ -226,6 +271,7 @@ export async function PATCH(request: Request) {
     // Buscar documento anterior da mesma série para encadear hash
     const documentoAnterior = await db.documento.findFirst({
       where: {
+        empresaId: user.empresaId,
         serieId: documento.serieId,
         estado: "EMITIDO",
         id: { not: id },
@@ -263,10 +309,22 @@ export async function PATCH(request: Request) {
         cliente: true,
         linhas: true,
       }
+
+      return doc;
     });
 
     // Disparar Webhooks
     fireWebhooks("DOCUMENTO.EMITIDO", documentoEmitido).catch(console.error);
+
+    // Envio Automático de Email se configurado no cliente
+    if (documentoEmitido.cliente.envioEmailAutomatico && documentoEmitido.cliente.email) {
+      enviarEmailDocumento(documentoEmitido, documentoEmitido.cliente.email)
+        .then(res => {
+          if (res.success) console.log(`Email automático enviado para ${documentoEmitido.cliente.email}`);
+          else console.error(`Erro no email automático:`, res.error);
+        })
+        .catch(console.error);
+    }
 
     return NextResponse.json(documentoEmitido);
   } catch (error) {

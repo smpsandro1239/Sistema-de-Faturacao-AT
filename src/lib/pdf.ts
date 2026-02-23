@@ -63,30 +63,41 @@ const formatDate = (dateString: string): string => {
   });
 };
 
-export async function gerarPDFDocumento(documento: DocumentoPDF): Promise<void> {
-  const doc = new jsPDF();
+export async function gerarPDFDocumento(documento: DocumentoPDF, save: boolean = true): Promise<Uint8Array | void> {
+  const doc = new jsPDF({
+    orientation: 'p',
+    unit: 'mm',
+    format: 'a4',
+    putOnlyUsedFonts: true,
+  });
   
   // Colors
-  const primaryColor: [number, number, number] = [5, 150, 105]; // emerald-600
-  const darkColor: [number, number, number] = [15, 23, 42]; // slate-900
+  const primaryColor: [number, number, number] = [15, 23, 42]; // slate-900 (mais profissional para B2B)
+  const secondaryColor: [number, number, number] = [5, 150, 105]; // emerald-600
+  const darkColor: [number, number, number] = [30, 41, 59]; // slate-800
   const grayColor: [number, number, number] = [100, 116, 139]; // slate-500
   
-  let yPos = 20;
-  const margin = 20;
+  let yPos = 15;
+  const margin = 15; // Margens reduzidas para mais espaço
   const pageWidth = doc.internal.pageSize.getWidth();
   
   // Header - Logo and Empresa
   if (documento.logo) {
     try {
-      doc.addImage(documento.logo, 'PNG', margin, yPos, 30, 30);
-      yPos += 35;
+      // Tenta detetar se é base64 ou URL e adiciona
+      const logoType = documento.logo.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+      doc.addImage(documento.logo, logoType, margin, yPos, 40, 40, undefined, 'FAST');
+      yPos += 45;
     } catch (e) {
       console.error("Erro ao adicionar logo ao PDF", e);
+      yPos += 10;
     }
+  } else {
+    yPos += 10;
   }
 
-  doc.setFontSize(18);
-  doc.setTextColor(...darkColor);
+  doc.setFontSize(22);
+  doc.setTextColor(...primaryColor);
   doc.setFont('helvetica', 'bold');
   doc.text(documento.empresaNome, margin, yPos);
   
@@ -103,20 +114,20 @@ export async function gerarPDFDocumento(documento: DocumentoPDF): Promise<void> 
   doc.text(`${documento.empresaCodigoPostal} ${documento.empresaLocalidade}`, margin, yPos);
   
   // Document Type Badge (right side)
-  doc.setFontSize(14);
+  doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...primaryColor);
+  doc.setTextColor(...secondaryColor);
   const tipoLabel = getTipoDocumentoLabel(documento.tipo);
-  doc.text(tipoLabel, pageWidth - margin, 25, { align: 'right' });
+  doc.text(tipoLabel, pageWidth - margin, 20, { align: 'right' });
   
-  doc.setFontSize(12);
-  doc.setTextColor(...darkColor);
-  doc.text(documento.numeroFormatado, pageWidth - margin, 33, { align: 'right' });
+  doc.setFontSize(14);
+  doc.setTextColor(...primaryColor);
+  doc.text(documento.numeroFormatado, pageWidth - margin, 28, { align: 'right' });
   
   if (documento.atcud) {
-    doc.setFontSize(8);
+    doc.setFontSize(9);
     doc.setTextColor(...grayColor);
-    doc.text(`ATCUD: ${documento.atcud}`, pageWidth - margin, 40, { align: 'right' });
+    doc.text(`ATCUD: ${documento.atcud}`, pageWidth - margin, 35, { align: 'right' });
   }
   
   // Separator line
@@ -285,7 +296,11 @@ export async function gerarPDFDocumento(documento: DocumentoPDF): Promise<void> 
     doc.text('Processado por programa certificado nº AT/DEMO/2024', pageWidth - margin, footerY + 28, { align: 'right' });
   }
   
-  // Save
-  const fileName = `${documento.numeroFormatado.replace(/\//g, '-')}.pdf`;
-  doc.save(fileName);
+  // Output
+  if (save && typeof window !== 'undefined') {
+    const fileName = `${documento.numeroFormatado.replace(/\//g, '-')}.pdf`;
+    doc.save(fileName);
+  } else {
+    return new Uint8Array(doc.output('arraybuffer'));
+  }
 }

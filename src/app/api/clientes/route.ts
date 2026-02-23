@@ -1,12 +1,25 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { validateCSRF } from "@/lib/auth";
+import { validateCSRF, authenticateRequest, verificarPermissao } from "@/lib/auth";
 import { clientSchema } from "@/lib/validations";
 
 // GET - Listar todos os clientes
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { authenticated, user, error } = await authenticateRequest(request);
+    if (!authenticated || !user?.empresaId) {
+      return NextResponse.json({ error: error || "Não autorizado" }, { status: 401 });
+    }
+
+    const permission = await verificarPermissao(user.perfil, "clientes.read");
+    if (!permission.authorized) {
+      return NextResponse.json({ error: permission.error }, { status: 403 });
+    }
+
     const clientes = await db.cliente.findMany({
+      where: {
+        empresaId: user.empresaId,
+      },
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(clientes);
@@ -22,6 +35,16 @@ export async function GET() {
 // POST - Criar novo cliente
 export async function POST(request: Request) {
   try {
+    const { authenticated, user, error: authError } = await authenticateRequest(request);
+    if (!authenticated || !user?.empresaId) {
+      return NextResponse.json({ error: authError || "Não autorizado" }, { status: 401 });
+    }
+
+    const permission = await verificarPermissao(user.perfil, "clientes.create");
+    if (!permission.authorized) {
+      return NextResponse.json({ error: permission.error }, { status: 403 });
+    }
+
     if (!validateCSRF(request)) {
       return NextResponse.json({ error: "Pedido inválido (CSRF)" }, { status: 403 });
     }
@@ -40,9 +63,12 @@ export async function POST(request: Request) {
     const { nome, nif, morada, codigoPostal, localidade, telefone, email } = validation.data;
     const { pais } = body; // pais não está no schema simplificado mas pode vir no body
 
-    // Verificar se NIF já existe
-    const clienteExistente = await db.cliente.findUnique({
-      where: { nif },
+    // Verificar se NIF já existe nesta empresa
+    const clienteExistente = await db.cliente.findFirst({
+      where: {
+        nif,
+        empresaId: user.empresaId
+      },
     });
 
     if (clienteExistente) {
@@ -52,8 +78,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Gerar código automático
+    // Gerar código automático por empresa
     const ultimoCliente = await db.cliente.findFirst({
+      where: { empresaId: user.empresaId },
       orderBy: { createdAt: "desc" },
     });
 
@@ -65,6 +92,7 @@ export async function POST(request: Request) {
 
     const cliente = await db.cliente.create({
       data: {
+        empresaId: user.empresaId,
         codigo,
         nome,
         nif,

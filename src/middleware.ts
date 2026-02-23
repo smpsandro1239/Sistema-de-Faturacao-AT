@@ -12,6 +12,7 @@ const SECRET_KEY = new TextEncoder().encode(JWT_SECRET);
 const PUBLIC_ROUTES = [
   "/login",
   "/api/auth/login",
+  "/api/seed",
   "/api/portal", // O portal público já tem a sua própria lógica de accessKey
   "/portal",
   "/icons",

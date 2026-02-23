@@ -334,7 +334,7 @@ export default function PaginaOrcamentos() {
       const response = await fetch(`/api/orcamentos/${orcamento.id}`);
       const data = await response.json();
       if (response.ok) {
-        setOrcamentoSelecionada(data);
+        setOrcamentoSelecionado(data);
         setDialogDetalhes(true);
       }
     } catch (error) {
@@ -344,7 +344,7 @@ export default function PaginaOrcamentos() {
   };
 
   const abrirConversao = (orcamento: Orcamento) => {
-    setOrcamentoSelecionada(orcamento);
+    setOrcamentoSelecionado(orcamento);
     setConversaoSerieId(series[0]?.id || "");
     setDialogConverter(true);
   };

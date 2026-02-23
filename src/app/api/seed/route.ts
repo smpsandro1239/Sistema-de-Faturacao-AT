@@ -78,7 +78,6 @@ export async function POST(request: Request) {
         email: "geral@faturaat.pt",
         website: "https://faturaat.pt",
         certificadoAT: "AT/DEMO/2024",
-        numeroCertificado: "0000",
       },
     });
 
@@ -407,7 +406,7 @@ export async function POST(request: Request) {
           const artigo = artigos[i % artigos.length];
           
           const quantidade = Math.floor(Math.random() * 10) + 1;
-          const precoUnitario = artigo.precoUnitario?.toNumber() || 50;
+          const precoUnitario = (artigo.precoUnitario as unknown as number) || 50;
           const totalBase = quantidade * precoUnitario;
           const taxaIVA = artigos.find(a => a.id === artigo.id)?.taxaIVAId === "iva-reduzida" ? 6 : 23;
           const totalIVA = totalBase * (taxaIVA / 100);
@@ -459,15 +458,16 @@ export async function POST(request: Request) {
               estado: "EMITIDO",
               linhas: {
                 create: {
-                  numero: 1,
+                  ordem: 1,
                   artigoId: artigo.id,
+                  codigoArtigo: artigo.codigo,
                   descricaoArtigo: artigo.descricao,
                   quantidade,
                   precoUnitario,
-                  taxaIVA,
+                  taxaIVAId: artigo.taxaIVAId,
+                  taxaIVAPercentagem: taxaIVA,
                   valorIVA: totalIVA,
                   base: totalBase,
-                  total: totalLiquido,
                 },
               },
             },
@@ -496,15 +496,14 @@ export async function POST(request: Request) {
         entidade: "SISTEMA",
         entidadeId: "seed-inicial",
         utilizadorId: admin.id,
-        descricao: "Inicialização de dados de demonstração",
-        valoresNovos: {
+        valorNovo: JSON.stringify({
           taxasIVA: taxasIVA.length,
           isencoes: isencoes.length,
           series: series.length,
           clientes: clientes.length,
           artigos: artigos.length,
           documentos: documentos.length,
-        },
+        }),
       },
     });
 
