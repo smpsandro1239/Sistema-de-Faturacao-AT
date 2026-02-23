@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { validateCSRF } from "@/lib/auth";
+import { clientSchema } from "@/lib/validations";
 
 // GET - Listar todos os clientes
 export async function GET() {
@@ -26,15 +27,18 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { nome, nif, morada, codigoPostal, localidade, pais, telefone, email } = body;
 
-    // Validar NIF
-    if (!/^[0-9]{9}$/.test(nif)) {
+    // Validação com Zod
+    const validation = clientSchema.safeParse(body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "NIF inválido. Deve conter 9 dígitos." },
+        { error: validation.error.errors[0].message },
         { status: 400 }
       );
     }
+
+    const { nome, nif, morada, codigoPostal, localidade, telefone, email } = validation.data;
+    const { pais } = body; // pais não está no schema simplificado mas pode vir no body
 
     // Verificar se NIF já existe
     const clienteExistente = await db.cliente.findUnique({

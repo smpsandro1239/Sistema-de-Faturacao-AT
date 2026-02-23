@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = process.env.JWT_SECRET || "faturaat-secret-key-change-in-production";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.warn("Aviso: JWT_SECRET não configurado nas variáveis de ambiente.");
+}
 const SECRET_KEY = new TextEncoder().encode(JWT_SECRET);
 
 // Rotas que não precisam de autenticação
