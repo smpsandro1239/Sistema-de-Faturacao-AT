@@ -420,7 +420,7 @@ export async function POST(request: Request) {
 
           // Calcular hash
           const hash = calcularHashDocumento({
-            numero: numeroFormatado,
+            numeroDocumento: numeroFormatado, dataCriacao: new Date(),
             dataEmissao: new Date(),
             totalLiquido,
             hashAnterior,

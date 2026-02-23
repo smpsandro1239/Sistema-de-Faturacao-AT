@@ -380,6 +380,36 @@ async function createSeedData(includeDocuments: boolean = false, docCount: numbe
   );
 
   log(`   ✓ ${artigos.length} artigos criados`, colors.green);
+  // 7.1 STOCK INICIAL
+  log("📦 Criando stock inicial...", colors.blue);
+
+  const stocksIniciais = [];
+  for (const artigo of artigos) {
+    if (artigo.tipo === "PRODUTO") {
+      await prisma.artigo.update({
+        where: { id: artigo.id },
+        data: { controlaStock: true, stockMinimo: 5, stockMaximo: 100 }
+      });
+
+      const stock = await prisma.artigoArmazemStock.upsert({
+        where: {
+          artigoId_armazemId: {
+            artigoId: artigo.id,
+            armazemId: armazens[0].id
+          }
+        },
+        update: {},
+        create: {
+          artigoId: artigo.id,
+          armazemId: armazens[0].id,
+          quantidade: Math.floor(Math.random() * 20) + 2,
+          quantidadeReservada: 0
+        }
+      });
+      stocksIniciais.push(stock);
+    }
+  }
+  log(`   ✓ ${stocksIniciais.length} registos de stock criados`, colors.green);
 
   // 8. DOCUMENTOS (opcional)
   let documentosCount = 0;

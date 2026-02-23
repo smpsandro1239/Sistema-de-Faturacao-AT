@@ -3,35 +3,38 @@ import { createHash } from "crypto";
 /**
  * Calcula o hash SHA-256 do documento conforme Portaria 363/2010
  * 
- * O hash é calculado sobre os seguintes campos:
- * - Data de emissão
- * - Tipo de documento
- * - Número do documento
- * - Total líquido
- * - Hash do documento anterior (para encadeamento)
+ * Requisitos da AT (Simplificado):
+ * O hash deve ser calculado sobre os seguintes campos concatenados por ';':
+ * 1. Data do documento (AAAA-MM-DD)
+ * 2. Data e hora da gravação (AAAA-MM-DDTHH:MM:SS)
+ * 3. Referência do documento (ex: FT 2024/1)
+ * 4. Total do documento (ex: 123.45)
+ * 5. Hash do documento anterior (se não existir, vazio)
  */
 export function calcularHashDocumento(params: {
   dataEmissao: Date;
-  tipoDocumento: string;
+  dataCriacao: Date;
   numeroDocumento: string;
   totalLiquido: number;
   hashAnterior: string | null;
 }): string {
-  const { dataEmissao, tipoDocumento, numeroDocumento, totalLiquido, hashAnterior } = params;
+  const { dataEmissao, dataCriacao, numeroDocumento, totalLiquido, hashAnterior } = params;
 
-  // Formatar data como AAAA-MM-DD
-  const dataFormatada = dataEmissao.toISOString().split("T")[0];
+  // 1. Formatar data de emissão como AAAA-MM-DD
+  const dataEmissaoStr = dataEmissao.toISOString().split("T")[0];
 
-  // Formatar total com 2 casas decimais
-  const totalFormatado = totalLiquido.toFixed(2);
+  // 2. Formatar data de criação como AAAA-MM-DDTHH:MM:SS
+  const dataCriacaoStr = dataCriacao.toISOString().split(".")[0];
+
+  // 3. Formatar total com 2 casas decimais
+  const totalStr = totalLiquido.toFixed(2);
 
   // Construir string para hash
-  // Ordem: Data + Tipo + Número + Total + Hash Anterior
   const dadosHash = [
-    dataFormatada,
-    tipoDocumento,
+    dataEmissaoStr,
+    dataCriacaoStr,
     numeroDocumento,
-    totalFormatado,
+    totalStr,
     hashAnterior || "",
   ].join(";");
 
@@ -44,22 +47,11 @@ export function calcularHashDocumento(params: {
 /**
  * Valida a integridade do encadeamento de hashes
  */
-export function validarEncadeamentoHash(params: {
-  hashAtual: string;
-  hashAnterior: string | null;
-  documentoAnteriorHash: string | null;
-}): boolean {
-  // Se não há documento anterior, o hash anterior deve ser null
-  if (!params.hashAnterior && !params.documentoAnteriorHash) {
-    return true;
-  }
-
-  // Se há documento anterior, o hash anterior deve corresponder
-  if (params.hashAnterior && params.documentoAnteriorHash) {
-    return params.hashAnterior === params.documentoAnteriorHash;
-  }
-
-  return false;
+export function validarEncadeamentoHash(
+  hashAtualCalculado: string,
+  hashAtualGravado: string
+): boolean {
+  return hashAtualCalculado === hashAtualGravado;
 }
 
 /**
@@ -67,6 +59,9 @@ export function validarEncadeamentoHash(params: {
  * Formato: CódigoValidaçãoSérie-NúmeroDocumento
  */
 export function gerarATCUD(codigoValidacaoSerie: string, numeroDocumento: number): string {
+  if (!codigoValidacaoSerie || codigoValidacaoSerie === "0") {
+    return ""; // Ou algum fallback se permitido em dev
+  }
   return `${codigoValidacaoSerie}-${numeroDocumento}`;
 }
 
@@ -74,22 +69,7 @@ export function gerarATCUD(codigoValidacaoSerie: string, numeroDocumento: number
  * Valida formato do ATCUD
  */
 export function validarATCUD(atcud: string): boolean {
-  // Formato: XXXXXX-N ou XXXXXXXX-NNNNN
+  // Formato: XXXXXX-N
   const regex = /^[A-Z0-9]+-\d+$/;
   return regex.test(atcud);
-}
-
-/**
- * Extrai componentes do ATCUD
- */
-export function parseATCUD(atcud: string): { codigoSerie: string; numero: number } | null {
-  if (!validarATCUD(atcud)) {
-    return null;
-  }
-
-  const [codigoSerie, numeroStr] = atcud.split("-");
-  return {
-    codigoSerie,
-    numero: parseInt(numeroStr, 10),
-  };
 }
