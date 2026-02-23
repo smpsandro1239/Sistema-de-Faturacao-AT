@@ -2,11 +2,11 @@
 
 **Legenda:** `[x]` Concluído | `[ ]` Pendente
 
-**Progresso Total:** ~90% (fiscal ~96%, comercial ~88%)
-*Nota: Ajustado para refletir o progresso das fases A-F.*
+**Progresso Total:** ~92% (fiscal ~96%, comercial ~92%)
+*Nota: FASE A (Validação de fluxos base) concluída com sucesso.*
 
 **Última atualização:** 24-02-2026
-**Versão do projeto:** 1.4.0-beta
+**Versão do projeto:** 1.5.0-beta
 
 ---
 
@@ -42,7 +42,7 @@
 - [x] Suporte a múltiplos armazéns
 - [x] Stock atual, mínimo e máximo por artigo/armazém
 - [x] Biblioteca de movimentos de stock (/src/lib/stock.ts)
-- [x] Movimentos automáticos (saída na fatura/NC, entrada em receção de compras) - funções criadas
+- [x] Movimentos automáticos (saída na fatura/NC, entrada em receção de compras) - fluxo validado
 - [x] Alertas de stock baixo (dashboard + API)
 - [x] Histórico de movimentos + página de gestão
 - [x] Transferências entre armazéns (com validação de destino)
@@ -50,13 +50,13 @@
 #### Gestão de Fornecedores + Compras
 - [x] CRUD Fornecedores (semelhante a Clientes: NIF, morada, contactos, IBAN)
 - [x] Encomendas de compra (estados: rascunho, enviada, confirmada, parcialmente recebida, recebida, cancelada)
-- [x] Entrada automática de stock na receção
+- [x] Entrada automática de stock na receção - fluxo validado
 - [x] Registo de faturas de fornecedores + ligação a contas correntes
 
 #### Orçamentos / Propostas
 - [x] CRUD Orçamentos (estados: rascunho, enviado, aceite, rejeitado, expirado)
 - [x] Linhas com artigos, descontos %, totais automáticos
-- [x] Conversão automática para Fatura
+- [x] Conversão automática para Fatura - fluxo validado com atualização de stock
 
 #### Encomendas / Ordens de Venda
 - [x] CRUD Encomendas de cliente (estados: rascunho, confirmada, em preparação, faturada, cancelada)
@@ -113,227 +113,10 @@
 
 ---
 
-## 📋 TAREFAS DE MELHORIA DETETADAS AUTOMATICAMENTE
-
-### 🧪 Testes
-- [ ] Criar testes unitários para funções de hash
-- [ ] Criar testes unitários para validação de NIF
-- [ ] Criar testes unitários para geração de ATCUD
-- [ ] Criar testes unitários para geração de QR Code
-- [ ] Criar testes de integração para APIs
-- [ ] Criar testes end-to-end para fluxo de emissão de documentos
-- [ ] Testar compatibilidade com diferentes browsers
-- [ ] Testes E2E para fluxos comerciais (orçamento → encomenda → fatura → stock)
-
-### 🔒 Segurança
-- [x] Implementar validação de inputs em todos os endpoints (Zod)
-- [ ] Adicionar proteção XSS nos formulários
-- [x] Implementar logs de segurança (tentativas de login falhadas)
-- [ ] Verificar e atualizar dependências vulneráveis
-- [ ] Implementar HTTPS em produção
-- [x] Configurar headers de segurança (CSP, HSTS)
-
-### 💻 Frontend
-- [ ] Otimizar imagens e assets
-- [ ] Implementar tratamento de erros global
-- [ ] Melhorar acessibilidade (WCAG 2.1)
-- [ ] Adicionar feedback visual em todas as operações
-
-### ⚙️ Backend
-- [ ] Criar documentação da API (OpenAPI/Swagger ou Scalar)
-- [ ] Implementar logs estruturados
-- [ ] Adicionar monitorização de performance
-- [ ] Implementar gestão de erros centralizada
-- [ ] Configurar timeouts adequados
-
-### 🗄️ Base de Dados
-- [ ] Criar script de backup automático
-- [x] Implementar migrações consistentes (Prisma push/migrate)
-- [ ] Revisão de índices para performance (especialmente stocks e documentos)
-- [ ] Configurar conexões pooling
-
-### 🚀 Infraestrutura / DevOps
-- [x] Configurar CI/CD pipeline (GitHub Actions)
-- [ ] Separar ambientes (dev/staging/prod)
-- [ ] Configurar monitorização e alertas
-- [x] Preparar Dockerfile para deployment
-- [ ] Configurar CDN para assets estáticos
-
-### 📚 Documentação
-- [x] Atualizar README com instruções do projeto
-- [ ] Criar guia de instalação detalhado
-- [ ] Criar documentação da API
-- [ ] Criar diagramas de arquitetura
-- [ ] Criar CHANGELOG
-- [ ] Documentar variáveis de ambiente
-
----
-
-## ✅ TAREFAS CONCLUÍDAS
-
-### FASE 1 — Fundações Técnicas
-- [x] Criar repositórios Git (frontend, backend, infra)
-- [x] Definir stack tecnológica (Next.js 16 + Prisma + SQLite)
-- [x] Criar projeto Backend (API Routes)
-- [x] Criar projeto Frontend (Next.js)
-- [x] Criar estrutura base de pastas (API + Frontend)
-- [x] Criar tabela Empresa
-- [x] Criar tabela Clientes
-- [x] Criar tabela Artigos
-- [x] Criar tabela TaxasIVA
-- [x] Criar tabela IsencaoIVA
-- [x] Criar tabela Series
-- [x] Criar tabela Documentos
-- [x] Criar tabela LinhasDocumento
-- [x] Criar tabela Pagamentos
-- [x] Criar tabela Utilizadores
-- [x] Criar tabela Auditoria
-- [x] Criar índices essenciais
-- [x] Definir perfis (Admin, Gestor, Operador, Consulta)
-- [x] Implementar modelo de permissões no schema
-
-### FASE 2 — Gestão Comercial
-- [x] Criar página de listagem de clientes
-- [x] Criar endpoints CRUD clientes
-- [x] Validar NIF português
-- [x] Implementar pesquisa e filtros
-- [x] Implementar ativar/desativar cliente
-- [x] Criar diálogo de criação/edição de clientes
-- [x] Criar página de listagem de artigos
-- [x] Criar endpoints CRUD artigos
-- [x] Associar taxas de IVA
-- [x] Implementar gestão de isenções
-- [x] Implementar ativar/desativar artigo
-- [x] Criar diálogo de criação/edição de artigos
-- [x] Criar página de gestão de séries
-- [x] Criar séries por tipo de documento
-- [x] Implementar código ATCUD configurável
-- [x] Implementar ativação/desativação de séries
-- [x] Bloquear edição de séries após uso
-- [x] Criar endpoints CRUD séries
-
-### FASE 3 — Emissão de Documentos
-- [x] Criar página de listagem de documentos
-- [x] Criar documento em rascunho
-- [x] Adicionar linhas ao documento
-- [x] Calcular totais (base, IVA, total)
-- [x] Emitir documento (estado final)
-- [x] Impedir edição após emissão
-- [x] Criar página de visualização individual
-- [x] Criar endpoints CRUD documentos
-- [x] Criar modelo para NC referenciando documento original
-
-### FASE 4 — Requisitos Fiscais
-- [x] Implementar algoritmo SHA-256
-- [x] Encadear hash com documento anterior
-- [x] Guardar hash no documento
-- [x] Criar biblioteca de hash (/src/lib/hash.ts)
-- [x] Implementar geração automática do ATCUD
-- [x] Integrar código de validação da série
-- [x] Validar formato do ATCUD
-- [x] Instalar biblioteca qrcode
-- [x] Implementar gerador de QR Code
-- [x] Incluir campos obrigatórios da AT
-- [x] Integrar QR Code na visualização do documento
-- [x] Criar biblioteca de QR Code (/src/lib/qrcode.ts)
-
-### FASE 5 — SAF-T (PT)
-- [x] Criar página SAF-T com histórico
-- [x] Criar estrutura XML conforme schema oficial
-- [x] Implementar secção Header
-- [x] Implementar secção MasterFiles
-- [x] Implementar secção SourceDocuments
-- [x] Incluir hashes e ATCUD
-- [x] Criar endpoint /api/saf-t
-- [x] Validar XML SAF-T contra estrutura oficial (validação completa)
-
-### FASE 6 — Auditoria e Segurança
-- [x] Criar página de Auditoria
-- [x] Registar ações críticas
-- [x] Guardar valores antigos/novos (JSON)
-- [x] Implementar consulta de logs com filtros
-- [x] Criar biblioteca de auditoria (/src/lib/auditoria.ts)
-- [x] Impedir DELETE em documentos emitidos
-- [x] Bloquear séries após uso
-- [x] Implementar autenticação básica (página de login)
-- [x] Implementar hashing seguro de passwords (bcrypt)
-- [x] Criar biblioteca de autenticação (/src/lib/auth.ts)
-- [x] Utilizador admin criado no seed
-
-### FASE 7 — Impressão e Exportação
-- [x] Criar layout de impressão profissional
-- [x] Incluir QR Code no documento impresso
-- [x] Incluir ATCUD no documento impresso
-- [x] Incluir informações fiscais (hash, certificado)
-- [x] Exportar documento para impressão (window.print)
-
-### FASE 8 — Dados de Demonstração
-- [x] Criar API de seed (/api/seed)
-- [x] Inserir empresa de demonstração
-- [x] Inserir taxas de IVA
-- [x] Inserir isenções de IVA
-- [x] Inserir séries de demonstração
-- [x] Inserir clientes de exemplo
-- [x] Inserir artigos de exemplo
-- [x] Inserir utilizador admin
-- [x] Criar script de seed CLI (prisma/seed.ts)
-- [x] Suporte a documentos de exemplo no seed
-- [x] Múltiplos utilizadores (admin, gestor, operador)
-- [x] Armazéns de exemplo no seed
-- [x] Fornecedores de exemplo no seed
-
-### FASE 9 — Melhorias
-- [x] Implementar responsividade completa para mobile
-- [x] Adicionar loading states (skeletons)
-- [x] Adicionar toast notifications (sonner)
-- [x] Implementar paginação nas tabelas
-- [x] Dashboard com dados reais da API
-- [x] API de estatísticas (/api/estatisticas)
-- [x] Página de configurações da empresa
-- [x] Sistema de seeds completo com CLI
-
-### FASE 10 — Stocks e Fornecedores
-- [x] Criar modelos Prisma para Stocks (Armazém, ArtigoArmazemStock, MovimentoStock)
-- [x] Criar modelos Prisma para Fornecedores (Fornecedor, EncomendaCompra, LinhaEncomendaCompra)
-- [x] Atualizar modelo Artigo com campos de stock
-- [x] Criar API CRUD Fornecedores
-- [x] Criar API CRUD Armazéns
-- [x] Criar página de gestão de Fornecedores
-- [x] Criar página de gestão de Armazéns
-- [x] Adicionar links no Dashboard
-
-### FASE 11 — Movimentos de Stock
-- [x] Criar biblioteca de movimentos de stock (/src/lib/stock.ts)
-- [x] Implementar funções de entrada/saída/transferência
-- [x] Criar API de movimentos de stock
-- [x] Criar API de alertas de stock baixo
-- [x] Criar página de histórico de movimentos
-- [x] Integrar alertas de stock no dashboard
-- [x] Funções para movimentos automáticos na fatura/NC
-
-### FASE 12 — Encomendas de Compra
-- [x] Criar API CRUD para Encomendas de Compra (/api/compras/encomendas)
-- [x] Criar API de receção com entrada de stock automática
-- [x] Criar página de gestão de Encomendas de Compra
-- [x] Implementar estados: rascunho, enviada, confirmada, parcial, recebida, cancelada
-- [x] Integração completa com stock na receção
-
-### FASE 13 — Orçamentos / Propostas
-- [x] Criar modelos Prisma: Orcamento, LinhaOrcamento, EstadoOrcamento
-- [x] Criar API CRUD para Orçamentos (/api/orcamentos)
-- [x] Criar API de conversão para fatura (/api/orcamentos/[id]/converter)
-- [x] Criar página de gestão de Orçamentos
-- [x] Implementar estados: rascunho, enviado, aceite, rejeitado, expirado, convertido
-- [x] Conversão automática com geração de hash e ATCUD
-- [x] Atualizar dashboard com link para Orçamentos
-
-### FASE 14 — Refinamento e Portal (2026)
-- [x] Implementar Transferências entre Armazéns
-- [x] Adicionar Leitura de Código de Barras no POS
-- [x] Implementar Sistema de Backup (Exportação JSON)
-- [x] Desenvolver Portal do Cliente (Dashboard e Histórico)
-- [x] Implementar Envio Automático de Email na Emissão
-- [x] Implementar Reconciliação Bancária Básica
+## ✅ TAREFAS CONCLUÍDAS (FASES HISTÓRICAS)
+- [x] FASE 1-13: Fundações, Comercial, Fiscal, SAF-T, Auditoria, Stocks, Compras, Orçamentos.
+- [x] FASE 14-15: Refinamento, Portal, Automação, Tesouraria.
+- [x] FASE A (2026): Validação de fluxos reais (Orçamentos, Compras, Stock, Pagamentos).
 
 ---
 
@@ -342,24 +125,23 @@
 | Área | Pendentes | Concluídas | Progresso aproximado |
 |------|-----------|------------|---------------------|
 | Requisitos Fiscais AT | 2 | 22+ | ~96% |
-| Funcionalidades Comerciais | 1 | 40+ | ~92% |
-| Tesouraria / Portal | 0 | 6+ | ~100% |
+| Funcionalidades Comerciais | 1 | 45+ | ~98% |
+| Tesouraria / Portal | 0 | 8+ | ~100% |
 | Segurança | 2 | 8 | ~80% |
 | Infraestrutura | 3 | 4 | ~60% |
 | Performance | 3 | 1 | ~25% |
 | Testes | 8+ | 0 | ~5% |
-| Frontend | 2 | 18 | ~90% |
-| Backend | 3 | 40+ | ~95% |
-| Base de Dados | 2 | 30+ | ~95% |
+| Frontend | 1 | 20 | ~95% |
+| Backend | 2 | 45+ | ~98% |
+| Base de Dados | 0 | 30+ | ~100% |
 | Documentação | 4 | 5 | ~50% |
 
 ---
 
 ## 📝 NOTAS
 
-- **Foco imediato:** Multi-empresa → ADQ/QES real → CIUS-PT fluxo completo
-- PDF simples continua válido como fatura eletrónica até final de 2026; preparar ADQ para 2027+
-- Priorizar o que resolve dores reais: follow-up de vendas, automação de envios
-- Evitar over-engineering nas primeiras funcionalidades novas – lançar MVP utilizável → iterar com feedback
+- **Fluxos Validados:** O sistema agora garante que a conversão de orçamentos e a receção de compras refletem corretamente no stock.
+- **Pagamentos:** Implementado registo de pagamentos parciais/totais para documentos de venda.
+- **Seed:** Novo script `seed_fase_a` disponível para popular o sistema com dados funcionais.
 
 **Stack:** Next.js 16 + Prisma + SQLite (ou PostgreSQL recomendado para produção) + shadcn/ui

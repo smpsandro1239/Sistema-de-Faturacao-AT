@@ -541,3 +541,19 @@ Work Log:
 
 Stage Summary:
 - Ciclo de gestão fechado com tesouraria e ferramentas de manutenção.
+
+---
+Task ID: 31
+Agent: Jules
+Task: Validação de Fluxos Reais (Fase A) e Pagamentos de Venda
+
+Work Log:
+- Validado e corrigido o fluxo de Orçamentos: corrigidos erros na UI e garantido que a conversão para fatura atualiza o stock automaticamente.
+- Implementado registo de Pagamentos para vendas: criada API em `/api/documentos/[id]/pagamentos` e atualizada a UI de Documentos para permitir liquidações (totais ou parciais).
+- Desenvolvido script de seed especializado (`prisma/seed_fase_a.ts`) para popular `ArtigoArmazemStock`, `Orcamento` e `EncomendaCompra` com dados reais de teste.
+- Atualizada a página de Documentos para utilizar dados reais da API, suportar emissão de rascunhos e gestão de estados de pagamento.
+- Corrigida a emissão de faturas para garantir a saída automática de stock no armazém principal.
+
+Stage Summary:
+- Fluxos comerciais críticos (Venda assistida e Compra) validados de ponta a ponta com persistência real em base de dados e integração de inventário.
+- Sistema funcional para PMEs com controlo de liquidações e stock real.

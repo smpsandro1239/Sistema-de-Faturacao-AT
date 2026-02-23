@@ -4,6 +4,7 @@ import { createHash } from "crypto";
 import { validateCSRF } from "@/lib/auth";
 import { fireWebhooks } from "@/lib/webhooks";
 import { enviarEmailDocumento } from "@/lib/mail";
+import { saidaStockFatura } from "@/lib/stock";
 
 // Função para calcular hash SHA-256 do documento
 function calcularHash(documento: {
@@ -265,20 +266,48 @@ export async function PATCH(request: Request) {
       ? gerarATCUD(documento.serie.codigoValidacaoAT, documento.numero)
       : null;
 
-    // Atualizar documento
-    const documentoEmitido = await db.documento.update({
-      where: { id },
-      data: {
-        estado: "EMITIDO",
-        dataEmissao,
-        hash,
-        hashDocumentoAnterior: documentoAnterior?.hash || null,
-        atcud,
-      },
-      include: {
-        cliente: true,
-        linhas: true,
+    // Atualizar documento e stock em transação
+    const documentoEmitido = await db.$transaction(async (tx) => {
+      const doc = await tx.documento.update({
+        where: { id },
+        data: {
+          estado: "EMITIDO",
+          dataEmissao,
+          hash,
+          hashDocumentoAnterior: documentoAnterior?.hash || null,
+          atcud,
+        },
+        include: {
+          cliente: true,
+          linhas: true,
+          serie: true,
+        }
+      });
+
+      // Atualizar stock se não for rascunho e se houver armazém configurado
+      // Para demonstração, usamos o armazém principal se existir
+      const armazemPrincipal = await tx.armazem.findFirst({ where: { principal: true } });
+
+      if (armazemPrincipal && doc.tipo !== "ORCAMENTO") {
+        const linhasStock = doc.linhas
+          .filter(l => l.artigoId)
+          .map(l => ({
+            artigoId: l.artigoId!,
+            quantidade: l.quantidade,
+            precoUnitario: l.precoUnitario,
+          }));
+
+        if (linhasStock.length > 0) {
+          await saidaStockFatura({
+            linhas: linhasStock,
+            armazemId: armazemPrincipal.id,
+            documentoId: doc.id,
+            utilizadorId: doc.utilizadorId,
+          });
+        }
       }
+
+      return doc;
     });
 
     // Disparar Webhooks
