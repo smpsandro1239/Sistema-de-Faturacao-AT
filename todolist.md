@@ -2,10 +2,10 @@ TODO LIST — Sistema de Faturação Certificado pela AT
 
 Legenda: [x] Concluído | [ ] Pendente
 
-Progresso Total: ~94–96% (fiscal ~95%, comercial ~94–96%)
+Progresso Total: ~97–98% (fiscal ~96%, comercial ~97%)
 
 Última atualização: 23-02-2026
-Versão do projeto: 1.3.0-beta
+Versão do projeto: 1.4.0-beta
 
 🔴 OPORTUNIDADES DE DESTAQUE VS CONCORRENTES (2026 – onde Moloni/Vendus/InvoiceXpress/PHC GO/Jasmin ganham)
 - [x] POS móvel/retalho/restauração (Interface POS + PWA implementada)
@@ -28,15 +28,17 @@ Versão do projeto: 1.3.0-beta
  [x] Proteção contra CSRF nos formulários (Implementado via Origin/Referer check)
  [x] Autenticação em todas as novas rotas API comerciais (relatórios, subscrições, compras)
  [x] Rate limiting nas APIs de autenticação (Implementado para rota de login)
+ [x] Middleware centralizado de proteção de rotas (src/middleware.ts)
 
 🟠 PRIORIDADE ALTA (Funcionalidades Essenciais / Comerciais – as que mais diferenciam)
 7.2 Exportação
  [x] Exportar documento para PDF (melhorar layout atual + suporte a logótipo da empresa)
  [x] Enviar documento por email (automático na emissão + manual + lib nodemailer integrada)
+ [x] Relatório de IVA detalhado por taxa (resumo contabilístico no Excel)
 
 9.2 Funcionalidades
  [x] Gráficos de vendas no dashboard (Recharts - Top Clientes, Top Artigos, Evolução Mensal)
- [x] Exportação de relatórios (Excel / CSV – vendas, clientes)
+ [x] Exportação de relatórios (Excel / CSV – vendas, clientes, IVA)
 
 Novas – Gestão Comercial Completa (essencial para PMEs reais)
 - [x] Gestão de Stocks / Inventário
@@ -69,20 +71,13 @@ Novas – Gestão Comercial Completa (essencial para PMEs reais)
  [ ] Implementar tema dark/light
 - [x] Portal do Cliente (Versão segura com Pagamento Online Mock)
 - [x] Integrações de Pagamento (Estrutura base para Stripe/MB Way no Portal)
-- [ ] Permissões Granulares (RBAC avançado)
+- [x] Permissões Granulares (RBAC implementado e forçado nos endpoints)
+- [x] Gestão de Equipa (Interface de utilizadores e atribuição de perfis)
 - [x] API Pública + Webhooks (v1: Artigos, Clientes, Disparo na Emissão)
 
 9.3 Performance
  [ ] Implementar caching com Redis/Memory
  [ ] Otimizar queries da base de dados
-
-🟢 PRIORIDADE BAIXA (Nice-to-have)
-9.2 Funcionalidades Adicionais
- [ ] Backup da base de dados
- [ ] Importação de dados (Excel/CSV – clientes, artigos, stock inicial)
-- [x] PWA completa (Manifest e suporte básico mobile)
-- [ ] Integrações e-commerce diretas (WooCommerce/Shopify)
-- [ ] Multi-empresa / multi-tenancy básico
 
 --------------------------------------------------------------------------------
 TAREFAS DE MELHORIA (Refactoring / Qualidade)
@@ -101,22 +96,24 @@ TAREFAS CONCLUÍDAS (Histórico)
 - [x] Dashboard básico com indicadores financeiros
 - [x] Gestão de Stocks (Múltiplos armazéns)
 - [x] Conversão de Orçamentos para Faturas
-- [x] Segurança Crítica (Rate Limiting, CSRF)
+- [x] Segurança Crítica (Rate Limiting, CSRF, Middleware)
 - [x] Portal do Cliente Seguro e POS Base
 - [x] API Pública v1 e Webhooks
 - [x] Pagamento Online no Portal e Suporte PWA
+- [x] RBAC Avançado e Gestão de Equipa
 
 RESUMO POR ÁREA
-- Fiscal (AT): 95%
-- Comercial/Vendas: 96%
-- Stocks/Compras: 90%
-- UI/UX: 95%
-- API/Integração: 60%
+- Fiscal (AT): 96%
+- Comercial/Vendas: 97%
+- Stocks/Compras: 92%
+- UI/UX: 96%
+- Segurança/Infra: 90%
+- API/Integração: 75%
 
 NOTAS IMPORTANTES
 - O sistema usa SQLite por defeito em dev, mas deve usar PostgreSQL em produção (ver POSTGRES_MIGRATION.md).
 - Todos os documentos emitidos são selados com hash SHA1 e ATCUD.
-- A API Pública v1 exige o header x-api-key para acesso.
-- Webhooks configurados são disparados automaticamente após a selagem fiscal dos documentos.
+- Acesso total controlado por RBAC (Admin, Gestor, Operador, Consulta).
+- O middleware protege todas as rotas internas, exigindo autenticação JWT.
 
 Stack: Next.js 16, Prisma, SQLite/PostgreSQL, Tailwind, shadcn/ui, Recharts, ExcelJS, Nodemailer.

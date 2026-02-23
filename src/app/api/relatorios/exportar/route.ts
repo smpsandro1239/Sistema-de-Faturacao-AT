@@ -27,10 +27,15 @@ export async function GET(request: NextRequest) {
 
     const documentos = await db.documento.findMany({
       where,
+      include: {
+        linhas: true,
+      },
       orderBy: { dataEmissao: "desc" },
     });
 
     const workbook = new ExcelJS.Workbook();
+
+    // --- ABA 1: VENDAS ---
     const worksheet = workbook.addWorksheet("Vendas");
 
     worksheet.columns = [
@@ -60,6 +65,36 @@ export async function GET(request: NextRequest) {
     worksheet.getColumn("base").numFmt = "#,##0.00€";
     worksheet.getColumn("iva").numFmt = "#,##0.00€";
     worksheet.getColumn("total").numFmt = "#,##0.00€";
+
+    // --- ABA 2: RESUMO IVA ---
+    const worksheetIva = workbook.addWorksheet("Resumo IVA");
+    worksheetIva.columns = [
+      { header: "Taxa IVA", key: "taxa", width: 15 },
+      { header: "Base Tributável", key: "base", width: 20 },
+      { header: "Valor IVA", key: "valor", width: 20 },
+    ];
+
+    const ivaResumo: Record<number, { base: number; valor: number }> = {};
+    documentos.forEach(doc => {
+      doc.linhas.forEach(linha => {
+        const taxa = linha.taxaIVAPercentagem;
+        if (!ivaResumo[taxa]) ivaResumo[taxa] = { base: 0, valor: 0 };
+        ivaResumo[taxa].base += linha.base;
+        ivaResumo[taxa].valor += linha.valorIVA;
+      });
+    });
+
+    Object.entries(ivaResumo).forEach(([taxa, totals]) => {
+      worksheetIva.addRow({
+        taxa: `${taxa}%`,
+        base: totals.base,
+        valor: totals.valor,
+      });
+    });
+
+    worksheetIva.getRow(1).font = { bold: true };
+    worksheetIva.getColumn("base").numFmt = "#,##0.00€";
+    worksheetIva.getColumn("valor").numFmt = "#,##0.00€";
 
     if (formato === "csv") {
       const csvContent = await workbook.csv.writeBuffer();

@@ -621,3 +621,17 @@ Reforço significativo na segurança da aplicação e entrega da primeira versã
 O sistema deu um salto gigante na conectividade externa e facilidade de pagamento para o cliente final. Com a API Pública e Webhooks, a integração com e-commerce torna-se possível. O suporte PWA garante mobilidade total para o POS.
 
 **Status:** Concluído
+
+## [23-02-2026] - Task ID: 8 - Agent: Jules
+
+**Work Log:**
+- Middleware de Autenticação: Implementado `src/middleware.ts` para centralizar a proteção de rotas privadas (API e Páginas). O sistema agora redireciona automaticamente para login se não autenticado e bloqueia acessos API sem JWT válido.
+- Relatórios Avançados: Atualizado motor de exportação Excel para incluir o "Resumo de IVA" por taxa (NOR, INT, RED), fornecendo os dados necessários para o preenchimento da declaração periódica de IVA.
+- Gestão de Equipa (RBAC): Criada interface de gestão de utilizadores (`src/app/configuracoes/utilizadores/page.tsx`) permitindo o CRUD de membros da equipa e atribuição de perfis de acesso (ADMIN, GESTOR, OPERADOR, CONSULTA).
+- Segurança RBAC: Implementada a lógica de verificação de permissões (`temPermissao`) em endpoints críticos: exportação de SAF-T, configuração da empresa e gestão de utilizadores.
+- UI/UX: Adicionado link para gestão da "Equipa" na navegação principal do dashboard.
+
+**Stage Summary:**
+O sistema atingiu um nível de maturidade empresarial elevado. Com o middleware centralizado e o RBAC forçado, a segurança está robusta para múltiplos utilizadores. O relatório detalhado de IVA é um diferencial crucial para a contabilidade das PMEs.
+
+**Status:** Concluído

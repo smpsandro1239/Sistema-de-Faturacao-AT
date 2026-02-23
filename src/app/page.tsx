@@ -293,6 +293,10 @@ export default function Dashboard() {
               <Settings className="h-4 w-4" />
               Séries
             </Link>
+            <Link href="/configuracoes/utilizadores" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
+              <Users className="h-4 w-4" />
+              Equipa
+            </Link>
             <Link href="/saf-t" className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
               <FileSpreadsheet className="h-4 w-4" />
               SAF-T

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { authenticateRequest, temPermissao } from "@/lib/auth";
 
 // GET - Obter dados da empresa
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const empresa = await db.empresa.findFirst();
     return NextResponse.json(empresa);
@@ -18,6 +19,11 @@ export async function GET() {
 // PUT - Atualizar dados da empresa
 export async function PUT(request: Request) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated || !temPermissao(auth.user!.perfil, "config")) {
+      return NextResponse.json({ error: "Permissões insuficientes para configurar empresa" }, { status: 403 });
+    }
+
     const body = await request.json();
     const {
       nome,
