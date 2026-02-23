@@ -239,6 +239,7 @@ export async function authenticateUser(email: string, password: string): Promise
     email: utilizador.email,
     nome: utilizador.nome,
     perfil: utilizador.perfil,
+    empresaId: utilizador.empresaId,
   };
 
   const token = await generateToken(payload);
@@ -249,6 +250,7 @@ export async function authenticateUser(email: string, password: string): Promise
       nome: utilizador.nome,
       email: utilizador.email,
       perfil: utilizador.perfil,
+      empresaId: utilizador.empresaId,
     },
     token,
   };
@@ -326,14 +328,45 @@ export async function alterarPassword(utilizadorId: string, passwordAtual: strin
  */
 export function temPermissao(perfilUtilizador: string, acao: string): boolean {
   const permissoes: Record<string, string[]> = {
-    ADMIN: ["create", "read", "update", "delete", "emit", "annul", "export", "config"],
-    GESTOR: ["create", "read", "update", "delete", "emit", "annul", "export"],
-    OPERADOR: ["create", "read", "update", "emit"],
-    CONSULTA: ["read"],
+    ADMIN: ["*"], // Tudo
+    GESTOR: [
+      "clientes.*", "artigos.*", "documentos.*", "fornecedores.*", "armazens.*",
+      "compras.*", "orcamentos.*", "stock.*", "relatorios.view", "relatorios.export"
+    ],
+    OPERADOR: [
+      "clientes.read", "clientes.create", "clientes.update",
+      "artigos.read", "artigos.create", "artigos.update",
+      "documentos.read", "documentos.create", "documentos.emit",
+      "fornecedores.read", "armazens.read", "stock.read"
+    ],
+    CONSULTA: [
+      "clientes.read", "artigos.read", "documentos.read", "fornecedores.read", "armazens.read"
+    ],
   };
 
   const permissoesUtilizador = permissoes[perfilUtilizador] || [];
-  return permissoesUtilizador.includes(acao);
+
+  if (permissoesUtilizador.includes("*")) return true;
+  if (permissoesUtilizador.includes(acao)) return true;
+
+  // Suporte a wildcard simples (ex: "clientes.*")
+  const [modulo] = acao.split('.');
+  if (permissoesUtilizador.includes(`${modulo}.*`)) return true;
+
+  return false;
+}
+
+/**
+ * Helper para verificar permissão e retornar erro se necessário
+ */
+export async function verificarPermissao(perfil: string, acao: string) {
+  if (!temPermissao(perfil, acao)) {
+    return {
+      authorized: false,
+      error: `Não tem permissão para a ação: ${acao}`,
+    };
+  }
+  return { authorized: true };
 }
 
 /**

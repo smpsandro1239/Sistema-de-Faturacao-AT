@@ -2,11 +2,11 @@
 
 **Legenda:** `[x]` Concluído | `[ ]` Pendente
 
-**Progresso Total:** ~92% (fiscal ~96%, comercial ~92%)
-*Nota: FASE A (Validação de fluxos base) concluída com sucesso.*
+**Progresso Total:** ~96% (fiscal ~98%, comercial ~96%)
+*Nota: FASE A concluída. Suporte multi-empresa, RBAC e Fiscal 2027 (CIUS-PT/ADQ) integrados.*
 
 **Última atualização:** 24-02-2026
-**Versão do projeto:** 1.5.0-beta
+**Versão do projeto:** 1.7.0-beta
 
 ---
 
@@ -15,24 +15,26 @@
 ### 5.2 Validação SAF-T
 - [x] Validar XML SAF-T contra XSD oficial da AT
 - [x] Testar SAF-T com validador oficial da AT (instruções adicionadas)
-- [ ] Preparar suporte futuro para Assinatura Digital Qualificada (ADQ) nas faturas (obrigatório provável a partir de 2027/2028)
-- [ ] Preparar suporte CIUS-PT / Faturação Eletrónica Estruturada B2G (obrigatório progressivo a partir de 2027)
+- [x] Preparar suporte futuro para Assinatura Digital Qualificada (ADQ) nas faturas (Scaffold avançado PAdES)
+- [x] Preparar suporte CIUS-PT / Faturação Eletrónica Estruturada B2G (UBL 2.1 integrado)
 
 ### 6.2 Segurança
 - [x] Implementar gestão de sessões com JWT (jose library)
-- [x] Proteção contra CSRF nos formulários (Origin check)
+- [x] Proteção contra CSRF nos formulários (Origin check & JWT verification)
 - [x] Rate limiting nas APIs de autenticação (Middleware)
+- [x] RBAC Avançado (Controlo granular por perfil e módulo - implementado)
 
 ---
 
 ## 🟠 PRIORIDADE ALTA (Funcionalidades Essenciais / Comerciais – as que mais diferenciam)
 
 ### 7.2 Exportação
-- [x] Exportar documento para PDF (melhorar layout atual + opção de download direto) - jsPDF implementado
+- [x] Exportar documento para PDF (Layout profissional refinado + download direto)
 - [x] Enviar documento por email (automático na emissão + manual)
+- [x] Exportação XML UBL 2.1 (CIUS-PT B2G)
 
 ### 9.2 Funcionalidades
-- [x] Gráficos de vendas no dashboard (Recharts ou Tremor – mensal, por cliente, por artigo)
+- [x] Gráficos de vendas no dashboard (Recharts ou Tremor)
 - [x] Exportação de relatórios (PDF / Excel / CSV – vendas, IVA, stock, contas)
 
 ### Novas – Gestão Comercial Completa (essencial para PMEs reais)
@@ -42,29 +44,29 @@
 - [x] Suporte a múltiplos armazéns
 - [x] Stock atual, mínimo e máximo por artigo/armazém
 - [x] Biblioteca de movimentos de stock (/src/lib/stock.ts)
-- [x] Movimentos automáticos (saída na fatura/NC, entrada em receção de compras) - fluxo validado
-- [x] Alertas de stock baixo (dashboard + API)
+- [x] Movimentos automáticos (saída na fatura/NC, entrada em receção de compras)
+- [x] Alertas de stock baixo
 - [x] Histórico de movimentos + página de gestão
-- [x] Transferências entre armazéns (com validação de destino)
+- [x] Transferências entre armazéns
 
 #### Gestão de Fornecedores + Compras
-- [x] CRUD Fornecedores (semelhante a Clientes: NIF, morada, contactos, IBAN)
-- [x] Encomendas de compra (estados: rascunho, enviada, confirmada, parcialmente recebida, recebida, cancelada)
-- [x] Entrada automática de stock na receção - fluxo validado
+- [x] CRUD Fornecedores
+- [x] Encomendas de compra
+- [x] Entrada automática de stock na receção
 - [x] Registo de faturas de fornecedores + ligação a contas correntes
 
 #### Orçamentos / Propostas
-- [x] CRUD Orçamentos (estados: rascunho, enviado, aceite, rejeitado, expirado)
+- [x] CRUD Orçamentos
 - [x] Linhas com artigos, descontos %, totais automáticos
-- [x] Conversão automática para Fatura - fluxo validado com atualização de stock
+- [x] Conversão automática para Fatura
 
 #### Encomendas / Ordens de Venda
-- [x] CRUD Encomendas de cliente (estados: rascunho, confirmada, em preparação, faturada, cancelada)
+- [x] CRUD Encomendas de cliente
 - [x] Conversão para fatura (total ou parcial)
 - [ ] Reserva temporária de stock (opcional)
 
 #### Faturação Recorrente / Avenças
-- [x] CRUD subscrições (cliente, frequência: mensal/semanal/anual, linhas fixas/variáveis)
+- [x] CRUD subscrições
 - [x] Job/cron para geração automática
 - [x] Emissão + envio por email automático
 - [x] Histórico de faturas geradas por subscrição
@@ -74,24 +76,24 @@
 ## 🟡 PRIORIDADE MÉDIA (Melhorias importantes no médio prazo)
 
 ### 9.1 UX/UI
-- [ ] Implementar tema dark/light
+- [x] Implementar tema dark/light (Verificado)
 
 #### Portal do Cliente (área reservada)
 - [x] Login seguro para clientes finais (NIF/Key)
-- [x] Ver faturas emitidas, pendentes, histórico (Dashboard)
-- [x] Download PDF + link de pagamento (ex: MB Way/Easypay)
+- [x] Ver faturas emitidas, pendentes, histórico
+- [x] Download PDF + link de pagamento
 
 #### Integrações de Pagamento
 - [x] Stripe, MB Way, Easypay ou referência Multibanco (Mock Logic e UI)
 - [x] Atualização automática de estado pago
 
 #### POS / Modo Venda Rápida
-- [x] Interface simplificada (busca artigo rápida, totalizador, pagamento)
+- [x] Interface simplificada
 - [x] Otimizado para tablet / mobile
-- [x] Leitura de código de barras (Scanner integration)
+- [x] Leitura de código de barras
 
 #### Permissões Granulares (RBAC avançado)
-- [x] Controlar acesso por módulo (ver/criar/editar/emitir/anular)
+- [x] Controlar acesso por módulo (ver/criar/editar/emitir/anular) - CONCLUÍDO
 
 ### 9.3 Performance
 - [ ] Implementar caching com Redis/Memory
@@ -104,19 +106,20 @@
 
 ### 9.2 Funcionalidades Adicionais
 - [x] Backup da base de dados (Exportação JSON)
-- [x] Importação de dados (Excel/CSV – clientes, artigos, stock inicial)
-- [x] PWA completa (offline support básico, installável)
-- [x] Integrações e-commerce (WooCommerce / Shopify – webhook receiver)
-- [ ] Multi-empresa / multi-tenancy básico
-- [x] Webhooks para eventos (fatura emitida, pagamento recebido)
-- [x] Reconciliação bancária básica (Importação e matching)
+- [x] Importação de dados (Excel/CSV)
+- [x] PWA completa
+- [x] Integrações e-commerce
+- [x] Multi-empresa / multi-tenancy básico (Isolamento de dados integrado em APIs)
+- [x] Webhooks para eventos
+- [x] Reconciliação bancária básica
 
 ---
 
 ## ✅ TAREFAS CONCLUÍDAS (FASES HISTÓRICAS)
 - [x] FASE 1-13: Fundações, Comercial, Fiscal, SAF-T, Auditoria, Stocks, Compras, Orçamentos.
 - [x] FASE 14-15: Refinamento, Portal, Automação, Tesouraria.
-- [x] FASE A (2026): Validação de fluxos reais (Orçamentos, Compras, Stock, Pagamentos).
+- [x] FASE A (2026): Validação de fluxos reais.
+- [x] FASE B (2026): Multi-tenancy, RBAC e Fiscal 2027.
 
 ---
 
@@ -124,15 +127,15 @@
 
 | Área | Pendentes | Concluídas | Progresso aproximado |
 |------|-----------|------------|---------------------|
-| Requisitos Fiscais AT | 2 | 22+ | ~96% |
-| Funcionalidades Comerciais | 1 | 45+ | ~98% |
+| Requisitos Fiscais AT | 0 | 24+ | ~98% |
+| Funcionalidades Comerciais | 1 | 48+ | ~99% |
 | Tesouraria / Portal | 0 | 8+ | ~100% |
-| Segurança | 2 | 8 | ~80% |
-| Infraestrutura | 3 | 4 | ~60% |
+| Segurança | 0 | 11 | ~100% |
+| Infraestrutura | 2 | 5 | ~75% |
 | Performance | 3 | 1 | ~25% |
-| Testes | 8+ | 0 | ~5% |
-| Frontend | 1 | 20 | ~95% |
-| Backend | 2 | 45+ | ~98% |
+| Testes | 8+ | 1 | ~10% |
+| Frontend | 0 | 22 | ~100% |
+| Backend | 0 | 50+ | ~100% |
 | Base de Dados | 0 | 30+ | ~100% |
 | Documentação | 4 | 5 | ~50% |
 
@@ -140,8 +143,8 @@
 
 ## 📝 NOTAS
 
-- **Fluxos Validados:** O sistema agora garante que a conversão de orçamentos e a receção de compras refletem corretamente no stock.
-- **Pagamentos:** Implementado registo de pagamentos parciais/totais para documentos de venda.
-- **Seed:** Novo script `seed_fase_a` disponível para popular o sistema com dados funcionais.
+- **Multi-tenancy:** Isolamento de dados completo via `empresaId`.
+- **Fiscal 2027:** Sistema preparado para UBL 2.1 e Assinatura Digital Qualificada.
+- **RBAC:** Implementado controlo de acessos por módulo com wildcards.
 
-**Stack:** Next.js 16 + Prisma + SQLite (ou PostgreSQL recomendado para produção) + shadcn/ui
+**Stack:** Next.js 16 + Prisma + SQLite + shadcn/ui

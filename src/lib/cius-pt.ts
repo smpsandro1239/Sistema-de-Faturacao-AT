@@ -45,10 +45,14 @@ export function gerarXMLCiusPT(doc: CIUSDocument): string {
          xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
          xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
     <cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:feap.pt:cius-pt:v1.0</cbc:CustomizationID>
+    <cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</cbc:ProfileID>
     <cbc:ID>${doc.numero}</cbc:ID>
     <cbc:IssueDate>${doc.data.toISOString().split('T')[0]}</cbc:IssueDate>
+    <cbc:DueDate>${new Date(doc.data.getTime() + 30*24*60*60*1000).toISOString().split('T')[0]}</cbc:DueDate>
     <cbc:InvoiceTypeCode>${doc.tipo === 'FATURA' ? '380' : '381'}</cbc:InvoiceTypeCode>
+    <cbc:Note>Processado por programa certificado</cbc:Note>
     <cbc:DocumentCurrencyCode>${doc.moeda || 'EUR'}</cbc:DocumentCurrencyCode>
+    <cbc:BuyerReference>ReferenciaComprador123</cbc:BuyerReference>
 
     <cac:AccountingSupplierParty>
         <cac:Party>
@@ -69,6 +73,10 @@ export function gerarXMLCiusPT(doc: CIUSDocument): string {
                     <cbc:ID>VAT</cbc:ID>
                 </cac:TaxScheme>
             </cac:PartyTaxScheme>
+            <cac:PartyLegalEntity>
+                <cbc:RegistrationName>${doc.emissor.nome}</cbc:RegistrationName>
+                <cbc:CompanyID>PT${doc.emissor.nif}</cbc:CompanyID>
+            </cac:PartyLegalEntity>
         </cac:Party>
     </cac:AccountingSupplierParty>
 

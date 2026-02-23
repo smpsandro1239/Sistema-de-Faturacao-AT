@@ -32,6 +32,16 @@ model Empresa {
   ativo           Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  utilizadores    Utilizador[]
+  clientes        Cliente[]
+  artigos         Artigo[]
+  documentos      Documento[]
+  series          Serie[]
+  orcamentos      Orcamento[]
+  encomendasCliente EncomendaCliente[]
+  fornecedores    Fornecedor[]
+  armazens        Armazem[]
 }
 
 // ============================================
@@ -53,9 +63,11 @@ model Utilizador {
   perfil        PerfilUtilizador  @default(OPERADOR)
   ativo         Boolean           @default(true)
   ultimoAcesso  DateTime?
+  empresaId     String?
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
+  empresa       Empresa?          @relation(fields: [empresaId], references: [id])
   documentos    Documento[]
   auditorias    Auditoria[]
   movimentosStock MovimentoStock[]
@@ -78,10 +90,12 @@ model Cliente {
   email             String?
   envioEmailAutomatico Boolean @default(false)
   observacoes       String?
+  empresaId         String?
   ativo             Boolean  @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  empresa           Empresa? @relation(fields: [empresaId], references: [id])
   documentos        Documento[]
   orcamentos        Orcamento[]
   encomendasCliente EncomendaCliente[]
@@ -107,6 +121,7 @@ model Artigo {
   unidade           String      @default("UN")
   taxaIVAId         String
   isencaoId         String?
+  empresaId         String?
   
   // Controlo de stock
   controlaStock     Boolean     @default(false)
@@ -118,6 +133,7 @@ model Artigo {
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
 
+  empresa           Empresa?    @relation(fields: [empresaId], references: [id])
   taxaIVA           TaxaIVA     @relation(fields: [taxaIVAId], references: [id])
   isencao           IsencaoIVA? @relation(fields: [isencaoId], references: [id])
   linhasDocumento   LinhaDocumento[]
@@ -186,11 +202,13 @@ model Serie {
   ano                   Int            // Ano fiscal
   dataInicio            DateTime
   dataFim               DateTime?
+  empresaId             String?
   ativo                 Boolean        @default(true)
   bloqueado             Boolean        @default(false) // Impede edição após uso
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
 
+  empresa               Empresa?       @relation(fields: [empresaId], references: [id])
   documentos            Documento[]
   subscricoes           Subscricao[]
 }
@@ -214,6 +232,7 @@ model Documento {
   serieId               String
   clienteId             String
   utilizadorId          String
+  empresaId             String?
   
   // Dados do cliente no momento da emissão (histórico)
   clienteNome           String
@@ -259,6 +278,7 @@ model Documento {
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
 
+  empresa               Empresa?         @relation(fields: [empresaId], references: [id])
   serie                 Serie            @relation(fields: [serieId], references: [id])
   cliente               Cliente          @relation(fields: [clienteId], references: [id])
   utilizador            Utilizador       @relation(fields: [utilizadorId], references: [id])
@@ -374,10 +394,12 @@ model Fornecedor {
   iban              String?  // IBAN para pagamentos
   contactoNome      String?  // Nome do contacto principal
   observacoes       String?
+  empresaId         String?
   ativo             Boolean  @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  empresa           Empresa? @relation(fields: [empresaId], references: [id])
   encomendasCompra  EncomendaCompra[]
   faturasCompra     FaturaCompra[]
 }
@@ -394,11 +416,13 @@ model Armazem {
   codigoPostal          String?
   localidade            String?
   principal             Boolean  @default(false)  // Armazém principal
+  empresaId             String?
   ativo                 Boolean  @default(true)
   observacoes           String?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
+  empresa               Empresa? @relation(fields: [empresaId], references: [id])
   stocks                ArtigoArmazemStock[]
   movimentosOrigem      MovimentoStock[]      @relation("MovimentoArmazemOrigem")
   movimentosDestino     MovimentoStock[]      @relation("MovimentoArmazemDestino")
@@ -598,6 +622,7 @@ model Orcamento {
   numeroFormatado       String           // "ORC 2024/00001"
   
   clienteId             String
+  empresaId             String?
   
   // Dados do cliente no momento da criação
   clienteNome           String
@@ -631,6 +656,7 @@ model Orcamento {
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
 
+  empresa               Empresa?         @relation(fields: [empresaId], references: [id])
   cliente               Cliente          @relation(fields: [clienteId], references: [id])
   documentoConvertido   Documento?       @relation("OrcamentoConvertido", fields: [documentoConvertidoId], references: [id])
   linhas                LinhaOrcamento[]
@@ -779,6 +805,7 @@ model EncomendaCliente {
   numeroFormatado       String                 // "ENC 2024/00001"
 
   clienteId             String
+  empresaId             String?
   clienteNome           String
   clienteNif            String
 
@@ -799,6 +826,7 @@ model EncomendaCliente {
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
+  empresa               Empresa?               @relation(fields: [empresaId], references: [id])
   cliente               Cliente                @relation(fields: [clienteId], references: [id])
   linhas                LinhaEncomendaCliente[]
 

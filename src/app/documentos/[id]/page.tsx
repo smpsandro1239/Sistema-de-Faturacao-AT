@@ -68,6 +68,7 @@ export default function DocumentoPage() {
   const [qrCodeURL, setQRCodeURL] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [exportingPDF, setExportingPDF] = useState(false);
+  const [exportingUBL, setExportingUBL] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
 
   useEffect(() => {
@@ -149,6 +150,31 @@ export default function DocumentoPage() {
       toast.error("Erro ao exportar PDF");
     } finally {
       setExportingPDF(false);
+    }
+  };
+
+  const handleExportUBL = async () => {
+    if (!documento) return;
+
+    setExportingUBL(true);
+    try {
+      const res = await fetch(`/api/documentos/${documento.id}/exportar-ubl`);
+      if (!res.ok) throw new Error("Erro na geração do XML");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `cius-pt-${documento.numeroFormatado.replace(/\//g, '-')}.xml`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success("XML CIUS-PT exportado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao exportar UBL:", error);
+      toast.error("Erro ao exportar CIUS-PT");
+    } finally {
+      setExportingUBL(false);
     }
   };
 
@@ -251,6 +277,18 @@ export default function DocumentoPage() {
                   <Download className="h-4 w-4 mr-2" />
                 )}
                 PDF
+              </Button>
+              <Button
+                onClick={handleExportUBL}
+                variant="outline"
+                disabled={exportingUBL || documento.estado !== "EMITIDO"}
+              >
+                {exportingUBL ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <FileText className="h-4 w-4 mr-2" />
+                )}
+                XML B2G
               </Button>
               <Button
                 onClick={handleSendEmail}
