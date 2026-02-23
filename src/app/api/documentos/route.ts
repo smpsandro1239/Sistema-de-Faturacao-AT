@@ -49,7 +49,16 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { serieId, clienteId, utilizadorId, tipo, linhas, observacoes, documentoOriginalId } = body;
+    const {
+      serieId,
+      clienteId,
+      utilizadorId,
+      tipo,
+      linhas,
+      observacoes,
+      documentoOriginalId,
+      metodoPagamento
+    } = body;
 
     // Buscar série
     const serie = await db.serie.findUnique({
@@ -119,6 +128,9 @@ export async function POST(request: Request) {
 
     const totalLiquido = totalBase + totalIVA;
 
+    // Se for FATURA_RECIBO, o estado de pagamento deve ser PAGO por defeito
+    const estadoPagamento = tipo === "FATURA_RECIBO" ? "PAGO" : "PENDENTE";
+
     // Criar documento
     const documento = await db.documento.create({
       data: {
@@ -142,6 +154,8 @@ export async function POST(request: Request) {
         totalIVA,
         totalDescontos,
         totalLiquido,
+        estadoPagamento,
+        metodoPagamento: metodoPagamento || null,
         documentoOriginalId: documentoOriginalId || null,
         observacoes: observacoes || null,
         linhas: {

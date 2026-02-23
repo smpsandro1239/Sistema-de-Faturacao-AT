@@ -239,6 +239,7 @@ model Documento {
   hashDocumentoAnterior String?          // Hash do documento anterior (encadeamento)
   atcud                 String?          // ATCUD do documento
   accessKey             String           @default(uuid())
+  codigoCius            String?          // Código de faturação eletrónica structured B2G
   dataEmissao           DateTime?
   dataCriacao           DateTime         @default(now())
   

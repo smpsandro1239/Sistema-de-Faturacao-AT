@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { articleSchema } from "@/lib/validations";
 
 // GET - Listar todos os artigos
 export async function GET() {
@@ -25,7 +26,17 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { codigo, descricao, tipo, precoUnitario, unidade, taxaIVAId, isencaoId, observacoes } = body;
+
+    // Validação com Zod
+    const validation = articleSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.errors[0].message },
+        { status: 400 }
+      );
+    }
+
+    const { codigo, descricao, tipo, precoUnitario, unidade, taxaIVAId, isencaoId, observacoes } = validation.data;
 
     // Verificar se código já existe
     const artigoExistente = await db.artigo.findUnique({

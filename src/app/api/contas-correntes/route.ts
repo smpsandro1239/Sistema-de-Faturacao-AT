@@ -10,29 +10,36 @@ export async function GET(request: Request) {
     }
 
     // Agregação de fornecedores (Usando valorPago acumulado na FaturaCompra)
-    const saldosFornecedores = await db.faturaCompra.groupBy({
-      by: ['fornecedorId', 'fornecedorNome', 'fornecedorNif'],
-      where: {
-        OR: [
-          { valorPago: { lt: db.faturaCompra.fields.totalLiquido } }
-        ]
-      },
-      _sum: {
+    // Nota: Otimizado para evitar limitações do Prisma em comparações de colunas no groupBy
+    const faturasCompra = await db.faturaCompra.findMany({
+      select: {
+        fornecedorId: true,
+        fornecedorNome: true,
+        fornecedorNif: true,
         totalLiquido: true,
         valorPago: true,
-      },
-      _count: {
-        id: true,
-      },
+      }
     });
 
-    const fornecedores = saldosFornecedores.map(f => ({
-      id: f.fornecedorId,
-      nome: f.fornecedorNome,
-      nif: f.fornecedorNif,
-      saldo: (f._sum.totalLiquido || 0) - (f._sum.valorPago || 0),
-      contagem: f._count.id,
-    })).filter(f => f.saldo > 0);
+    const fornecedoresMap: Record<string, any> = {};
+    faturasCompra.forEach((f) => {
+      const saldo = f.totalLiquido - f.valorPago;
+      if (saldo > 0) {
+        if (!fornecedoresMap[f.fornecedorId]) {
+          fornecedoresMap[f.fornecedorId] = {
+            id: f.fornecedorId,
+            nome: f.fornecedorNome,
+            nif: f.fornecedorNif,
+            saldo: 0,
+            contagem: 0,
+          };
+        }
+        fornecedoresMap[f.fornecedorId].saldo += saldo;
+        fornecedoresMap[f.fornecedorId].contagem += 1;
+      }
+    });
+
+    const fornecedores = Object.values(fornecedoresMap);
 
     // Agregação de clientes (Vendas)
     // Para clientes é mais complexo pois o valorPago não está denormalizado no Documento

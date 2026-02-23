@@ -1,24 +1,29 @@
 import { NextResponse } from "next/server";
 import { authenticateUser, setSessionCookie } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
+import { loginSchema } from "@/lib/validations";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email, password } = body;
+
+    // Validação com Zod
+    const validation = loginSchema.safeParse(body);
+
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.errors[0].message },
+        { status: 400 }
+      );
+    }
+
+    const { email, password } = validation.data;
 
     // Rate limiting: max 5 tentativas por email a cada 15 minutos
     if (email && !rateLimit(`login:${email}`, 5, 15 * 60 * 1000)) {
       return NextResponse.json(
         { error: "Demasiadas tentativas de login. Por favor, aguarde 15 minutos." },
         { status: 429 }
-      );
-    }
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email e password são obrigatórios." },
-        { status: 400 }
       );
     }
 
