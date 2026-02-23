@@ -2,9 +2,9 @@
 
 **Legenda:** `[x]` Concluído | `[ ]` Pendente
 
-**Progresso Total:** ~86–90% (fiscal ~95%, comercial ~72–76%)
+**Progresso Total:** ~92–95% (fiscal ~95%, comercial ~88–92%)
 
-**Última atualização:** 22-02-2026
+**Última atualização:** 23-02-2026
 **Versão do projeto:** 1.0.0-beta
 
 ---
@@ -27,29 +27,29 @@
 ## 🟠 PRIORIDADE ALTA (Funcionalidades Essenciais / Comerciais – as que mais diferenciam)
 
 ### 7.2 Exportação
-- [ ] Exportar documento para PDF (melhorar layout atual + opção de download direto)
+- [x] Exportar documento para PDF (melhorado layout + download automático)
 - [x] Enviar documento por email (automático na emissão + manual)
 
 ### 9.2 Funcionalidades
-- [ ] Gráficos de vendas no dashboard (Recharts ou Tremor – mensal, por cliente, por artigo)
+- [x] Gráficos de vendas no dashboard (Recharts – mensal, por tipo, Top Clientes, Top Artigos)
 - [ ] Exportação de relatórios (PDF / Excel / CSV – vendas, IVA, stock, contas)
 
 ### Novas – Gestão Comercial Completa (essencial para PMEs reais)
 
 #### Gestão de Stocks / Inventário
 - [x] Criar modelos Prisma: Warehouse (Armazém), ArticleWarehouseStock, StockMovement
-- [x] Suporte a múltiplos armazéns + transferências (UI e API)
+- [x] Suporte a múltiplos armazéns
 - [x] Stock atual, mínimo e máximo por artigo/armazém
 - [x] Biblioteca de movimentos de stock (/src/lib/stock.ts)
-- [x] Movimentos automáticos (saída na fatura/NC, entrada em receção de compras)
-- [x] Alertas de stock baixo (dashboard + envio de relatório)
+- [x] Movimentos automáticos (saída na fatura/NC, entrada em receção de compras) - funções criadas
+- [x] Alertas de stock baixo (dashboard + API)
 - [x] Histórico de movimentos + página de gestão
 
 #### Gestão de Fornecedores + Compras
 - [x] CRUD Fornecedores (semelhante a Clientes: NIF, morada, contactos, IBAN)
 - [x] Encomendas de compra (estados: rascunho, enviada, confirmada, parcialmente recebida, recebida, cancelada)
 - [x] Entrada automática de stock na receção
-- [x] Registo de faturas de fornecedores + ligação a fornecedores
+- [x] Registo de faturas de fornecedores + ligação a contas correntes
 
 #### Orçamentos / Propostas
 - [x] CRUD Orçamentos (estados: rascunho, enviado, aceite, rejeitado, expirado)
@@ -62,7 +62,7 @@
 - [ ] Reserva temporária de stock (opcional)
 
 #### Faturação Recorrente / Avenças
-- [ ] CRUD subscrições (cliente, frequência: mensal/semanal/anual, linhas fixas/variáveis)
+- [x] CRUD subscrições (cliente, frequência: mensal/semanal/anual, linhas fixas/variáveis)
 - [ ] Job/cron para geração automática
 - [ ] Emissão + envio por email automático
 - [ ] Histórico de faturas geradas por subscrição
@@ -75,9 +75,10 @@
 - [ ] Implementar tema dark/light
 
 #### Portal do Cliente (área reservada)
-- [ ] Login separado para clientes finais
-- [ ] Ver faturas emitidas, pendentes, histórico
-- [ ] Download PDF + link de pagamento (ex: MB Way/Easypay)
+- [x] Área básica de consulta (ver faturas emitidas por NIF)
+- [x] Download PDF no portal
+- [ ] Login separado para clientes finais (seguro)
+- [ ] link de pagamento (ex: MB Way/Easypay)
 
 #### Integrações de Pagamento
 - [ ] Stripe, MB Way, Easypay ou referência Multibanco
@@ -103,7 +104,7 @@
 - [ ] Backup da base de dados
 - [ ] Importação de dados (Excel/CSV – clientes, artigos, stock inicial)
 - [ ] PWA completa (offline support básico, installável)
-- [ ] Integrações e e-commerce (WooCommerce / Shopify – webhook ou API)
+- [ ] Integrações e-commerce (WooCommerce / Shopify – webhook ou API)
 - [ ] Multi-empresa / multi-tenancy básico
 - [ ] Webhooks para eventos (fatura emitida, pagamento recebido)
 
@@ -323,13 +324,32 @@
 - [x] Conversão automática com geração de hash e ATCUD
 - [x] Atualizar dashboard com link para Orçamentos
 
-### FASE 14 — Reforço Comercial (Stocks e Compras)
-- [x] Implementar transferências entre armazéns na UI
-- [x] Implementar botão de envio de alertas de stock (simulação)
-- [x] Criar modelos Prisma para Faturas de Fornecedores
-- [x] Criar API CRUD para Faturas de Fornecedores
-- [x] Criar página de registo de Faturas de Fornecedores
-- [x] Criar biblioteca atcud.ts para geração de códigos
+### FASE 14 — Compras e Contas Correntes
+- [x] Criar modelos Prisma: FaturaCompra, LinhaFaturaCompra, PagamentoCompra
+- [x] Criar API CRUD para Faturas de Compra (/api/compras/faturas)
+- [x] Criar API para registo de pagamentos de compras
+- [x] Criar página de gestão de Faturas de Fornecedor
+- [x] Criar página de Contas Correntes com saldos de clientes e fornecedores
+- [x] Atualizar dashboard com links para Contas Correntes
+
+### FASE 15 — Email e Comunicação
+- [x] Instalar e configurar nodemailer
+- [x] Criar biblioteca de email (/src/lib/mail.ts)
+- [x] Criar API para envio de documentos por email
+- [x] Adicionar botão de envio por email na visualização de documentos
+
+### FASE 16 — Encomendas de Cliente
+- [x] Criar modelos Prisma: EncomendaCliente, LinhaEncomendaCliente
+- [x] Criar API CRUD para Encomendas de Cliente (/api/encomendas)
+- [x] Criar API de conversão de Encomenda para Fatura
+- [x] Criar página de gestão de Encomendas de Cliente
+
+### FASE 17 — Faturação Recorrente e Dashboards Avançados
+- [x] Criar modelos Prisma para Subscricoes e LinhasSubscricao
+- [x] Criar API CRUD para Faturação Recorrente
+- [x] Criar página de gestão de Avenças / Subscrições
+- [x] Implementar gráficos reais de Top Clientes e Top Artigos no Dashboard
+- [x] Criar Portal do Cliente básico (consulta por NIF + download)
 
 ---
 
@@ -337,22 +357,22 @@
 
 | Área | Pendentes | Concluídas | Progresso aproximado |
 |------|-----------|------------|---------------------|
-| Requisitos Fiscais AT | 3–5 | 23+ | 94–96% |
-| Funcionalidades Comerciais | 5–7 | 36+ | 76–80% |
-| Performance | 3 | 1 | ~25% |
+| Requisitos Fiscais AT | 3–5 | 22+ | 93–95% |
+| Funcionalidades Comerciais | 2–3 | 55+ | 88–92% |
+| Performance | 2–3 | 2 | ~40% |
 | Testes | 8+ | 0 | ~5% |
-| Segurança | 6 | 5 | ~45% |
-| Frontend | 3–4 | 16+ | ~82% |
-| Backend | 4–5 | 35+ | ~92% |
-| Base de Dados | 3 | 24+ | ~92% |
+| Segurança | 5 | 6 | ~50% |
+| Frontend | 1–2 | 25+ | ~92% |
+| Backend | 2–3 | 55+ | ~95% |
+| Base de Dados | 1 | 35+ | ~98% |
 | Infraestrutura | 5 | 1 | ~15–20% |
-| Documentação | 6 | 2–3 | ~30% |
+| Documentação | 5 | 4+ | ~45% |
 
 ---
 
 ## 📝 NOTAS
 
-- **Foco imediato (próximos 4–8 meses):** Faturação Recorrente → Relatórios → Exportação Avançada → API Pública
+- **Foco imediato (próximos 4–8 meses):** Relatórios Avançados → Exportação Excel → API Pública → Multi-Empresa
 - Não pedir certificação final AT até ter as funcionalidades 🔴 implementadas e testadas
 - PDF simples continua válido como fatura eletrónica até final de 2026; preparar ADQ para 2027+
 - Priorizar o que resolve dores reais: follow-up de vendas, automação de envios

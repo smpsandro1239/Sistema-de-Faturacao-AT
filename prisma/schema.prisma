@@ -83,6 +83,7 @@ model Cliente {
   documentos        Documento[]
   orcamentos        Orcamento[]
   encomendasCliente EncomendaCliente[]
+  subscricoes       Subscricao[]
 }
 
 // ============================================
@@ -122,7 +123,9 @@ model Artigo {
   stocksArmazem     ArtigoArmazemStock[]
   movimentosStock   MovimentoStock[]
   linhasEncomendaCompra LinhaEncomendaCompra[]
-  linhasFaturaFornecedor LinhaFaturaFornecedor[]
+  linhasFaturaCompra    LinhaFaturaCompra[]
+  linhasEncomendaCliente LinhaEncomendaCliente[]
+  linhasSubscricao       LinhaSubscricao[]
 }
 
 // ============================================
@@ -187,6 +190,7 @@ model Serie {
   updatedAt             DateTime       @updatedAt
 
   documentos            Documento[]
+  subscricoes           Subscricao[]
 }
 
 // ============================================
@@ -369,7 +373,7 @@ model Fornecedor {
   updatedAt         DateTime @updatedAt
 
   encomendasCompra  EncomendaCompra[]
-  faturasFornecedor FaturaFornecedor[]
+  faturasCompra     FaturaCompra[]
 }
 
 // ============================================
@@ -523,7 +527,6 @@ model EncomendaCompra {
   armazemDestino        Armazem?              @relation(fields: [armazemDestinoId], references: [id])
   linhas                LinhaEncomendaCompra[]
   movimentosStock       MovimentoStock[]
-  faturaFornecedor     FaturaFornecedor? @relation("FaturaEncomenda")
 
   @@index([fornecedorId])
   @@index([estado])
@@ -671,75 +674,147 @@ model LinhaOrcamento {
 }
 
 // ============================================
-// FATURAS DE FORNECEDORES
+// FATURAS DE COMPRA (FORNECEDORES)
 // ============================================
 
-enum EstadoFaturaFornecedor {
+enum EstadoPagamento {
   PENDENTE
-  PAGA
-  PAGA_PARCIAL
-  CANCELADA
+  PARCIAL
+  PAGO
 }
 
-model FaturaFornecedor {
-  id                    String                 @id @default(cuid())
-  numeroFatura          String                 // Número da fatura do fornecedor
+model FaturaCompra {
+  id                    String                @id @default(cuid())
+  numero                String                // Número da fatura do fornecedor
   fornecedorId          String
 
-  // Dados do fornecedor (histórico)
+  // Dados do fornecedor no momento da criação
   fornecedorNome        String
   fornecedorNif         String
 
   // Datas
-  dataFatura            DateTime
+  dataEmissao           DateTime
   dataVencimento        DateTime?
-  dataPagamento         DateTime?
 
   // Totais
-  totalBase             Float                  @default(0)
-  totalIVA              Float                  @default(0)
-  totalLiquido          Float                  @default(0)
-  totalPago             Float                  @default(0)
+  totalBase             Float                 @default(0)
+  totalIVA              Float                 @default(0)
+  totalLiquido          Float                 @default(0)
 
   // Estado
-  estado                EstadoFaturaFornecedor @default(PENDENTE)
-
-  // Referências
-  encomendaCompraId     String?                @unique
-  encomendaCompra       EncomendaCompra?       @relation("FaturaEncomenda", fields: [encomendaCompraId], references: [id])
+  estadoPagamento       EstadoPagamento       @default(PENDENTE)
+  valorPago             Float                 @default(0)
 
   observacoes           String?
-  utilizadorId          String
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
 
-  fornecedor            Fornecedor             @relation(fields: [fornecedorId], references: [id])
-  linhas                LinhaFaturaFornecedor[]
+  utilizadorId          String
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  fornecedor            Fornecedor            @relation(fields: [fornecedorId], references: [id])
+  linhas                LinhaFaturaCompra[]
+  pagamentos            PagamentoCompra[]
 
   @@index([fornecedorId])
-  @@index([estado])
-  @@index([dataFatura])
+  @@index([dataEmissao])
 }
 
-model LinhaFaturaFornecedor {
+model LinhaFaturaCompra {
   id                    String           @id @default(cuid())
-  faturaFornecedorId    String
+  faturaCompraId        String
   artigoId              String?
 
-  // Dados do artigo
-  codigoArtigo          String
-  descricaoArtigo       String
-
-  // Quantidades e preços
+  descricao             String
   quantidade            Float
   precoUnitario         Float
   desconto              Float            @default(0)
 
-  // IVA
+  taxaIVAPercentagem    Float
+
+  base                  Float
+  valorIVA              Float
+
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  faturaCompra          FaturaCompra     @relation(fields: [faturaCompraId], references: [id], onDelete: Cascade)
+  artigo                Artigo?          @relation(fields: [artigoId], references: [id])
+}
+
+model PagamentoCompra {
+  id                    String           @id @default(cuid())
+  faturaCompraId        String
+  valor                 Float
+  data                  DateTime         @default(now())
+  metodo                MetodoPagamento
+  referencia            String?
+
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  faturaCompra          FaturaCompra     @relation(fields: [faturaCompraId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// ENCOMENDAS DE CLIENTE (SALES ORDERS)
+// ============================================
+
+enum EstadoEncomendaCliente {
+  RASCUNHO
+  CONFIRMADA
+  EM_PREPARACAO
+  FATURADA
+  CANCELADA
+}
+
+model EncomendaCliente {
+  id                    String                 @id @default(cuid())
+  numero                Int                    // Número sequencial
+  numeroFormatado       String                 // "ENC 2024/00001"
+
+  clienteId             String
+  clienteNome           String
+  clienteNif            String
+
+  dataEncomenda         DateTime               @default(now())
+  dataEntregaPrevista   DateTime?
+
+  totalBase             Float                  @default(0)
+  totalIVA              Float                  @default(0)
+  totalLiquido          Float                  @default(0)
+
+  estado                EstadoEncomendaCliente @default(RASCUNHO)
+
+  documentoId           String?                // Fatura gerada
+
+  observacoes           String?
+
+  utilizadorId          String
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  cliente               Cliente                @relation(fields: [clienteId], references: [id])
+  linhas                LinhaEncomendaCliente[]
+
+  @@index([clienteId])
+  @@index([estado])
+}
+
+model LinhaEncomendaCliente {
+  id                    String           @id @default(cuid())
+  encomendaId           String
+  artigoId              String?
+
+  codigoArtigo          String
+  descricaoArtigo       String
+
+  quantidade            Float
+  precoUnitario         Float
+  desconto              Float            @default(0)
+
   taxaIVAId             String
   taxaIVAPercentagem    Float
 
-  // Totais
   base                  Float
   valorIVA              Float
 
@@ -748,8 +823,88 @@ model LinhaFaturaFornecedor {
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
 
-  faturaFornecedor      FaturaFornecedor @relation(fields: [faturaFornecedorId], references: [id], onDelete: Cascade)
+  encomenda             EncomendaCliente @relation(fields: [encomendaId], references: [id], onDelete: Cascade)
   artigo                Artigo?          @relation(fields: [artigoId], references: [id])
+}
 
-  @@index([faturaFornecedorId])
+// ============================================
+// FATURAÇÃO RECORRENTE / AVENÇAS
+// ============================================
+
+enum FrequenciaSubscricao {
+  SEMANAL
+  MENSAL
+  TRIMESTRAL
+  SEMESTRAL
+  ANUAL
+}
+
+enum EstadoSubscricao {
+  ATIVA
+  PAUSA
+  CANCELADA
+  CONCLUIDA
+}
+
+model Subscricao {
+  id                    String               @id @default(cuid())
+  clienteId             String
+  clienteNome           String
+  clienteNif            String
+
+  descricao             String
+  frequencia            FrequenciaSubscricao @default(MENSAL)
+  estado                EstadoSubscricao     @default(ATIVA)
+
+  dataInicio            DateTime             @default(now())
+  dataFim               DateTime?
+  proximaEmissao        DateTime
+  ultimaEmissao         DateTime?
+
+  // Configuração da fatura a gerar
+  serieId               String
+  tipoDocumento         TipoDocumento        @default(FATURA)
+  metodoPagamento       MetodoPagamento?     @default(TRANSFERENCIA)
+
+  totalBase             Float                @default(0)
+  totalIVA              Float                @default(0)
+  totalLiquido          Float                @default(0)
+
+  utilizadorId          String
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  cliente               Cliente              @relation(fields: [clienteId], references: [id])
+  serie                 Serie                @relation(fields: [serieId], references: [id])
+  linhas                LinhaSubscricao[]
+
+  @@index([clienteId])
+  @@index([proximaEmissao])
+}
+
+model LinhaSubscricao {
+  id                    String     @id @default(cuid())
+  subscricaoId          String
+  artigoId              String?
+
+  codigoArtigo          String
+  descricaoArtigo       String
+
+  quantidade            Float
+  precoUnitario         Float
+  desconto              Float      @default(0)
+
+  taxaIVAId             String
+  taxaIVAPercentagem    Float
+
+  base                  Float
+  valorIVA              Float
+
+  ordem                 Int        @default(1)
+
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+
+  subscricao            Subscricao @relation(fields: [subscricaoId], references: [id], onDelete: Cascade)
+  artigo                Artigo?    @relation(fields: [artigoId], references: [id])
 }

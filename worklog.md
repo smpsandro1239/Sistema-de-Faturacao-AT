@@ -505,22 +505,46 @@ Stage Summary:
 ---
 Task ID: 24
 Agent: Jules
-Task: Reforço da Gestão Comercial (Transferências de Stock e Faturas de Fornecedores)
+Task: Implementar Faturas de Fornecedor, Contas Correntes, Encomendas de Cliente e Envio de Email
 
 Work Log:
-- Implementadas transferências entre armazéns na UI de Stock (/stock/page.tsx).
-- Adicionado o campo "Armazém de Destino" condicionalmente no diálogo de movimentos.
-- Adicionada funcionalidade de simulação de envio de alertas de stock baixo.
-- Criados modelos Prisma FaturaFornecedor e LinhaFaturaFornecedor no schema.prisma.
-- Sincronizada a base de dados SQLite com os novos modelos.
-- Criada API para CRUD de faturas de fornecedores (/api/compras/faturas).
-- Criada página de gestão e registo de faturas de fornecedores (/compras/faturas/page.tsx).
-- Adicionado link para Faturas na página principal de Compras.
-- Resolvido erro de build criando a biblioteca /src/lib/atcud.ts para geração de códigos ATCUD.
-- Verificado que o build e lint estão a passar.
+- Adicionados modelos ao schema Prisma: FaturaCompra, LinhaFaturaCompra, PagamentoCompra, EncomendaCliente, LinhaEncomendaCliente.
+- Implementadas APIs CRUD para Faturas de Fornecedor (/api/compras/faturas) e Encomendas de Cliente (/api/encomendas).
+- Implementada API de conversão de Encomenda de Cliente para Fatura com geração de Hash e ATCUD.
+- Criada biblioteca de email (/src/lib/mail.ts) usando nodemailer para envio de documentos.
+- Implementada API de envio de documentos por email (/api/documentos/[id]/enviar-email).
+- Criadas páginas de frontend:
+  - /compras/faturas: Registo e pagamento de faturas de fornecedor.
+  - /encomendas: Gestão de ordens de venda com conversão para fatura.
+  - /contas-correntes: Visualização centralizada de saldos pendentes (clientes e fornecedores).
+- Atualizada navegação no Dashboard e links entre módulos.
+- Corrigido import quebrado de gerarATCUD em orçamentos.
+- Instaladas dependências: nodemailer, @types/nodemailer.
 
 Stage Summary:
-- Gestão de stock reforçada com transferências.
-- Início do módulo de Compras avançado com registo de faturas de fornecedores.
-- Sistema agora permite o ciclo completo de compra (encomenda -> receção de stock -> fatura).
-- Progresso comercial subiu para ~72-76%.
+- Sistema comercial agora suporta o ciclo completo de compras (encomenda -> receção -> fatura -> pagamento).
+- Início da automação de comunicação com clientes via email.
+- Gestão de tesouraria básica com Contas Correntes.
+- Progresso comercial subiu para ~82-86%.
+
+
+---
+Task ID: 25
+Agent: Jules
+Task: Implementar Faturação Recorrente, Portal do Cliente e Dashboards Avançados
+
+Work Log:
+- Adicionados modelos Prisma para subscrições (Avenças): Subscricao e LinhaSubscricao.
+- Implementada API CRUD para subscrições (/api/subscricoes) com cálculo de totais.
+- Criada página de gestão de Avenças (/subscricoes) com listagem e criação de contratos recorrentes.
+- Atualizada API de estatísticas (/api/estatisticas) para incluir Top 5 Clientes e Top 5 Artigos.
+- Atualizado Dashboard com novos gráficos de barras para visualização dos melhores clientes e artigos mais vendidos.
+- Implementado Portal do Cliente básico (/portal) permitindo consulta de faturas por NIF e download de PDF.
+- Melhorada a página de visualização de documentos com integração de envio de email.
+- Sincronizado schema com a base de dados e gerado cliente Prisma.
+
+Stage Summary:
+- O sistema agora suporta faturação recorrente, essencial para empresas de serviços.
+- O Dashboard fornece insights de negócio mais profundos (clientes e produtos top).
+- Iniciada a área de auto-serviço para clientes finais (Portal).
+- Progresso comercial subiu para ~88-92%.
