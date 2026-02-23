@@ -5,9 +5,12 @@ import { db } from "./db";
  */
 export async function fireWebhooks(evento: string, payload: any) {
   try {
+    const empresaId = payload.empresaId;
+
     const webhooks = await db.webhookConfig.findMany({
       where: {
         ativo: true,
+        empresaId,
         OR: [
           { evento },
           { evento: "*" }

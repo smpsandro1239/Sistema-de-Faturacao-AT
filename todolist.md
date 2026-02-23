@@ -2,11 +2,11 @@
 
 **Legenda:** `[x]` Concluído | `[ ]` Pendente
 
-**Progresso Total:** ~96% (fiscal ~98%, comercial ~96%)
-*Nota: FASE A concluída. Suporte multi-empresa, RBAC e Fiscal 2027 (CIUS-PT/ADQ) integrados.*
+**Progresso Total:** ~97% (fiscal ~98%, comercial ~97%)
+*Nota: FASE A concluída. Suporte multi-empresa, RBAC, Fiscal 2027 e Reserva de Stock integrados.*
 
 **Última atualização:** 24-02-2026
-**Versão do projeto:** 1.7.0-beta
+**Versão do projeto:** 1.8.0-beta
 
 ---
 
@@ -48,6 +48,7 @@
 - [x] Alertas de stock baixo
 - [x] Histórico de movimentos + página de gestão
 - [x] Transferências entre armazéns
+- [x] Reserva temporária de stock (Implementada em Encomendas de Cliente)
 
 #### Gestão de Fornecedores + Compras
 - [x] CRUD Fornecedores
@@ -63,7 +64,7 @@
 #### Encomendas / Ordens de Venda
 - [x] CRUD Encomendas de cliente
 - [x] Conversão para fatura (total ou parcial)
-- [ ] Reserva temporária de stock (opcional)
+- [x] Reserva temporária de stock (Automática na confirmação)
 
 #### Faturação Recorrente / Avenças
 - [x] CRUD subscrições
@@ -96,7 +97,7 @@
 - [x] Controlar acesso por módulo (ver/criar/editar/emitir/anular) - CONCLUÍDO
 
 ### 9.3 Performance
-- [ ] Implementar caching com Redis/Memory
+- [x] Implementar caching com Redis/Memory (Implementado cache em memória)
 - [ ] Otimizar queries da base de dados
 - [ ] Lazy loading de componentes pesados
 
@@ -109,8 +110,8 @@
 - [x] Importação de dados (Excel/CSV)
 - [x] PWA completa
 - [x] Integrações e-commerce
-- [x] Multi-empresa / multi-tenancy básico (Isolamento de dados integrado em APIs)
-- [x] Webhooks para eventos
+- [x] Multi-empresa / multi-tenancy básico (Isolamento completo em APIs e chaves de API)
+- [x] Webhooks para eventos (Com isolamento por empresa)
 - [x] Reconciliação bancária básica
 
 ---
@@ -119,7 +120,7 @@
 - [x] FASE 1-13: Fundações, Comercial, Fiscal, SAF-T, Auditoria, Stocks, Compras, Orçamentos.
 - [x] FASE 14-15: Refinamento, Portal, Automação, Tesouraria.
 - [x] FASE A (2026): Validação de fluxos reais.
-- [x] FASE B (2026): Multi-tenancy, RBAC e Fiscal 2027.
+- [x] FASE B (2026): Multi-tenancy, RBAC, Fiscal 2027 e Performance.
 
 ---
 
@@ -128,23 +129,23 @@
 | Área | Pendentes | Concluídas | Progresso aproximado |
 |------|-----------|------------|---------------------|
 | Requisitos Fiscais AT | 0 | 24+ | ~98% |
-| Funcionalidades Comerciais | 1 | 48+ | ~99% |
+| Funcionalidades Comerciais | 0 | 49+ | ~100% |
 | Tesouraria / Portal | 0 | 8+ | ~100% |
 | Segurança | 0 | 11 | ~100% |
 | Infraestrutura | 2 | 5 | ~75% |
-| Performance | 3 | 1 | ~25% |
+| Performance | 2 | 2 | ~50% |
 | Testes | 8+ | 1 | ~10% |
 | Frontend | 0 | 22 | ~100% |
-| Backend | 0 | 50+ | ~100% |
-| Base de Dados | 0 | 30+ | ~100% |
+| Backend | 0 | 55+ | ~100% |
+| Base de Dados | 0 | 32+ | ~100% |
 | Documentação | 4 | 5 | ~50% |
 
 ---
 
 ## 📝 NOTAS
 
-- **Multi-tenancy:** Isolamento de dados completo via `empresaId`.
-- **Fiscal 2027:** Sistema preparado para UBL 2.1 e Assinatura Digital Qualificada.
-- **RBAC:** Implementado controlo de acessos por módulo com wildcards.
+- **Reserva de Stock:** As encomendas de cliente agora reservam stock ao serem confirmadas e libertam na faturação.
+- **API Pública v1:** Reforçada com suporte multi-empresa e novo endpoint de documentos.
+- **Performance:** Introduzida biblioteca de cache em memória para dados estáticos.
 
 **Stack:** Next.js 16 + Prisma + SQLite + shadcn/ui

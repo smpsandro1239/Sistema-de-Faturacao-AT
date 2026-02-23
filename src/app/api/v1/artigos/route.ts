@@ -6,13 +6,16 @@ export async function GET(request: NextRequest) {
   const apiKey = getApiKeyFromRequest(request);
   const auth = await validateApiKey(apiKey);
 
-  if (!auth.valid) {
+  if (!auth.valid || !auth.empresaId) {
     return NextResponse.json({ error: auth.error }, { status: 401 });
   }
 
   try {
     const artigos = await db.artigo.findMany({
-      where: { ativo: true },
+      where: {
+        ativo: true,
+        empresaId: auth.empresaId
+      },
       select: {
         id: true,
         codigo: true,
@@ -32,7 +35,7 @@ export async function POST(request: NextRequest) {
   const apiKey = getApiKeyFromRequest(request);
   const auth = await validateApiKey(apiKey);
 
-  if (!auth.valid || auth.apiKey.permissao !== "READ_WRITE") {
+  if (!auth.valid || !auth.empresaId || auth.apiKey.permissao !== "READ_WRITE") {
     return NextResponse.json({ error: "Não autorizado para escrita" }, { status: 401 });
   }
 
@@ -46,6 +49,7 @@ export async function POST(request: NextRequest) {
 
     const artigo = await db.artigo.create({
       data: {
+        empresaId: auth.empresaId,
         codigo,
         descricao,
         precoUnitario,

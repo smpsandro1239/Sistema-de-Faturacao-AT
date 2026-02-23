@@ -6,7 +6,7 @@ import { authenticateRequest } from "@/lib/auth";
 export async function GET(request: NextRequest) {
   try {
     const auth = await authenticateRequest(request);
-    if (!auth.authenticated) {
+    if (!auth.authenticated || !auth.user?.empresaId) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
 
     const encomendas = await db.encomendaCliente.findMany({
       where: {
+        empresaId: auth.user.empresaId,
         clienteId: clienteId || undefined,
         estado: (estado as any) || undefined,
       },
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const auth = await authenticateRequest(request);
-    if (!auth.authenticated) {
+    if (!auth.authenticated || !auth.user?.empresaId) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
@@ -48,11 +49,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Dados incompletos" }, { status: 400 });
     }
 
-    const cliente = await db.cliente.findUnique({ where: { id: clienteId } });
+    const cliente = await db.cliente.findFirst({
+      where: {
+        id: clienteId,
+        empresaId: auth.user.empresaId
+      }
+    });
     if (!cliente) return NextResponse.json({ error: "Cliente não encontrado" }, { status: 404 });
 
     // Obter último número
     const ultimaEncomenda = await db.encomendaCliente.findFirst({
+      where: { empresaId: auth.user.empresaId },
       orderBy: { numero: "desc" },
     });
     const novoNumero = (ultimaEncomenda?.numero || 0) + 1;
@@ -85,6 +92,7 @@ export async function POST(request: NextRequest) {
 
     const encomenda = await db.encomendaCliente.create({
       data: {
+        empresaId: auth.user.empresaId,
         numero: novoNumero,
         numeroFormatado,
         clienteId,

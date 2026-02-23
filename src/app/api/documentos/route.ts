@@ -1,8 +1,26 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { validateCSRF } from "@/lib/auth";
+import { createHash } from "crypto";
+import { validateCSRF, authenticateRequest, verificarPermissao } from "@/lib/auth";
 import { fireWebhooks } from "@/lib/webhooks";
-import { calcularHashDocumento, gerarATCUD } from "@/lib/hash";
+import { enviarEmailDocumento } from "@/lib/mail";
+import { saidaStockFatura } from "@/lib/stock";
+
+// Função para calcular hash SHA-256 do documento
+function calcularHash(documento: {
+  dataEmissao: Date;
+  tipo: string;
+  numero: number;
+  totalLiquido: number;
+}): string {
+  const dados = `${documento.dataEmissao.toISOString()}${documento.tipo}${documento.numero}${documento.totalLiquido.toFixed(2)}`;
+  return createHash("sha256").update(dados).digest("hex");
+}
+
+// Função para gerar ATCUD
+function gerarATCUD(codigoValidacaoSerie: string, numeroDocumento: number): string {
+  return `${codigoValidacaoSerie}-${numeroDocumento}`;
+}
 
 // GET - Listar todos os documentos
 export async function GET(request: Request) {
@@ -163,9 +181,9 @@ export async function POST(request: Request) {
         clienteLocalidade: cliente.localidade,
         empresaNome: empresa.nome,
         empresaNif: empresa.nif,
-        empresaMorada: empresa.morada || "",
-        empresaCodigoPostal: empresa.codigoPostal || "",
-        empresaLocalidade: empresa.localidade || "",
+        empresaMorada: empresa.morada,
+        empresaCodigoPostal: empresa.codigoPostal,
+        empresaLocalidade: empresa.localidade,
         totalBase,
         totalIVA,
         totalDescontos,
@@ -280,34 +298,64 @@ export async function PATCH(request: Request) {
     });
 
     const dataEmissao = new Date();
-    const dataCriacao = new Date(); // Data da gravação/emissão
     
     // Calcular hash
-    const hash = calcularHashDocumento({
+    const hash = calcularHash({
       dataEmissao,
-      dataCriacao,
-      numeroDocumento: documento.numeroFormatado,
+      tipo: documento.tipo,
+      numero: documento.numero,
       totalLiquido: documento.totalLiquido,
-      hashAnterior: documentoAnterior?.hash || null,
     });
 
     // Gerar ATCUD
-    const atcud = gerarATCUD(documento.serie.codigoValidacaoAT || "", documento.numero);
+    const atcud = documento.serie.codigoValidacaoAT
+      ? gerarATCUD(documento.serie.codigoValidacaoAT, documento.numero)
+      : null;
 
-    // Atualizar documento
-    const documentoEmitido = await db.documento.update({
-      where: { id },
-      data: {
-        estado: "EMITIDO",
-        dataEmissao,
-        dataCriacao,
-        hash,
-        hashDocumentoAnterior: documentoAnterior?.hash || null,
-        atcud,
-      },
-      include: {
-        cliente: true,
-        linhas: true,
+    // Atualizar documento e stock em transação
+    const documentoEmitido = await db.$transaction(async (tx) => {
+      const doc = await tx.documento.update({
+        where: { id },
+        data: {
+          estado: "EMITIDO",
+          dataEmissao,
+          hash,
+          hashDocumentoAnterior: documentoAnterior?.hash || null,
+          atcud,
+        },
+        include: {
+          cliente: true,
+          linhas: true,
+          serie: true,
+        }
+      });
+
+      // Atualizar stock se não for rascunho e se houver armazém configurado
+      // Para demonstração, usamos o armazém principal se existir
+      const armazemPrincipal = await tx.armazem.findFirst({
+        where: {
+          empresaId: user.empresaId,
+          principal: true
+        }
+      });
+
+      if (armazemPrincipal && doc.tipo !== "ORCAMENTO") {
+        const linhasStock = doc.linhas
+          .filter(l => l.artigoId)
+          .map(l => ({
+            artigoId: l.artigoId!,
+            quantidade: l.quantidade,
+            precoUnitario: l.precoUnitario,
+          }));
+
+        if (linhasStock.length > 0) {
+          await saidaStockFatura({
+            linhas: linhasStock,
+            armazemId: armazemPrincipal.id,
+            documentoId: doc.id,
+            utilizadorId: doc.utilizadorId,
+          });
+        }
       }
 
       return doc;

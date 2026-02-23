@@ -6,6 +6,7 @@ import { db } from "./db";
 export async function validateApiKey(key: string | null): Promise<{
   valid: boolean;
   apiKey?: any;
+  empresaId?: string;
   error?: string;
 }> {
   if (!key) {
@@ -14,10 +15,11 @@ export async function validateApiKey(key: string | null): Promise<{
 
   const apiKey = await db.apiKey.findUnique({
     where: { key, ativo: true },
+    include: { empresa: true }
   });
 
-  if (!apiKey) {
-    return { valid: false, error: "Chave de API inválida ou inativa" };
+  if (!apiKey || !apiKey.empresaId) {
+    return { valid: false, error: "Chave de API inválida, inativa ou sem empresa associada" };
   }
 
   // Atualizar última utilização (async background)
@@ -26,7 +28,7 @@ export async function validateApiKey(key: string | null): Promise<{
     data: { ultimaUtilizacao: new Date() },
   }).catch(console.error);
 
-  return { valid: true, apiKey };
+  return { valid: true, apiKey, empresaId: apiKey.empresaId };
 }
 
 /**

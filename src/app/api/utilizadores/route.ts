@@ -6,9 +6,12 @@ import { hashPassword, authenticateRequest, temPermissao } from "@/lib/auth";
 export async function GET(request: NextRequest) {
   try {
     const auth = await authenticateRequest(request);
-    if (!auth.authenticated) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    if (!auth.authenticated || !auth.user?.empresaId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     const utilizadores = await db.utilizador.findMany({
+      where: {
+        empresaId: auth.user.empresaId
+      },
       select: {
         id: true,
         nome: true,
@@ -31,7 +34,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const auth = await authenticateRequest(request);
-    if (!auth.authenticated || !temPermissao(auth.user!.perfil, "config")) {
+    if (!auth.authenticated || !auth.user?.empresaId || !temPermissao(auth.user!.perfil, "config")) {
       return NextResponse.json({ error: "Permissões insuficientes" }, { status: 403 });
     }
 
@@ -46,6 +49,7 @@ export async function POST(request: NextRequest) {
 
     const utilizador = await db.utilizador.create({
       data: {
+        empresaId: auth.user.empresaId,
         nome,
         email,
         passwordHash,
