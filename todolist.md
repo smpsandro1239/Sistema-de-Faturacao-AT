@@ -28,7 +28,7 @@
 
 ### 7.2 Exportação
 - [ ] Exportar documento para PDF (melhorar layout atual + opção de download direto)
-- [ ] Enviar documento por email (automático na emissão + manual)
+- [x] Enviar documento por email (automático na emissão + manual)
 
 ### 9.2 Funcionalidades
 - [ ] Gráficos de vendas no dashboard (Recharts ou Tremor – mensal, por cliente, por artigo)
@@ -57,8 +57,8 @@
 - [x] Conversão automática para Fatura
 
 #### Encomendas / Ordens de Venda
-- [ ] CRUD Encomendas de cliente (estados: rascunho, confirmada, em preparação, faturada, cancelada)
-- [ ] Conversão para fatura (total ou parcial)
+- [x] CRUD Encomendas de cliente (estados: rascunho, confirmada, em preparação, faturada, cancelada)
+- [x] Conversão para fatura (total ou parcial)
 - [ ] Reserva temporária de stock (opcional)
 
 #### Faturação Recorrente / Avenças
@@ -352,7 +352,7 @@
 
 ## 📝 NOTAS
 
-- **Foco imediato (próximos 4–8 meses):** Email automático → Encomendas de venda → Recorrentes → Relatórios
+- **Foco imediato (próximos 4–8 meses):** Faturação Recorrente → Relatórios → Exportação Avançada → API Pública
 - Não pedir certificação final AT até ter as funcionalidades 🔴 implementadas e testadas
 - PDF simples continua válido como fatura eletrónica até final de 2026; preparar ADQ para 2027+
 - Priorizar o que resolve dores reais: follow-up de vendas, automação de envios

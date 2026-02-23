@@ -82,6 +82,7 @@ model Cliente {
 
   documentos        Documento[]
   orcamentos        Orcamento[]
+  encomendasCliente EncomendaCliente[]
 }
 
 // ============================================
