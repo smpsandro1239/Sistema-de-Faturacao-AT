@@ -9,6 +9,7 @@ const rates = new Map<string, { count: number; lastReset: number }>();
  * @returns boolean indicating if the request is allowed
  */
 export function rateLimit(identifier: string, limit: number, windowMs: number): boolean {
+  maybeCleanup();
   const now = Date.now();
   const current = rates.get(identifier);
 
@@ -37,7 +38,17 @@ export function cleanupRateLimits() {
   }
 }
 
-// Automatically clean up every hour
-if (typeof setInterval !== 'undefined') {
-  setInterval(cleanupRateLimits, 60 * 60 * 1000);
+/**
+ * Lazy cleanup triggered occasionally
+ */
+let lastCleanup = Date.now();
+function maybeCleanup() {
+  const now = Date.now();
+  if (now - lastCleanup > 3600000) { // 1 hour
+    cleanupRateLimits();
+    lastCleanup = now;
+  }
 }
+
+// Note: In production serverless environments, this in-memory map
+// will not be shared across instances. Use Redis for a robust solution.

@@ -2,10 +2,10 @@
 
 **Legenda:** `[x]` Concluído | `[ ]` Pendente
 
-**Progresso Total:** ~86–90% (fiscal ~95%, comercial ~72–76%)
+**Progresso Total:** ~88–92% (fiscal ~95%, comercial ~82–86%)
 
-**Última atualização:** 24-02-2026
-**Versão do projeto:** 1.0.0-beta
+**Última atualização:** 23-02-2026
+**Versão do projeto:** 1.1.0-beta
 
 ---
 
@@ -27,12 +27,13 @@
 ## 🟠 PRIORIDADE ALTA (Funcionalidades Essenciais / Comerciais – as que mais diferenciam)
 
 ### 7.2 Exportação
-- [ ] Exportar documento para PDF (melhorar layout atual + opção de download direto)
+- [x] Exportar documento para PDF (melhorar layout atual + suporte a logótipo da empresa)
 - [ ] Enviar documento por email (automático na emissão + manual)
+- [x] Relatório de IVA detalhado por taxa (resumo contabilístico no Excel)
 
 ### 9.2 Funcionalidades
-- [ ] Gráficos de vendas no dashboard (Recharts ou Tremor – mensal, por cliente, por artigo)
-- [ ] Exportação de relatórios (PDF / Excel / CSV – vendas, IVA, stock, contas)
+- [x] Gráficos de vendas no dashboard (Recharts - Top Clientes, Top Artigos, Evolução Mensal)
+- [x] Exportação de relatórios (Excel / CSV – vendas, clientes, IVA)
 
 ### Novas – Gestão Comercial Completa (essencial para PMEs reais)
 
@@ -57,15 +58,15 @@
 - [x] Conversão automática para Fatura
 
 #### Encomendas / Ordens de Venda
-- [ ] CRUD Encomendas de cliente (estados: rascunho, confirmada, em preparação, faturada, cancelada)
-- [ ] Conversão para fatura (total ou parcial)
+- [x] CRUD Encomendas de cliente (estados: rascunho, confirmada, faturada)
+- [x] Conversão para fatura total
 - [ ] Reserva temporária de stock (opcional)
 
 #### Faturação Recorrente / Avenças
-- [ ] CRUD subscrições (cliente, frequência: mensal/semanal/anual, linhas fixas/variáveis)
-- [ ] Job/cron para geração automática
-- [ ] Emissão + envio por email automático
-- [ ] Histórico de faturas geradas por subscrição
+- [x] CRUD subscrições (frequência: mensal/semanal/anual)
+- [x] Endpoint de processamento em lote para geração de faturas
+- [ ] Emissão + envio por email automático (templates em progresso)
+- [x] Histórico de faturas geradas por subscrição
 
 ---
 
@@ -330,7 +331,7 @@
 | Área | Pendentes | Concluídas | Progresso aproximado |
 |------|-----------|------------|---------------------|
 | Requisitos Fiscais AT | 3–5 | 22+ | 93–95% |
-| Funcionalidades Comerciais | 6–8 | 30+ | 72–76% |
+| Funcionalidades Comerciais | 4–6 | 36+ | 82–86% |
 | Performance | 3 | 1 | ~25% |
 | Testes | 8+ | 0 | ~5% |
 | Segurança | 6 | 5 | ~45% |
