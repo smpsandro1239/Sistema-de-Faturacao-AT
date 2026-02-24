@@ -1,24 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { authenticateRequest } from "@/lib/auth";
 import { gerarXMLCiusPT } from "@/lib/cius-pt";
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  request: Request,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const auth = await authenticateRequest(request);
-    if (!auth.authenticated || !auth.user?.empresaId) {
-      return NextResponse.json({ error: auth.error || "Não autorizado" }, { status: 401 });
+    const { authenticated, user, error: authError } = await authenticateRequest(request);
+    if (!authenticated || !user?.empresaId) {
+      return NextResponse.json({ error: authError || "Não autorizado" }, { status: 401 });
     }
 
-    const { id } = await params;
+    const { id } = params;
 
     const documento = await db.documento.findFirst({
       where: {
         id,
-        empresaId: auth.user.empresaId
+        empresaId: user.empresaId
       },
       include: {
         linhas: true,
@@ -60,7 +60,7 @@ export async function GET(
       totalLiquido: documento.totalLiquido,
     });
 
-    return new NextResponse(xml, {
+    return new Response(xml, {
       headers: {
         "Content-Type": "application/xml",
         "Content-Disposition": `attachment; filename="ubl-${documento.numeroFormatado.replace(/\//g, '-')}.xml"`,

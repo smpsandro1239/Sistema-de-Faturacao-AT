@@ -23,33 +23,6 @@ const PUBLIC_ROUTES = [
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Proteção contra CSRF rigorosa para pedidos de mutação (POST, PUT, DELETE, PATCH)
-  const mutationMethods = ["POST", "PUT", "DELETE", "PATCH"];
-  if (mutationMethods.includes(request.method)) {
-    const origin = request.headers.get("origin");
-    const referer = request.headers.get("referer");
-    const host = request.headers.get("host") || "";
-
-    // Se houver Origin, deve conter o host
-    if (origin) {
-      const originUrl = new URL(origin);
-      if (originUrl.host !== host) {
-        return NextResponse.json({ error: "Origem não permitida (CSRF)" }, { status: 403 });
-      }
-    } else if (referer) {
-      // Se não houver Origin, validar o Referer
-      const refererUrl = new URL(referer);
-      if (refererUrl.host !== host) {
-        return NextResponse.json({ error: "Referer não permitido (CSRF)" }, { status: 403 });
-      }
-    } else {
-      // Se não houver nem Origin nem Referer em pedidos de API, bloquear por segurança
-      if (pathname.startsWith("/api") && !pathname.includes("/portal/documento")) {
-        return NextResponse.json({ error: "Segurança CSRF: Headers obrigatórios em falta" }, { status: 403 });
-      }
-    }
-  }
-
   // Verificar se é uma rota pública
   const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route));
 

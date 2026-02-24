@@ -581,3 +581,12 @@ Work Log:
 - Verificado que o build e lint passam localmente com sucesso.
 Stage Summary:
 - Estabilidade do pipeline de CI restabelecida e conformidade com Next.js 16.
+Task: Correção de Erro de Build e Migração de Middleware (Next.js 16)
+Work Log:
+- Corrigido erro crítico de build `PageNotFoundError` causado por diretório malformado `\[id\]` em `src/app/api/documentos`.
+- Migrada rota de exportação UBL de `src/app/api/documentos/\[id\]/export/ubl` para `src/app/api/documentos/[id]/export/ubl`.
+- Resolvida depreciação do Next.js 16: renomeado `src/middleware.ts` para `src/proxy.ts` e atualizado o export para `proxy`.
+- Verificada integridade do sistema via build de produção completo (`bun run build`).
+Stage Summary:
+- Estabilidade do build restaurada.
+- Sistema atualizado para as convenções do Next.js 16.
