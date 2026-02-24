@@ -4,7 +4,7 @@
 
 **Progresso Total:** ~75% (fiscal ~95%, comercial ~45%)
 
-**Última atualização:** 24-02-2026
+**Última atualização:** 25-02-2026
 **Versão do projeto:** 1.0.0-beta
 
 🔴 OPORTUNIDADES DE DESTAQUE VS CONCORRENTES (2026 – onde Moloni/Vendus/InvoiceXpress/PHC GO/Jasmin ganham)

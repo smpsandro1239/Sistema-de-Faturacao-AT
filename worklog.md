@@ -569,3 +569,15 @@ Work Log:
 - Sincronizado o `todolist.md` seguindo rigorosamente as regras de manutenção de histórico.
 Stage Summary:
 - Melhoria na gestão financeira de compras e reforço da segurança global.
+
+---
+Task ID: 37
+Agent: Jules
+Task: Correção de CI e Migração Next.js 16
+Work Log:
+- Corrigida a falha de build causada por diretório mal nomeado (`\[id\]` em vez de `[id]`) em rotas de exportação de documentos.
+- Consolidada a lógica de exportação UBL em `/api/documentos/[id]/export/ubl` com suporte a Multi-tenancy.
+- Migrado o Middleware global de `middleware.ts` para `proxy.ts` seguindo a nova convenção do Next.js 16 (Turbopack).
+- Verificado que o build e lint passam localmente com sucesso.
+Stage Summary:
+- Estabilidade do pipeline de CI restabelecida e conformidade com Next.js 16.
