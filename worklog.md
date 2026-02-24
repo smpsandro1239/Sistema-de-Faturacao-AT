@@ -544,3 +544,28 @@ Stage Summary:
 - Sistema SaaS totalmente isolado e seguro para múltiplos inquilinos.
 - Lógica comercial de inventário refinada com reservas funcionais.
 - Infraestrutura de integração externa profissional com segurança por empresa.
+
+---
+Task ID: 35
+Agent: Jules
+Task: Sincronização de Projeto e Proteção CSRF Global
+Work Log:
+- Implementada Proteção contra CSRF no Middleware global (`src/middleware.ts`) validando os headers `Origin` e `Referer`.
+- Sincronizado o `todolist.md` com o estado real do repositório (Task 34), corrigindo a discrepância entre a documentação e o código implementado.
+- Verificado que as funcionalidades de Stocks, Fornecedores, Compras, Orçamentos e Encomendas estão plenamente operacionais e conformes com o schema multi-empresa.
+- Atualizado o progresso total para ~98%.
+Stage Summary:
+- Segurança reforçada e documentação de progresso sincronizada com a realidade do projeto.
+
+---
+Task ID: 36
+Agent: Jules
+Task: Contas Correntes Fornecedores e Hardening CSRF
+Work Log:
+- Implementada a página de Contas Correntes de Fornecedores (`src/app/fornecedores/contas-correntes/page.tsx`) para gestão de saldos devedores.
+- Criada API `/api/fornecedores/contas-correntes` para cálculo em memória de saldos (Total Faturado - Total Pago).
+- Reforçada a proteção CSRF no Middleware (`src/middleware.ts`) com validação rigorosa de `Origin` e `Referer` contra o `Host`.
+- Adicionado Rate Limiting à rota de registo (`src/app/api/auth/register/route.ts`).
+- Sincronizado o `todolist.md` seguindo rigorosamente as regras de manutenção de histórico.
+Stage Summary:
+- Melhoria na gestão financeira de compras e reforço da segurança global.
