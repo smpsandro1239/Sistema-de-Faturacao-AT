@@ -5,8 +5,8 @@
 **Progresso Total:** ~97% (fiscal ~98%, comercial ~97%)
 *Nota: FASE A concluída. Suporte multi-empresa, RBAC, Fiscal 2027 e Reserva de Stock integrados.*
 
-**Última atualização:** 24-02-2026
-**Versão do projeto:** 1.8.0-beta
+**Última atualização:** 25-02-2026
+**Versão do projeto:** 1.8.1-beta
 
 ---
 

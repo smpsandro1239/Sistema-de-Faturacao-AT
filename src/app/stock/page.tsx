@@ -30,6 +30,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { 
   Package, 
   Plus, 
@@ -42,6 +48,9 @@ import {
   TrendingDown,
   AlertTriangle,
   Filter,
+  Warehouse,
+  History,
+  List,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -72,6 +81,22 @@ interface Artigo {
   stockTotal: number;
 }
 
+interface StockResumo {
+  id: string;
+  codigo: string;
+  descricao: string;
+  unidade: string;
+  stockMinimo: number | null;
+  stockMaximo: number | null;
+  stockTotal: number;
+  porArmazem: {
+    armazem: { id: string; codigo: string; nome: string; principal: boolean };
+    quantidade: number;
+    reservada: number;
+    disponivel: number;
+  }[];
+}
+
 interface Armazem {
   id: string;
   codigo: string;
@@ -80,10 +105,13 @@ interface Armazem {
 }
 
 export default function StockMovimentosPage() {
+  const [activeTab, setActiveTab] = useState("movimentos");
   const [movimentos, setMovimentos] = useState<Movimento[]>([]);
+  const [inventory, setInventory] = useState<StockResumo[]>([]);
   const [artigos, setArtigos] = useState<Artigo[]>([]);
   const [armazens, setArmazens] = useState<Armazem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingInventory, setLoadingInventory] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -103,10 +131,14 @@ export default function StockMovimentosPage() {
   });
 
   useEffect(() => {
-    fetchMovimentos();
+    if (activeTab === "movimentos") {
+      fetchMovimentos();
+    } else {
+      fetchInventory();
+    }
     fetchArtigos();
     fetchArmazens();
-  }, [filtroTipo, pagination.page]);
+  }, [activeTab, filtroTipo, pagination.page]);
 
   const fetchMovimentos = async () => {
     setLoading(true);
@@ -152,6 +184,22 @@ export default function StockMovimentosPage() {
       }
     } catch (error) {
       console.error("Erro ao carregar armazéns:", error);
+    }
+  };
+
+  const fetchInventory = async () => {
+    setLoadingInventory(true);
+    try {
+      const response = await fetch("/api/stock");
+      const data = await response.json();
+      if (response.ok) {
+        setInventory(data);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar inventário:", error);
+      toast.error("Erro ao carregar inventário");
+    } finally {
+      setLoadingInventory(false);
     }
   };
 
@@ -252,6 +300,11 @@ export default function StockMovimentosPage() {
     m.artigo.codigo.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const filteredInventory = inventory.filter(i =>
+    i.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    i.codigo.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col">
       {/* Header */}
@@ -294,8 +347,8 @@ export default function StockMovimentosPage() {
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Movimentos de Stock</h2>
-            <p className="text-slate-500">Histórico e gestão de movimentos de inventário</p>
+            <h2 className="text-2xl font-bold text-slate-900">Gestão de Stock</h2>
+            <p className="text-slate-500">Controlo de inventário e histórico de movimentos</p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
@@ -419,131 +472,250 @@ export default function StockMovimentosPage() {
           </Dialog>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-4 mb-6">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input
-              placeholder="Pesquisar movimentos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={filtroTipo} onValueChange={setFiltroTipo}>
-            <SelectTrigger className="w-48">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filtrar por tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os tipos</SelectItem>
-              <SelectItem value="ENTRADA">Entradas</SelectItem>
-              <SelectItem value="SAIDA">Saídas</SelectItem>
-              <SelectItem value="TRANSFERENCIA">Transferências</SelectItem>
-            </SelectContent>
-          </Select>
-          <Badge variant="secondary" className="text-sm">
-            {pagination.total} movimentos
-          </Badge>
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="bg-white border p-1 h-12">
+            <TabsTrigger value="movimentos" className="data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-700 h-10 px-6">
+              <History className="h-4 w-4 mr-2" />
+              Movimentos
+            </TabsTrigger>
+            <TabsTrigger value="inventario" className="data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-700 h-10 px-6">
+              <List className="h-4 w-4 mr-2" />
+              Inventário Atual
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Table */}
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Artigo</TableHead>
-                  <TableHead>Armazém</TableHead>
-                  <TableHead>Quantidade</TableHead>
-                  <TableHead>Origem</TableHead>
-                  <TableHead>Utilizador</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-slate-500">
-                      A carregar...
-                    </TableCell>
-                  </TableRow>
-                ) : filteredMovimentos.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-slate-500">
-                      Nenhum movimento encontrado
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredMovimentos.map((movimento) => (
-                    <TableRow key={movimento.id}>
-                      <TableCell className="text-sm">
-                        {new Date(movimento.createdAt).toLocaleDateString("pt-PT")}{" "}
-                        <span className="text-slate-400">
-                          {new Date(movimento.createdAt).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
-                        </span>
-                      </TableCell>
-                      <TableCell>{getTipoBadge(movimento.tipo)}</TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{movimento.artigo.codigo}</p>
-                          <p className="text-sm text-slate-500">{movimento.artigo.descricao}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{movimento.armazem.codigo}</p>
-                          <p className="text-sm text-slate-500">{movimento.armazem.nome}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span className={`font-mono font-medium ${
-                            movimento.tipo === "ENTRADA" ? "text-green-600" : 
-                            movimento.tipo === "SAIDA" ? "text-red-600" : "text-blue-600"
-                          }`}>
-                            {movimento.tipo === "SAIDA" ? "-" : "+"}{movimento.quantidade}
-                          </span>
-                          <span className="text-sm text-slate-400">
-                            ({movimento.quantidadeAnterior} → {movimento.quantidadeFinal})
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{getOrigemLabel(movimento.origem)}</Badge>
-                      </TableCell>
-                      <TableCell className="text-sm">{movimento.utilizador.nome}</TableCell>
+          <TabsContent value="movimentos" className="space-y-6">
+            {/* Filters */}
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Pesquisar movimentos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={filtroTipo} onValueChange={setFiltroTipo}>
+                <SelectTrigger className="w-48">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Filtrar por tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os tipos</SelectItem>
+                  <SelectItem value="ENTRADA">Entradas</SelectItem>
+                  <SelectItem value="SAIDA">Saídas</SelectItem>
+                  <SelectItem value="TRANSFERENCIA">Transferências</SelectItem>
+                </SelectContent>
+              </Select>
+              <Badge variant="secondary" className="text-sm ml-auto">
+                {pagination.total} movimentos
+              </Badge>
+            </div>
+
+            {/* Table Movimentos */}
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Artigo</TableHead>
+                      <TableHead>Armazém</TableHead>
+                      <TableHead>Quantidade</TableHead>
+                      <TableHead>Origem</TableHead>
+                      <TableHead>Utilizador</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-slate-500">
+                          A carregar...
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredMovimentos.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-slate-500">
+                          Nenhum movimento encontrado
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredMovimentos.map((movimento) => (
+                        <TableRow key={movimento.id}>
+                          <TableCell className="text-sm">
+                            {new Date(movimento.createdAt).toLocaleDateString("pt-PT")}{" "}
+                            <span className="text-slate-400">
+                              {new Date(movimento.createdAt).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          </TableCell>
+                          <TableCell>{getTipoBadge(movimento.tipo)}</TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{movimento.artigo.codigo}</p>
+                              <p className="text-sm text-slate-500">{movimento.artigo.descricao}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{movimento.armazem.codigo}</p>
+                              <p className="text-sm text-slate-500">{movimento.armazem.nome}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className={`font-mono font-medium ${
+                                movimento.tipo === "ENTRADA" ? "text-green-600" :
+                                movimento.tipo === "SAIDA" ? "text-red-600" : "text-blue-600"
+                              }`}>
+                                {movimento.tipo === "SAIDA" ? "-" : "+"}{movimento.quantidade}
+                              </span>
+                              <span className="text-sm text-slate-400">
+                                ({movimento.quantidadeAnterior} → {movimento.quantidadeFinal})
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{getOrigemLabel(movimento.origem)}</Badge>
+                          </TableCell>
+                          <TableCell className="text-sm">{movimento.utilizador.nome}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
 
-        {/* Pagination */}
-        {pagination.totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-6">
-            <Button
-              variant="outline"
-              disabled={pagination.page === 1}
-              onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
-            >
-              Anterior
-            </Button>
-            <span className="text-sm text-slate-600">
-              Página {pagination.page} de {pagination.totalPages}
-            </span>
-            <Button
-              variant="outline"
-              disabled={pagination.page === pagination.totalPages}
-              onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-            >
-              Próxima
-            </Button>
-          </div>
-        )}
+            {/* Pagination */}
+            {pagination.totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-6">
+                <Button
+                  variant="outline"
+                  disabled={pagination.page === 1}
+                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                >
+                  Anterior
+                </Button>
+                <span className="text-sm text-slate-600">
+                  Página {pagination.page} de {pagination.totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  disabled={pagination.page === pagination.totalPages}
+                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                >
+                  Próxima
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="inventario" className="space-y-6">
+            {/* Filters Inventory */}
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Pesquisar por código ou descrição..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Badge variant="secondary" className="text-sm ml-auto">
+                {filteredInventory.length} artigos
+              </Badge>
+            </div>
+
+            {/* Table Inventory */}
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Artigo</TableHead>
+                      <TableHead>Stock Total</TableHead>
+                      <TableHead>Configurações</TableHead>
+                      <TableHead>Distribuição por Armazém</TableHead>
+                      <TableHead>Estado</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {loadingInventory ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-slate-500">
+                          A carregar inventário...
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredInventory.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-slate-500">
+                          Nenhum artigo encontrado
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredInventory.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium text-slate-900">{item.codigo}</p>
+                              <p className="text-sm text-slate-500">{item.descricao}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="text-lg font-bold">
+                                {item.stockTotal} <small className="font-normal text-slate-500">{item.unidade}</small>
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-xs space-y-1">
+                              <p><span className="text-slate-500">Mín:</span> {item.stockMinimo ?? "-"}</p>
+                              <p><span className="text-slate-500">Máx:</span> {item.stockMaximo ?? "-"}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-2 py-2">
+                              {item.porArmazem.map((pa, idx) => (
+                                <div key={idx} className="flex flex-col bg-slate-50 border rounded p-1.5 min-w-[100px]">
+                                  <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                                    <Warehouse className="h-2.5 w-2.5" />
+                                    {pa.armazem.codigo}
+                                  </span>
+                                  <span className="text-sm font-medium">
+                                    {pa.quantidade} <span className="text-[10px] text-slate-400">disp: {pa.disponivel}</span>
+                                  </span>
+                                </div>
+                              ))}
+                              {item.porArmazem.length === 0 && (
+                                <span className="text-sm text-slate-400 italic">Sem stock em nenhum armazém</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {item.stockMinimo !== null && item.stockTotal < item.stockMinimo ? (
+                              <Badge variant="destructive" className="flex items-center gap-1 bg-red-100 text-red-700 hover:bg-red-200 border-red-200">
+                                <AlertTriangle className="h-3 w-3" />
+                                Stock Baixo
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+                                Normal
+                              </Badge>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
 
       {/* Footer */}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { authenticateRequest } from "@/lib/auth";
+import { registarMovimentoStock } from "@/lib/stock";
 
 // GET - Listar faturas de compra
 export async function GET(request: NextRequest) {
@@ -40,9 +41,9 @@ export async function GET(request: NextRequest) {
 // POST - Criar nova fatura de compra
 export async function POST(request: NextRequest) {
   try {
-    const auth = await authenticateRequest(request);
-    if (!auth.authenticated) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    const { authenticated, user, error: authError } = await authenticateRequest(request);
+    if (!authenticated || !user?.empresaId) {
+      return NextResponse.json({ error: authError || "Não autorizado" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -98,26 +99,65 @@ export async function POST(request: NextRequest) {
 
     const totalLiquido = totalBase + totalIVA;
 
-    const fatura = await db.faturaCompra.create({
-      data: {
-        numero,
-        fornecedorId,
-        fornecedorNome: fornecedor.nome,
-        fornecedorNif: fornecedor.nif,
-        dataEmissao: new Date(dataEmissao),
-        dataVencimento: dataVencimento ? new Date(dataVencimento) : null,
-        totalBase,
-        totalIVA,
-        totalLiquido,
-        observacoes,
-        utilizadorId: utilizadorId || "system",
-        linhas: {
-          create: linhasFormatadas,
+    const fatura = await db.$transaction(async (tx) => {
+      const f = await tx.faturaCompra.create({
+        data: {
+          empresaId: user.empresaId,
+          numero,
+          fornecedorId,
+          fornecedorNome: fornecedor.nome,
+          fornecedorNif: fornecedor.nif,
+          dataEmissao: new Date(dataEmissao),
+          dataVencimento: dataVencimento ? new Date(dataVencimento) : null,
+          totalBase,
+          totalIVA,
+          totalLiquido,
+          observacoes,
+          utilizadorId: user.userId,
+          linhas: {
+            create: linhasFormatadas,
+          },
         },
-      },
-      include: {
-        linhas: true,
-      },
+        include: {
+          linhas: true,
+        },
+      });
+
+      // Entrada automática de stock no armazém principal
+      const armazemPrincipal = await tx.armazem.findFirst({
+        where: {
+          empresaId: user.empresaId,
+          principal: true,
+          ativo: true,
+        },
+      });
+
+      if (armazemPrincipal) {
+        for (const linha of f.linhas) {
+          if (linha.artigoId) {
+            // Verificar se o artigo controla stock
+            const artigo = await tx.artigo.findUnique({
+              where: { id: linha.artigoId },
+              select: { controlaStock: true },
+            });
+
+            if (artigo?.controlaStock) {
+              await registarMovimentoStock({
+                artigoId: linha.artigoId,
+                armazemId: armazemPrincipal.id,
+                quantidade: linha.quantidade,
+                tipo: "ENTRADA",
+                origem: "ENCOMENDA_COMPRA", // Usamos este para compras
+                precoUnitario: linha.precoUnitario,
+                observacoes: `Entrada automática via fatura de compra ${numero}`,
+                utilizadorId: user.userId,
+              }, tx);
+            }
+          }
+        }
+      }
+
+      return f;
     });
 
     return NextResponse.json(fatura, { status: 201 });
