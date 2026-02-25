@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { gerarPDFDocumento } from "./pdf";
+import { defaultTemplates, renderTemplate } from "./mail-templates";
 
 /**
  * Biblioteca de envio de emails
@@ -53,7 +54,19 @@ export async function enviarEmail(params: EnviarEmailParams) {
  * Envia um documento por email para o cliente com PDF em anexo
  */
 export async function enviarEmailDocumento(documento: any, clienteEmail: string) {
-  const subject = `Fatura ${documento.numeroFormatado} - ${documento.empresaNome}`;
+  const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/portal/documento/${documento.accessKey}`;
+
+  const templateData = {
+    clienteNome: documento.clienteNome,
+    numeroFormatado: documento.numeroFormatado,
+    empresaNome: documento.empresaNome,
+    totalLiquido: documento.totalLiquido.toFixed(2),
+    portalUrl: portalUrl
+  };
+
+  const template = defaultTemplates.DOCUMENTO_EMITIDO;
+  const subject = renderTemplate(template.subject, templateData);
+  const text = renderTemplate(template.body, templateData);
 
   // Gerar PDF para anexo
   const pdfBuffer = await gerarPDFDocumento({
@@ -70,43 +83,43 @@ export async function enviarEmailDocumento(documento: any, clienteEmail: string)
     })),
   }, false) as Uint8Array;
 
-  const text = `
-    Olá ${documento.clienteNome},
-
-    Segue em anexo a fatura ${documento.numeroFormatado} no valor de ${documento.totalLiquido.toFixed(2)}€.
-
-    Obrigado pela sua preferência.
-    ${documento.empresaNome}
-  `;
-
-  const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/portal/documento/${documento.accessKey}`;
-
   const html = `
-    <div style="font-family: sans-serif; padding: 20px; color: #333;">
-      <h2>Fatura ${documento.numeroFormatado}</h2>
-      <p>Olá <strong>${documento.clienteNome}</strong>,</p>
-      <p>Segue os detalhes da sua fatura:</p>
-      <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-        <tr style="background-color: #f8f9fa;">
-          <td style="padding: 10px; border: 1px solid #dee2e6;"><strong>Documento:</strong></td>
-          <td style="padding: 10px; border: 1px solid #dee2e6;">${documento.numeroFormatado}</td>
-        </tr>
-        <tr>
-          <td style="padding: 10px; border: 1px solid #dee2e6;"><strong>Data:</strong></td>
-          <td style="padding: 10px; border: 1px solid #dee2e6;">${new Date(documento.dataEmissao).toLocaleDateString("pt-PT")}</td>
-        </tr>
-        <tr style="background-color: #f8f9fa;">
-          <td style="padding: 10px; border: 1px solid #dee2e6;"><strong>Total:</strong></td>
-          <td style="padding: 10px; border: 1px solid #dee2e6;"><strong>${documento.totalLiquido.toFixed(2)}€</strong></td>
-        </tr>
-      </table>
-      <p style="margin-top: 20px;">
-        Pode consultar e descarregar o PDF original no nosso portal seguro:<br>
-        <a href="${portalUrl}" style="display: inline-block; padding: 10px 20px; background-color: #10b981; color: white; text-decoration: none; border-radius: 5px; margin-top: 10px;">Ver Fatura Online</a>
-      </p>
-      <p style="margin-top: 20px;">Obrigado pela sua preferência.</p>
-      <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-      <p style="font-size: 12px; color: #777;">${documento.empresaNome} | NIF: ${documento.empresaNif}</p>
+    <div style="font-family: sans-serif; padding: 20px; color: #333; line-height: 1.6;">
+      <div style="max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+        <div style="background-color: #059669; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0; font-size: 24px;">Fatura ${documento.numeroFormatado}</h1>
+        </div>
+        <div style="padding: 30px; background-color: white;">
+          <p>Olá <strong>${documento.clienteNome}</strong>,</p>
+          <p>Esperamos que esteja bem. Segue em anexo o seu documento fiscal emitido por <strong>${documento.empresaNome}</strong>.</p>
+
+          <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0; border: 1px solid #edf2f7;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 5px 0; color: #718096;">Número:</td>
+                <td style="padding: 5px 0; text-align: right; font-weight: bold;">${documento.numeroFormatado}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0; color: #718096;">Data:</td>
+                <td style="padding: 5px 0; text-align: right;">${new Date(documento.dataEmissao).toLocaleDateString("pt-PT")}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0 0 0; border-top: 1px solid #e2e8f0; color: #718096; font-size: 18px;">Total:</td>
+                <td style="padding: 10px 0 0 0; border-top: 1px solid #e2e8f0; text-align: right; font-weight: bold; color: #059669; font-size: 18px;">${documento.totalLiquido.toFixed(2)}€</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${portalUrl}" style="background-color: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Ver Detalhes no Portal</a>
+          </div>
+
+          <p style="color: #718096; font-size: 14px; text-align: center;">Obrigado pela sua preferência.</p>
+        </div>
+        <div style="background-color: #f7fafc; padding: 15px; text-align: center; border-top: 1px solid #e2e8f0;">
+          <p style="margin: 0; color: #a0aec0; font-size: 12px;">${documento.empresaNome} | NIF: ${documento.empresaNif}</p>
+        </div>
+      </div>
     </div>
   `;
 

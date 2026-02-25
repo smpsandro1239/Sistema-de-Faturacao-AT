@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 import { obterArtigosStockBaixo, obterStockTotalArtigo, obterStockArtigo } from "@/lib/stock";
 import { db } from "@/lib/db";
+import { authenticateRequest } from "@/lib/auth";
 
 // GET - Obter alertas de stock baixo e informações de stock
 export async function GET(request: Request) {
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
+    const empresaId = auth.user.empresaId;
     const { searchParams } = new URL(request.url);
     const tipo = searchParams.get("tipo") || "baixo";
     const artigoId = searchParams.get("artigoId");
@@ -24,7 +31,7 @@ export async function GET(request: Request) {
 
     // Alertas de stock baixo
     if (tipo === "baixo") {
-      const artigosStockBaixo = await obterArtigosStockBaixo();
+      const artigosStockBaixo = await obterArtigosStockBaixo(empresaId!);
       return NextResponse.json({
         tipo: "stock_baixo",
         quantidade: artigosStockBaixo.length,
@@ -35,7 +42,7 @@ export async function GET(request: Request) {
     // Resumo geral de stock
     if (tipo === "resumo") {
       const armazens = await db.armazem.findMany({
-        where: { ativo: true },
+        where: { empresaId, ativo: true },
         include: {
           stocks: {
             include: {
@@ -55,7 +62,7 @@ export async function GET(request: Request) {
         },
       });
 
-      const artigosStockBaixo = await obterArtigosStockBaixo();
+      const artigosStockBaixo = await obterArtigosStockBaixo(empresaId!);
 
       // Calcular totais por armazém
       const resumoArmazens = armazens.map((armazem) => ({

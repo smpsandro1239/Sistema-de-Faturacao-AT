@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { 
   FileText, 
   Users, 
+  Mail,
   Package, 
   Settings, 
   LayoutDashboard,
@@ -119,6 +120,24 @@ export default function Dashboard() {
     // Carregar estatísticas
     fetchEstatisticas();
   }, []);
+
+  const [notifying, setNotifying] = useState(false);
+
+  const handleNotificarBaixo = async () => {
+    setNotifying(true);
+    try {
+      const res = await fetch("/api/stock/notificar-baixo", { method: "POST" });
+      if (res.ok) {
+        toast.success("Alertas de stock enviados por email");
+      } else {
+        toast.error("Erro ao enviar alertas");
+      }
+    } catch (error) {
+      toast.error("Erro de ligação");
+    } finally {
+      setNotifying(false);
+    }
+  };
 
   const fetchEstatisticas = async () => {
     try {
@@ -674,11 +693,23 @@ export default function Dashboard() {
                     <h3 className="font-semibold text-amber-900">
                       Alerta de Stock Baixo ({stats.stockBaixo.length} artigos)
                     </h3>
-                    <Link href="/stock">
-                      <Button variant="outline" size="sm" className="border-amber-300 text-amber-700 hover:bg-amber-100">
-                        Ver Movimentos
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-amber-300 text-amber-700 hover:bg-amber-100"
+                        onClick={handleNotificarBaixo}
+                        disabled={notifying}
+                      >
+                        <Mail className="h-4 w-4 mr-2" />
+                        Notificar por Email
                       </Button>
-                    </Link>
+                      <Link href="/stock">
+                        <Button variant="outline" size="sm" className="border-amber-300 text-amber-700 hover:bg-amber-100">
+                          Ver Movimentos
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {stats.stockBaixo.slice(0, 6).map((item, index) => (

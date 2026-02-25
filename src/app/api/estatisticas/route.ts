@@ -1,50 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { authenticateRequest } from "@/lib/auth";
-
-// Stock baixo - função local para evitar problemas de importação
-async function obterArtigosStockBaixo() {
-  try {
-    const stocks = await db.artigoArmazemStock.findMany({
-      where: {
-        quantidade: { gt: 0 },
-      },
-      include: {
-        artigo: {
-          select: {
-            codigo: true,
-            descricao: true,
-            stockMinimo: true,
-            controlaStock: true,
-          },
-        },
-        armazem: {
-          select: { nome: true, ativo: true },
-        },
-      },
-    });
-
-    return stocks
-      .filter((s) => 
-        s.artigo.controlaStock &&
-        s.artigo.stockMinimo !== null &&
-        s.quantidade < s.artigo.stockMinimo &&
-        s.armazem.ativo
-      )
-      .map((s) => ({
-        artigoId: s.artigoId,
-        artigoCodigo: s.artigo.codigo,
-        artigoDescricao: s.artigo.descricao,
-        armazemId: s.armazemId,
-        armazemNome: s.armazem.nome,
-        quantidadeAtual: s.quantidade,
-        stockMinimo: s.artigo.stockMinimo!,
-      }));
-  } catch {
-    // Retornar array vazio se a tabela não existir ainda
-    return [];
-  }
-}
+import { obterArtigosStockBaixo } from "@/lib/stock";
 
 // GET - Obter estatísticas para o dashboard
 export async function GET(request: Request) {
@@ -54,6 +11,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
+    const empresaId = auth.user.empresaId;
     const hoje = new Date();
     const inicioHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
     const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
@@ -63,6 +21,7 @@ export async function GET(request: Request) {
     // Documentos emitidos hoje
     const documentosHoje = await db.documento.count({
       where: {
+        empresaId,
         estado: "EMITIDO",
         dataEmissao: { gte: inicioHoje },
       },
@@ -71,6 +30,7 @@ export async function GET(request: Request) {
     // Total faturado no mês
     const documentosMes = await db.documento.aggregate({
       where: {
+        empresaId,
         estado: "EMITIDO",
         dataEmissao: { gte: inicioMes },
       },
@@ -80,6 +40,7 @@ export async function GET(request: Request) {
     // Total faturado no mês anterior
     const documentosMesAnterior = await db.documento.aggregate({
       where: {
+        empresaId,
         estado: "EMITIDO",
         dataEmissao: { 
           gte: inicioMesAnterior,
@@ -91,16 +52,17 @@ export async function GET(request: Request) {
 
     // Clientes ativos
     const clientesAtivos = await db.cliente.count({
-      where: { ativo: true },
+      where: { empresaId, ativo: true },
     });
 
     // Documentos pendentes (rascunhos)
     const documentosPendentes = await db.documento.count({
-      where: { estado: "RASCUNHO" },
+      where: { empresaId, estado: "RASCUNHO" },
     });
 
     // Documentos recentes
     const documentosRecentes = await db.documento.findMany({
+      where: { empresaId },
       take: 5,
       orderBy: { createdAt: "desc" },
     });
@@ -120,6 +82,7 @@ export async function GET(request: Request) {
       
       const total = await db.documento.aggregate({
         where: {
+          empresaId,
           estado: "EMITIDO",
           dataEmissao: {
             gte: dataInicio,
@@ -139,7 +102,10 @@ export async function GET(request: Request) {
     // Dados para gráfico por tipo de documento
     const documentosPorTipo = await db.documento.groupBy({
       by: ['tipo'],
-      where: { estado: "EMITIDO" },
+      where: {
+        empresaId,
+        estado: "EMITIDO"
+      },
       _count: { id: true },
       _sum: { totalLiquido: true },
     });
@@ -160,6 +126,7 @@ export async function GET(request: Request) {
     // Dados para gráfico de IVA
     const documentosComIVA = await db.documento.findMany({
       where: {
+        empresaId,
         estado: "EMITIDO",
         dataEmissao: { gte: inicioMes },
       },
@@ -195,12 +162,15 @@ export async function GET(request: Request) {
       .sort((a, b) => parseFloat(b.taxa) - parseFloat(a.taxa));
 
     // Stock baixo
-    const artigosStockBaixo = await obterArtigosStockBaixo();
+    const artigosStockBaixo = await obterArtigosStockBaixo(empresaId!);
 
     // Vendas por Cliente (Top 5)
     const vendasPorCliente = await db.documento.groupBy({
       by: ['clienteId', 'clienteNome'],
-      where: { estado: "EMITIDO" },
+      where: {
+        empresaId,
+        estado: "EMITIDO"
+      },
       _sum: { totalLiquido: true },
       orderBy: { _sum: { totalLiquido: 'desc' } },
       take: 5,
@@ -209,7 +179,12 @@ export async function GET(request: Request) {
     // Vendas por Artigo (Top 5)
     const vendasPorArtigo = await db.linhaDocumento.groupBy({
       by: ['artigoId', 'descricaoArtigo'],
-      where: { documento: { estado: "EMITIDO" } },
+      where: {
+        documento: {
+          empresaId,
+          estado: "EMITIDO"
+        }
+      },
       _sum: { totalLiquido: true, quantidade: true },
       orderBy: { _sum: { totalLiquido: 'desc' } },
       take: 5,
@@ -219,7 +194,7 @@ export async function GET(request: Request) {
     let fornecedoresAtivos = 0;
     try {
       fornecedoresAtivos = await db.fornecedor.count({
-        where: { ativo: true },
+        where: { empresaId, ativo: true },
       });
     } catch {
       // Tabela pode não existir
@@ -229,7 +204,7 @@ export async function GET(request: Request) {
     let armazensAtivos = 0;
     try {
       armazensAtivos = await db.armazem.count({
-        where: { ativo: true },
+        where: { empresaId, ativo: true },
       });
     } catch {
       // Tabela pode não existir

@@ -604,3 +604,18 @@ Work Log:
 Stage Summary:
 - Módulo de stocks finalizado com visibilidade total do inventário.
 - Fluxo de compras automatizado com impacto direto e seguro no inventário.
+
+---
+Task ID: 38
+Agent: Jules
+Task: Experiência de Utilizador Comercial e Automação de Email
+Work Log:
+- Implementado Download Direto de PDF na listagem de documentos (/api/documentos/[id]/download).
+- Criado sistema de Templates de Email Personalizáveis em `src/lib/mail-templates.ts` com suporte a placeholders dinâmicos.
+- Refatorada a biblioteca de email (`src/lib/mail.ts`) para usar templates profissionais e layout visual melhorado.
+- Adicionado Relatório de Mapa de Stocks em formato Excel através de `exceljs` (/api/relatorios/stock).
+- Implementada funcionalidade de Notificação de Stock Baixo por Email com botão de trigger no dashboard.
+- Corrigidos erros de build e tipagem em `src/app/relatorios/page.tsx`.
+Stage Summary:
+- Melhoria significativa na produtividade comercial e na comunicação com clientes/gestores.
+- Relatórios de inventário automatizados e exportáveis.
