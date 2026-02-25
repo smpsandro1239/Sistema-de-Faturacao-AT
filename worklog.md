@@ -590,3 +590,17 @@ Work Log:
 Stage Summary:
 - Estabilidade do build restaurada.
 - Sistema atualizado para as convenções do Next.js 16.
+
+---
+Task ID: 36
+Agent: Jules
+Task: Gestão Avançada de Stock e Automação de Compras
+Work Log:
+- Implementada visualização de "Inventário Atual" em `/stock`, com sistema de abas separando o histórico de movimentos.
+- A nova vista de inventário permite ver o stock total por artigo e a distribuição detalhada por armazém, com destaques visuais para stock baixo.
+- Implementada a "Entrada automática de stock na receção" para Faturas de Compra: ao registar uma fatura de fornecedor, o stock é agora incrementado automaticamente no armazém principal se os artigos possuírem controlo de stock.
+- Atualizado o `todolist.md` marcando as funcionalidades de base de stocks e fornecedores como concluídas.
+- Refactor da API de Faturas de Compra para utilizar transações Prisma e garantir integridade entre o registo financeiro e o movimento de stock.
+Stage Summary:
+- Módulo de stocks finalizado com visibilidade total do inventário.
+- Fluxo de compras automatizado com impacto direto e seguro no inventário.
