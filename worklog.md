@@ -548,6 +548,39 @@ Stage Summary:
 ---
 Task ID: 35
 Agent: Jules
+Task: Sincronização de Projeto e Proteção CSRF Global
+Work Log:
+- Implementada Proteção contra CSRF no Middleware global (`src/middleware.ts`) validando os headers `Origin` e `Referer`.
+- Sincronizado o `todolist.md` com o estado real do repositório (Task 34), corrigindo a discrepância entre a documentação e o código implementado.
+- Verificado que as funcionalidades de Stocks, Fornecedores, Compras, Orçamentos e Encomendas estão plenamente operacionais e conformes com o schema multi-empresa.
+- Atualizado o progresso total para ~98%.
+Stage Summary:
+- Segurança reforçada e documentação de progresso sincronizada com a realidade do projeto.
+
+---
+Task ID: 36
+Agent: Jules
+Task: Contas Correntes Fornecedores e Hardening CSRF
+Work Log:
+- Implementada a página de Contas Correntes de Fornecedores (`src/app/fornecedores/contas-correntes/page.tsx`) para gestão de saldos devedores.
+- Criada API `/api/fornecedores/contas-correntes` para cálculo em memória de saldos (Total Faturado - Total Pago).
+- Reforçada a proteção CSRF no Middleware (`src/middleware.ts`) com validação rigorosa de `Origin` e `Referer` contra o `Host`.
+- Adicionado Rate Limiting à rota de registo (`src/app/api/auth/register/route.ts`).
+- Sincronizado o `todolist.md` seguindo rigorosamente as regras de manutenção de histórico.
+Stage Summary:
+- Melhoria na gestão financeira de compras e reforço da segurança global.
+
+---
+Task ID: 37
+Agent: Jules
+Task: Correção de CI e Migração Next.js 16
+Work Log:
+- Corrigida a falha de build causada por diretório mal nomeado (`\[id\]` em vez de `[id]`) em rotas de exportação de documentos.
+- Consolidada a lógica de exportação UBL em `/api/documentos/[id]/export/ubl` com suporte a Multi-tenancy.
+- Migrado o Middleware global de `middleware.ts` para `proxy.ts` seguindo a nova convenção do Next.js 16 (Turbopack).
+- Verificado que o build e lint passam localmente com sucesso.
+Stage Summary:
+- Estabilidade do pipeline de CI restabelecida e conformidade com Next.js 16.
 Task: Correção de Erro de Build e Migração de Middleware (Next.js 16)
 Work Log:
 - Corrigido erro crítico de build `PageNotFoundError` causado por diretório malformado `\[id\]` em `src/app/api/documentos`.

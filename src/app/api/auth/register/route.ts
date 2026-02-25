@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { criarUtilizador } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
@@ -10,6 +11,14 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Nome, email e password são obrigatórios." },
         { status: 400 }
+      );
+    }
+
+    // Rate limiting: max 3 registos por IP a cada hora
+    if (!rateLimit(`register:ip`, 3, 60 * 60 * 1000)) {
+      return NextResponse.json(
+        { error: "Demasiadas tentativas de registo. Por favor, tente mais tarde." },
+        { status: 429 }
       );
     }
 
