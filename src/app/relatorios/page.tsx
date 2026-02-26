@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileDown, Table as TableIcon, Calendar, Loader2 } from "lucide-react";
+import { FileDown, Table as TableIcon, Calendar, Loader2, Package } from "lucide-react";
 import { toast } from "sonner";
 
 export default function RelatoriosPage() {
@@ -15,26 +15,36 @@ export default function RelatoriosPage() {
     fim: "",
   });
 
-  const handleExport = async (formato: "xlsx" | "csv") => {
+  const handleExport = async (tipo: "vendas" | "stock", formato: "xlsx" | "csv" = "xlsx") => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        inicio: datas.inicio,
-        fim: datas.fim,
-        formato: formato,
-      });
+      let fetchUrl = "";
+      let filename = "";
 
-      const res = await fetch(`/api/relatorios/exportar?${params.toString()}`);
+      if (tipo === "vendas") {
+        const params = new URLSearchParams({
+          inicio: datas.inicio,
+          fim: datas.fim,
+          formato: formato,
+        });
+        fetchUrl = `/api/relatorios/exportar?${params.toString()}`;
+        filename = `relatorio-vendas.${formato}`;
+      } else if (tipo === "stock") {
+        fetchUrl = `/api/relatorios/stock`;
+        filename = `mapa-de-stocks.xlsx`;
+      }
+
+      const res = await fetch(fetchUrl);
       if (!res.ok) throw new Error("Erro ao gerar ficheiro");
 
       const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
+      const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = `relatorio-vendas.${formato}`;
+      a.href = downloadUrl;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(downloadUrl);
       toast.success(`Relatório ${formato.toUpperCase()} gerado!`);
     } catch (error) {
       console.error(error);
@@ -84,7 +94,7 @@ export default function RelatoriosPage() {
               <Button
                 className="flex-1"
                 variant="outline"
-                onClick={() => handleExport("xlsx")}
+                onClick={() => handleExport("vendas", "xlsx")}
                 disabled={loading}
               >
                 {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileDown className="h-4 w-4 mr-2" />}
@@ -93,13 +103,38 @@ export default function RelatoriosPage() {
               <Button
                 className="flex-1"
                 variant="outline"
-                onClick={() => handleExport("csv")}
+                onClick={() => handleExport("vendas", "csv")}
                 disabled={loading}
               >
                 <FileDown className="h-4 w-4 mr-2" />
                 Exportar CSV
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-blue-600" />
+              Inventário e Stocks
+            </CardTitle>
+            <CardDescription>Exportar mapa de stock atual por armazém</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-slate-500">
+              Este relatório gera um ficheiro Excel com todos os artigos que possuem controlo de stock,
+              listando a quantidade atual, reservada e disponível em cada armazém.
+            </p>
+            <Button
+              className="w-full"
+              variant="outline"
+              onClick={() => handleExport("stock")}
+              disabled={loading}
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              Exportar Mapa de Stocks (Excel)
+            </Button>
           </CardContent>
         </Card>
 
@@ -111,9 +146,6 @@ export default function RelatoriosPage() {
             <ul className="space-y-2">
               <li className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" /> Resumo de IVA trimestral
-              </li>
-              <li className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" /> Mapa de Stocks por Armazém
               </li>
               <li className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" /> Rentabilidade por Artigo

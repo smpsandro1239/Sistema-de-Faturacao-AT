@@ -49,6 +49,7 @@ import {
   Printer,
   CreditCard,
   Trash2,
+  Download,
   MoreHorizontal,
   Loader2,
   AlertCircle,
@@ -240,6 +241,28 @@ export default function DocumentosPage() {
     setFormLinhas(novas);
   };
 
+  const handleDownload = async (doc: Documento) => {
+    try {
+      toast.loading("A gerar PDF...");
+      const res = await fetch(`/api/documentos/${doc.id}/download`);
+      if (!res.ok) throw new Error("Erro ao descarregar");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${doc.numeroFormatado.replace(/\//g, "-")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.dismiss();
+      toast.success("PDF descarregado com sucesso");
+    } catch (error) {
+      toast.dismiss();
+      toast.error("Erro ao descarregar PDF");
+    }
+  };
+
   const handlePagamento = async () => {
     if (!selectedDoc) return;
     setSaving(true);
@@ -340,6 +363,9 @@ export default function DocumentosPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
                             <Link href={`/documentos/${doc.id}`}><Eye className="w-4 h-4 mr-2" /> Ver / Imprimir</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownload(doc)}>
+                            <Download className="w-4 h-4 mr-2" /> Descarregar PDF
                           </DropdownMenuItem>
                           {doc.estado === "RASCUNHO" && (
                             <DropdownMenuItem onClick={() => handleEmitir(doc.id)} className="text-emerald-600 font-bold">

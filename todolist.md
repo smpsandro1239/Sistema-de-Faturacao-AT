@@ -2,7 +2,7 @@
 
 **Legenda:** `[x]` Concluído | `[ ]` Pendente
 
-**Progresso Total:** ~97% (fiscal ~98%, comercial ~97%)
+**Progresso Total:** ~98% (fiscal ~98%, comercial ~97%)
 *Nota: FASE A concluída. Suporte multi-empresa, RBAC, Fiscal 2027 e Reserva de Stock integrados.*
 
 **Última atualização:** 25-02-2026
@@ -115,26 +115,26 @@
 - [x] Reconciliação bancária básica
 **Legenda:** [x] Concluído | [ ] Pendente
 
-**Progresso Total:** ~75% (fiscal ~95%, comercial ~45%)
+**Progresso Total:** ~76% (fiscal ~95%, comercial ~48%)
 
 **Última atualização:** 25-02-2026
 **Versão do projeto:** 1.0.0-beta
 
 🔴 OPORTUNIDADES DE DESTAQUE VS CONCORRENTES (2026 – onde Moloni/Vendus/InvoiceXpress/PHC GO/Jasmin ganham)
-- POS móvel/retalho/restauração (Vendus forte em mesas/pedidos, Moloni apps Android/iOS)
-- Gestão avançada de stocks: múltiplos armazéns + transferências + alertas reais + leitura código barras (Moloni/PHC GO)
-- Integrações e-commerce diretas/plugins (WooCommerce/Shopify – Moloni/Jasmin)
-- Faturação recorrente + envio email automático/templates personalizáveis (InvoiceXpress/Moloni)
-- Portal do cliente com histórico + download PDF + pagamento online (InvoiceXpress)
-- API pública + webhooks para automações externas (Moloni/InvoiceXpress)
+- [ ] POS móvel/retalho/restauração (Vendus forte em mesas/pedidos, Moloni apps Android/iOS)
+- [ ] Gestão avançada de stocks: múltiplos armazéns + transferências + alertas reais + leitura código barras (Moloni/PHC GO)
+- [ ] Integrações e-commerce diretas/plugins (WooCommerce/Shopify – Moloni/Jasmin)
+- [x] Faturação recorrente + envio email automático/templates personalizáveis (InvoiceXpress/Moloni)
+- [x] Portal do cliente com histórico + download PDF + pagamento online (InvoiceXpress)
+- [ ] API pública + webhooks para automações externas (Moloni/InvoiceXpress)
 - [x] Contas correntes clientes/fornecedores + tesouraria básica (PHC GO)
 
 🔴 PRIORIDADE CRÍTICA (Requisitos Fiscais AT + funcionalidades sem as quais quase ninguém adota in 2026)
 5.2 Validação SAF-T
  [x] Validar XML SAF-T contra XSD oficial da AT
  [x] Testar SAF-T com validador oficial da AT (instruções adicionadas)
-- Preparar suporte futuro para Assinatura Digital Qualificada (ADQ) nas faturas (obrigatório provável a partir de 2027/2028)
-- Preparar suporte CIUS-PT / Faturação Eletrónica Estruturada B2G (obrigatório progressivo a partir de 2027)
+- [ ] Preparar suporte futuro para Assinatura Digital Qualificada (ADQ) nas faturas (obrigatório provável a partir de 2027/2028)
+- [ ] Preparar suporte CIUS-PT / Faturação Eletrónica Estruturada B2G (obrigatório progressivo a partir de 2027)
 
 6.2 Segurança
  [x] Implementar gestão de sessões com JWT (jose library)
@@ -143,12 +143,12 @@
 
 🟠 PRIORIDADE ALTA (Funcionalidades Essenciais / Comerciais – as que mais diferenciam)
 7.2 Exportação
- [ ] Exportar documento para PDF (melhorar layout atual + opção de download direto)
- [ ] Enviar documento por email (automático na emissão + manual + templates personalizáveis como InvoiceXpress/Moloni)
+ [x] Exportar documento para PDF (melhorar layout atual + opção de download direto)
+ [x] Enviar documento por email (automático na emissão + manual + templates personalizáveis como InvoiceXpress/Moloni)
 
 9.2 Funcionalidades
- [ ] Gráficos de vendas no dashboard (Recharts ou Tremor – mensal, por cliente, por artigo)
- [ ] Exportação de relatórios (PDF / Excel / CSV – vendas, IVA, stock, contas)
+ [x] Gráficos de vendas no dashboard (Recharts ou Tremor – mensal, por cliente, por artigo)
+ [x] Exportação de relatórios (PDF / Excel / CSV – vendas, IVA, stock, contas)
 
 Novas – Gestão Comercial Completa (essencial para PMEs reais)
 - Gestão de Stocks / Inventário
@@ -156,7 +156,7 @@ Novas – Gestão Comercial Completa (essencial para PMEs reais)
   - [ ] Suporte a múltiplos armazéns + transferências entre armazéns (como Moloni)
   - [ ] Stock atual, mínimo e máximo por artigo/armazém
   - [ ] Movimentos automáticos (saída na fatura/NC, entrada em receção de compras)
-  - [ ] Alertas de stock baixo (dashboard + email opcional)
+  - [x] Alertas de stock baixo (dashboard + email opcional)
   - [ ] Histórico de movimentos + CRUD manual + leitura código barras opcional
 - Gestão de Fornecedores + Compras
   - [ ] CRUD Fornecedores (semelhante a Clientes: NIF, morada, contactos, IBAN)
@@ -223,7 +223,7 @@ Novas – Gestão Comercial Completa (essencial para PMEs reais)
 | Área | Pendentes | Concluídas | Progresso aproximado |
 |------|-----------|------------|---------------------|
 | Requisitos Fiscais AT | 2 | 15+ | ~95% |
-| Funcionalidades Comerciais | 17+ | 13+ | ~45% |
+| Funcionalidades Comerciais | 17+ | 18+ | ~48% |
 | Segurança | 0 | 7 | ~100% |
 | Frontend | 4 | 16 | ~80% |
 | Backend | 8 | 32 | ~80% |

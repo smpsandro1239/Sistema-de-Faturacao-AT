@@ -364,7 +364,7 @@ export async function entradaStockRececao(params: {
 /**
  * Obter artigos com stock baixo
  */
-export async function obterArtigosStockBaixo(): Promise<{
+export async function obterArtigosStockBaixo(empresaId?: string): Promise<{
   artigoId: string;
   artigoCodigo: string;
   artigoDescricao: string;
@@ -376,6 +376,10 @@ export async function obterArtigosStockBaixo(): Promise<{
   const stocks = await db.artigoArmazemStock.findMany({
     where: {
       quantidade: { gt: 0 }, // Apenas artigos com stock
+      ...(empresaId && {
+        artigo: { empresaId },
+        armazem: { empresaId },
+      }),
     },
     include: {
       artigo: {
