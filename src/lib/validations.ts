@@ -25,3 +25,23 @@ export const articleSchema = z.object({
   isencaoId: z.string().optional().nullable(),
   observacoes: z.string().optional().nullable(),
 });
+
+export const documentLineSchema = z.object({
+  artigoId: z.string().optional().nullable(),
+  codigoArtigo: z.string().optional(),
+  descricaoArtigo: z.string().optional(),
+  quantidade: z.number().positive(),
+  precoUnitario: z.number().nonnegative(),
+  desconto: z.number().nonnegative().optional().default(0),
+  taxaIVAId: z.string().min(1),
+  taxaIVAPercentagem: z.number().nonnegative(),
+});
+
+export const documentCreateSchema = z.object({
+  serieId: z.string().min(1),
+  clienteId: z.string().min(1),
+  tipo: z.enum(["FATURA", "FATURA_RECIBO", "NOTA_CREDITO", "NOTA_DEBITO", "RECIBO", "GUIA_REMESSA", "GUIA_TRANSPORTE", "FATURA_PROFORMA"]),
+  linhas: z.array(documentLineSchema).min(1),
+  observacoes: z.string().optional().nullable(),
+  metodoPagamento: z.string().optional().nullable(),
+});
