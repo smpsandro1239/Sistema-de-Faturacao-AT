@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { createHmac } from "crypto";
 
 /**
  * Dispara webhooks para um determinado evento
@@ -22,18 +23,28 @@ export async function fireWebhooks(evento: string, payload: any) {
 
     const promises = webhooks.map(async (webhook) => {
       try {
+        const body = JSON.stringify({
+          timestamp: new Date().toISOString(),
+          evento,
+          data: payload
+        });
+
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+          "x-webhook-event": evento,
+        };
+
+        if (webhook.secreto) {
+          const signature = createHmac("sha256", webhook.secreto)
+            .update(body)
+            .digest("hex");
+          headers["x-webhook-signature"] = `sha256=${signature}`;
+        }
+
         const response = await fetch(webhook.url, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-webhook-event": evento,
-            ...(webhook.secreto && { "x-webhook-signature": "sha256=..." }) // TODO: Implement signature
-          },
-          body: JSON.stringify({
-            timestamp: new Date().toISOString(),
-            evento,
-            data: payload
-          })
+          headers,
+          body
         });
 
         if (!response.ok) {

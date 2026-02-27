@@ -619,3 +619,16 @@ Work Log:
 Stage Summary:
 - Melhoria significativa na produtividade comercial e na comunicação com clientes/gestores.
 - Relatórios de inventário automatizados e exportáveis.
+
+---
+Task ID: 39
+Agent: Jules
+Task: Expansão da API Pública e Segurança de Webhooks
+Work Log:
+- Expandida a API Pública (v1) para suportar a criação de documentos (`POST /api/v1/documentos`) e consulta de detalhes (`GET /api/v1/documentos/[id]`).
+- Adicionados endpoints de suporte à API v1: Listagem de Séries (`/api/v1/series`) e Taxas de IVA (`/api/v1/taxas-iva`).
+- Implementada assinatura de segurança HMAC-SHA256 para webhooks: os payloads enviados são agora assinados com o segredo da empresa, garantindo a autenticidade perante os sistemas integradores.
+- Reforçado o isolamento multi-empresa em todos os novos endpoints da API v1.
+Stage Summary:
+- Conectividade externa profissional e segura com suporte total para automação de faturação.
+- Webhooks agora seguem as melhores práticas de segurança de mercado.

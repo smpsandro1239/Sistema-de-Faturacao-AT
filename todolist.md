@@ -2,10 +2,10 @@
 
 **Legenda:** `[x]` Concluído | `[ ]` Pendente
 
-**Progresso Total:** ~98% (fiscal ~98%, comercial ~97%)
-*Nota: FASE A concluída. Suporte multi-empresa, RBAC, Fiscal 2027 e Reserva de Stock integrados.*
+**Progresso Total:** ~80% (fiscal ~97%, comercial ~55%)
+*Nota: Fase de expansão comercial e API pública segura com conformidade fiscal AT.*
 
-**Última atualização:** 25-02-2026
+**Última atualização:** 26-02-2026
 **Versão do projeto:** 1.8.1-beta
 
 ---
@@ -115,7 +115,7 @@
 - [x] Reconciliação bancária básica
 **Legenda:** [x] Concluído | [ ] Pendente
 
-**Progresso Total:** ~76% (fiscal ~95%, comercial ~48%)
+**Progresso Total:** ~80% (fiscal ~95%, comercial ~55%)
 
 **Última atualização:** 25-02-2026
 **Versão do projeto:** 1.0.0-beta
@@ -126,7 +126,7 @@
 - [ ] Integrações e-commerce diretas/plugins (WooCommerce/Shopify – Moloni/Jasmin)
 - [x] Faturação recorrente + envio email automático/templates personalizáveis (InvoiceXpress/Moloni)
 - [x] Portal do cliente com histórico + download PDF + pagamento online (InvoiceXpress)
-- [ ] API pública + webhooks para automações externas (Moloni/InvoiceXpress)
+- [x] API pública + webhooks para automações externas (Moloni/InvoiceXpress)
 - [x] Contas correntes clientes/fornecedores + tesouraria básica (PHC GO)
 
 🔴 PRIORIDADE CRÍTICA (Requisitos Fiscais AT + funcionalidades sem as quais quase ninguém adota in 2026)
@@ -194,8 +194,8 @@ Novas – Gestão Comercial Completa (essencial para PMEs reais)
 - Permissões Granulares (RBAC avançado)
   - [ ] Controlar acesso por módulo (ver/criar/editar/emitir/anular)
 - API Pública + Webhooks (oportunidade Moloni/InvoiceXpress)
-  - [ ] Endpoints para clientes/artigos/documentos
-  - [ ] Webhooks para eventos (emitido, pago)
+  - [x] Endpoints para clientes/artigos/documentos (v1 completa)
+  - [x] Webhooks para eventos (emitido, pago com assinatura HMAC)
 
 9.3 Performance
  [ ] Implementar caching com Redis/Memory
