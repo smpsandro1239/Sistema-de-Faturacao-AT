@@ -6,7 +6,7 @@
 import { SignJWT, jwtVerify, decodeJwt } from 'jose';
 
 // Segredo para assinatura dos tokens (em produção deve ser uma variável de ambiente)
-const JWT_SECRET = process.env.JWT_SECRET || 'faturaat-jwt-secret-key-2024-super-secure';
+const JWT_SECRET = process.env.JWT_SECRET || 'faturaat-secret-key-change-in-production-2024';
 const SECRET_KEY = new TextEncoder().encode(JWT_SECRET);
 
 // Configurações do token

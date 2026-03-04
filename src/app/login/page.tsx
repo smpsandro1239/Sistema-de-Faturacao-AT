@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,8 @@ import {
   Mail, 
   Lock, 
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Database
 } from "lucide-react";
 
 export default function LoginPage() {
@@ -22,6 +23,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [dbStatus, setDbStatus] = useState<{ hasData: boolean; status: string } | null>(null);
+
+  useEffect(() => {
+    // Verificar estado da BD ao carregar a página
+    fetch("/api/seed")
+      .then(res => res.json())
+      .then(data => setDbStatus(data))
+      .catch(() => setDbStatus({ hasData: false, status: "error" }));
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +61,22 @@ export default function LoginPage() {
     }
   };
 
+  const handleSeed = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/seed", { method: "POST" });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        setError("Erro ao inicializar base de dados.");
+      }
+    } catch {
+      setError("Erro ao contactar servidor de seed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -66,6 +92,24 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {dbStatus && !dbStatus.hasData && (
+            <Alert className="mb-4 bg-amber-50 border-amber-200 text-amber-800">
+              <Database className="h-4 w-4" />
+              <AlertDescription className="flex flex-col gap-2">
+                <span>A base de dados parece estar vazia.</span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-amber-100 border-amber-300 hover:bg-amber-200"
+                  onClick={handleSeed}
+                  disabled={loading}
+                >
+                  Inicializar Dados de Teste
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleLogin} className="space-y-4">
             {error && (
               <Alert variant="destructive">
@@ -114,7 +158,7 @@ export default function LoginPage() {
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  A entrar...
+                  A processar...
                 </>
               ) : (
                 "Entrar"
