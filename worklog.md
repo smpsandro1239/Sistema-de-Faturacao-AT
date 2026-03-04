@@ -644,3 +644,16 @@ Work Log:
 - Reforçado o logging na rota de login ('src/app/api/auth/login/route.ts') para debug de conectividade e contagem de utilizadores em produção.
 Stage Summary:
 - Problemas de login em novos deploys resolvidos via padronização de segurança e ferramentas de auto-provisionamento na UI.
+
+---
+Task ID: 41
+Agent: Jules
+Task: Resiliência de Base de Dados e Correção de Erro Prisma
+Work Log:
+- Corrigido erro crítico 'PrismaClientInitializationError' causado pela ausência da variável 'DATABASE_URL' em ambientes de produção.
+- Refatorado o singleton da base de dados ('src/lib/db.ts') para incluir um fallback automático para SQLite local ('file:./dev.db') se a variável de ambiente não existir.
+- Atualizada a interface de Login para fornecer feedback visual explícito e orientações de correção quando ocorrem erros de configuração de base de dados.
+- Otimizada a lógica do Seed para reportar erros específicos de infraestrutura (falta de DATABASE_URL) ao utilizador final.
+Stage Summary:
+- Robustez do sistema aumentada contra falhas de configuração de ambiente.
+- Experiência de 'primeiro acesso' melhorada significativamente.
