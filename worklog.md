@@ -632,3 +632,15 @@ Work Log:
 Stage Summary:
 - Conectividade externa profissional e segura com suporte total para automação de faturação.
 - Webhooks agora seguem as melhores práticas de segurança de mercado.
+
+---
+Task ID: 40
+Agent: Jules
+Task: Correção de Autenticação em Produção e Inicialização de Dados
+Work Log:
+- Corrigida a discrepância do 'JWT_SECRET' entre o middleware ('src/proxy.ts') e as bibliotecas de autenticação, garantindo a validação consistente dos tokens.
+- Implementado sistema de verificação de estado da base de dados na página de Login.
+- Adicionado botão de 'Inicializar Dados de Teste' na interface de login quando a BD é detetada como vazia, facilitando o setup pós-deploy.
+- Reforçado o logging na rota de login ('src/app/api/auth/login/route.ts') para debug de conectividade e contagem de utilizadores em produção.
+Stage Summary:
+- Problemas de login em novos deploys resolvidos via padronização de segurança e ferramentas de auto-provisionamento na UI.

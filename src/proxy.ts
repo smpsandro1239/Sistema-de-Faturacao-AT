@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || "faturaat-secret-key-change-in-production-2024";
 if (!JWT_SECRET) {
   console.warn("Aviso: JWT_SECRET não configurado nas variáveis de ambiente.");
 }

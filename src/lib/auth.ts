@@ -4,7 +4,8 @@ import { db } from "@/lib/db";
 import { cookies } from "next/headers";
 
 const SALT_ROUNDS = 12;
-const JWT_SECRET = process.env.JWT_SECRET || "faturaat-secret-key-change-in-production";
+const DEFAULT_SECRET = "faturaat-secret-key-change-in-production-2024";
+const JWT_SECRET = process.env.JWT_SECRET || DEFAULT_SECRET;
 const SECRET_KEY = new TextEncoder().encode(JWT_SECRET);
 
 // Configurações JWT
@@ -211,6 +212,7 @@ export async function authenticateUser(email: string, password: string): Promise
     nome: string;
     email: string;
     perfil: string;
+    empresaId?: string;
   };
   token: string;
 } | null> {
@@ -239,7 +241,7 @@ export async function authenticateUser(email: string, password: string): Promise
     email: utilizador.email,
     nome: utilizador.nome,
     perfil: utilizador.perfil,
-    empresaId: utilizador.empresaId,
+    empresaId: utilizador.empresaId || undefined,
   };
 
   const token = await generateToken(payload);
@@ -250,7 +252,7 @@ export async function authenticateUser(email: string, password: string): Promise
       nome: utilizador.nome,
       email: utilizador.email,
       perfil: utilizador.perfil,
-      empresaId: utilizador.empresaId,
+      empresaId: utilizador.empresaId || undefined,
     },
     token,
   };
