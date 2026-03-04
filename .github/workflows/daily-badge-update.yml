@@ -1,0 +1,19 @@
+name: Daily Badge Update
+on:
+  schedule:
+    - cron: '0 0 * * *'  # todos os dias à meia-noite UTC
+jobs:
+  update-badges:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure Git
+        run: |
+          git config user.name 'Sandro Pereira'
+          git config user.email 'sandro.pereira@exemplo.pt'
+      - name: Update badge file
+        run: |
+          echo "# Badge" > badge-update.log
+          git add badge-update.log
+          git diff-index --quiet HEAD || git commit -m 'chore: update daily badge - Sandro Pereira'
+          git push origin main
