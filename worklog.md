@@ -707,3 +707,16 @@ Work Log:
 - Verificado fluxo completo de UI (Login -> Registo) via scripts Playwright.
 Stage Summary:
 - Sistema agora suporta onboarding completo de novas empresas de forma segura e transacional.
+
+---
+Task ID: 46
+Agent: Jules
+Task: Migração para PostgreSQL para Persistência em Produção (Vercel)
+Work Log:
+- Atualizado 'prisma/schema.prisma' para usar o provider 'postgresql', permitindo persistência real em Vercel/Render.
+- Criada nova instância PostgreSQL no Render ('fatura-at-prod-db') para servir como base de dados de produção.
+- Simplificado 'src/lib/db.ts' para priorizar 'DATABASE_URL' e remover fallbacks de SQLite voláteis em produção.
+- Refinada a API de Seed e Registo para fornecer diagnósticos claros sobre sincronização de schema PostgreSQL.
+- Sincronizado o cliente Prisma localmente para PostgreSQL.
+Stage Summary:
+- Aplicação agora está pronta para usar base de dados relacional persistente, resolvendo o problema de perda de dados e falta de tabelas no Vercel.
