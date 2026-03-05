@@ -32,28 +32,41 @@ export async function POST(request: Request) {
 
     const { empresa, admin } = validated.data;
 
-    // Verificar se NIF já existe
-    const empresaExistente = await db.empresa.findUnique({
-      where: { nif: empresa.nif },
-    });
+    try {
+      // Verificar se NIF já existe
+      const empresaExistente = await db.empresa.findUnique({
+        where: { nif: empresa.nif },
+      });
 
-    if (empresaExistente) {
-      return NextResponse.json(
-        { error: "Já existe uma empresa registada com este NIF." },
-        { status: 400 }
-      );
-    }
+      if (empresaExistente) {
+        return NextResponse.json(
+          { error: "Já existe uma empresa registada com este NIF." },
+          { status: 400 }
+        );
+      }
 
-    // Verificar se Email já existe
-    const utilizadorExistente = await db.utilizador.findUnique({
-      where: { email: admin.email },
-    });
+      // Verificar se Email já existe
+      const utilizadorExistente = await db.utilizador.findUnique({
+        where: { email: admin.email },
+      });
 
-    if (utilizadorExistente) {
-      return NextResponse.json(
-        { error: "Já existe um utilizador registado com este email." },
-        { status: 400 }
-      );
+      if (utilizadorExistente) {
+        return NextResponse.json(
+          { error: "Já existe um utilizador registado com este email." },
+          { status: 400 }
+        );
+      }
+    } catch (dbError: any) {
+      if (dbError.message.includes("does not exist") || dbError.message.includes("no such table")) {
+        return NextResponse.json(
+          {
+            error: "A base de dados não está inicializada.",
+            details: "As tabelas não existem. Por favor, vá à página de Login e use o botão de inicialização (Seed)."
+          },
+          { status: 500 }
+        );
+      }
+      throw dbError;
     }
 
     const passwordHash = await hashPassword(admin.password);
@@ -83,11 +96,6 @@ export async function POST(request: Request) {
         },
       });
 
-      // 3. Criar Taxas de IVA padrão para a empresa (Opcional mas recomendado)
-      // Note: createMany might have limitations in some SQLite environments,
-      // but Prisma should handle it if it's within the same transaction.
-      // We'll create them individually for safety in all environments.
-
       const taxas = [
         { codigo: "NOR", descricao: "Taxa Normal (23%)", percentagem: 23, empresaId: novaEmpresa.id },
         { codigo: "INT", descricao: "Taxa Intermédia (13%)", percentagem: 13, empresaId: novaEmpresa.id },
@@ -108,7 +116,7 @@ export async function POST(request: Request) {
       message: "Organização criada com sucesso.",
     }, { status: 201 });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro no registo de organização:", error);
     return NextResponse.json(
       { error: "Ocorreu um erro ao processar o registo. Por favor, tente novamente." },

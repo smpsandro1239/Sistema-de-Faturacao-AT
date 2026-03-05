@@ -114,8 +114,8 @@ export default function LoginPage() {
               <AlertDescription className="font-medium">
                 {dbStatus.error}
                 <div className="mt-2 text-xs opacity-80">
-                  {dbStatus.error.includes("Unable to open")
-                    ? "SQLite indisponível (Serverless Read-only). Recomendado usar PostgreSQL (Neon/Supabase) nas variáveis de ambiente."
+                  {dbStatus.error.includes("Unable to open") || dbStatus.error.includes("sem tabelas")
+                    ? "A base de dados não está inicializada ou é read-only. Recomendado usar PostgreSQL (Neon/Supabase) nas variáveis de ambiente."
                     : "Verifique a variável DATABASE_URL nas configurações do seu projeto."}
                 </div>
               </AlertDescription>
