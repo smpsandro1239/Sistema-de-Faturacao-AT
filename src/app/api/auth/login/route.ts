@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     const { email, password } = validation.data;
 
-    // Rate limiting: max 5 tentativas por email a cada 15 minutos
+    // Rate limiting
     if (email && !rateLimit(`login:${email}`, 5, 15 * 60 * 1000)) {
       return NextResponse.json(
         { error: "Demasiadas tentativas de login. Por favor, aguarde 15 minutos." },
@@ -28,26 +28,46 @@ export async function POST(request: Request) {
       );
     }
 
-    // Logging para debug em produção
-    console.log(`Tentativa de login para: ${email}`);
+    console.log(`[LOGIN] Tentativa para: ${email}`);
 
-    // Verificar se existem utilizadores na BD
-    const count = await db.utilizador.count();
-    console.log(`Total de utilizadores na BD: ${count}`);
+    // Testar ligação à BD e verificar se está inicializada
+    let count = 0;
+    try {
+      count = await db.utilizador.count();
+      console.log(`[LOGIN] Utilizadores detetados: ${count}`);
+    } catch (dbError: any) {
+      console.error("[LOGIN] Erro de Base de Dados:", dbError);
 
-    const result = await authenticateUser(email, password);
+      let errorMsg = "A base de dados não está acessível.";
+      if (dbError.message?.includes("DATABASE_URL")) {
+        errorMsg = "Configuração em falta: Variável DATABASE_URL não definida.";
+      } else if (dbError.message?.includes("table") || dbError.message?.includes("relation")) {
+        errorMsg = "As tabelas não foram criadas. Execute 'npx prisma db push'.";
+      }
 
-    if (!result) {
-      console.warn(`Falha na autenticação para: ${email}`);
       return NextResponse.json(
-        { error: "Credenciais inválidas." },
+        { error: errorMsg, details: dbError.message },
+        { status: 500 }
+      );
+    }
+
+    if (count === 0) {
+      return NextResponse.json(
+        { error: "Sistema não inicializado. Clique em 'INICIALIZAR DADOS DEMO' acima." },
         { status: 401 }
       );
     }
 
-    console.log(`Login bem-sucedido para: ${email}`);
+    const result = await authenticateUser(email, password);
 
-    // Definir cookie de sessão com JWT
+    if (!result) {
+      return NextResponse.json(
+        { error: "Email ou password incorretos." },
+        { status: 401 }
+      );
+    }
+
+    // Definir cookie de sessão
     await setSessionCookie(result.token);
 
     return NextResponse.json({
@@ -55,10 +75,10 @@ export async function POST(request: Request) {
       utilizador: result.user,
       token: result.token,
     });
-  } catch (error) {
-    console.error("Erro no login:", error);
+  } catch (error: any) {
+    console.error("[LOGIN] Erro crítico:", error);
     return NextResponse.json(
-      { error: "Erro ao processar login na base de dados. Verifique a ligação." },
+      { error: "Erro interno no servidor de autenticação." },
       { status: 500 }
     );
   }

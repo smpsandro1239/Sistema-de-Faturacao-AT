@@ -657,3 +657,15 @@ Work Log:
 Stage Summary:
 - Robustez do sistema aumentada contra falhas de configuração de ambiente.
 - Experiência de 'primeiro acesso' melhorada significativamente.
+
+---
+Task ID: 42
+Agent: Jules
+Task: Fix Crítico de Inicialização Prisma e UX de Onboarding
+Work Log:
+- Resolvido o erro 'PrismaClientInitializationError: Environment variable not found: DATABASE_URL' através de um refactor no singleton da base de dados ('src/lib/db.ts') que agora injeta dinamicamente a URL ou usa um fallback seguro para SQLite.
+- Refinado o design da página de Login com feedback visual de alta qualidade para estados de erro de configuração e base de dados vazia.
+- Padronizada a segurança JWT em todos os módulos core para evitar falhas de verificação de sessão em novos deploys.
+- Verificado via Playwright que a interface de erro e o botão de inicialização estão plenamente funcionais.
+Stage Summary:
+- Sistema agora é 'zero-config' para demos rápidas e fornece diagnósticos claros para falhas de infraestrutura.
