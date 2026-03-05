@@ -669,3 +669,15 @@ Work Log:
 - Verificado via Playwright que a interface de erro e o botão de inicialização estão plenamente funcionais.
 Stage Summary:
 - Sistema agora é 'zero-config' para demos rápidas e fornece diagnósticos claros para falhas de infraestrutura.
+
+---
+Task ID: 43
+Agent: Jules
+Task: Fix de Infraestrutura Vercel e SQLite Read-only
+Work Log:
+- Modificado 'prisma/schema.prisma' para usar um caminho SQLite fixo como default, evitando erros de 'Environment variable not found' durante o build do Prisma Client no Vercel.
+- Refatorado o singleton da base de dados ('src/lib/db.ts') para usar o diretório '/tmp/' do Vercel quando a 'DATABASE_URL' não está presente, mitigando erros de permissão de escrita.
+- Implementada lógica de deteção de 'Filesystem Read-only' nas rotas de Login e Seed, fornecendo instruções claras ao utilizador sobre a necessidade de usar uma base de dados externa (Postgres) para persistência real no Vercel.
+- Melhorada a resiliência do Seed API para lidar com erros de abertura de ficheiro e falta de tabelas.
+Stage Summary:
+- Aplicação agora lida com limitações de infraestrutura serverless (Vercel) de forma graciosa e informativa.

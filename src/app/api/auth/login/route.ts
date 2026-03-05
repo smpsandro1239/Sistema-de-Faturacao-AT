@@ -28,33 +28,32 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log(`[LOGIN] Tentativa para: ${email}`);
-
-    // Testar ligação à BD e verificar se está inicializada
-    let count = 0;
+    // Diagnóstico de Base de Dados
     try {
-      count = await db.utilizador.count();
-      console.log(`[LOGIN] Utilizadores detetados: ${count}`);
-    } catch (dbError: any) {
-      console.error("[LOGIN] Erro de Base de Dados:", dbError);
+      const count = await db.utilizador.count();
 
-      let errorMsg = "A base de dados não está acessível.";
-      if (dbError.message?.includes("DATABASE_URL")) {
-        errorMsg = "Configuração em falta: Variável DATABASE_URL não definida.";
+      if (count === 0) {
+        return NextResponse.json(
+          { error: "O sistema não tem utilizadores. Por favor, utilize o botão 'INICIALIZAR DADOS DEMO' acima." },
+          { status: 401 }
+        );
+      }
+    } catch (dbError: any) {
+      console.error("[LOGIN] Erro DB:", dbError);
+
+      let friendlyError = "Erro ao contactar a base de dados.";
+
+      if (dbError.message?.includes("Unable to open the database file")) {
+        friendlyError = "Erro de escrita no servidor (Filesystem Read-only). É recomendável configurar uma base de dados externa (PostgreSQL) na Vercel.";
+      } else if (dbError.message?.includes("DATABASE_URL")) {
+        friendlyError = "Variável DATABASE_URL não configurada ou inválida.";
       } else if (dbError.message?.includes("table") || dbError.message?.includes("relation")) {
-        errorMsg = "As tabelas não foram criadas. Execute 'npx prisma db push'.";
+        friendlyError = "Estrutura de tabelas não encontrada. A base de dados precisa de ser sincronizada.";
       }
 
       return NextResponse.json(
-        { error: errorMsg, details: dbError.message },
+        { error: friendlyError, details: dbError.message },
         { status: 500 }
-      );
-    }
-
-    if (count === 0) {
-      return NextResponse.json(
-        { error: "Sistema não inicializado. Clique em 'INICIALIZAR DADOS DEMO' acima." },
-        { status: 401 }
       );
     }
 
@@ -67,7 +66,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Definir cookie de sessão
     await setSessionCookie(result.token);
 
     return NextResponse.json({
@@ -76,9 +74,9 @@ export async function POST(request: Request) {
       token: result.token,
     });
   } catch (error: any) {
-    console.error("[LOGIN] Erro crítico:", error);
+    console.error("[LOGIN] Erro Crítico:", error);
     return NextResponse.json(
-      { error: "Erro interno no servidor de autenticação." },
+      { error: "Erro interno no servidor." },
       { status: 500 }
     );
   }
