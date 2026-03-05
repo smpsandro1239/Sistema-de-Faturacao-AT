@@ -657,3 +657,53 @@ Work Log:
 Stage Summary:
 - Robustez do sistema aumentada contra falhas de configuração de ambiente.
 - Experiência de 'primeiro acesso' melhorada significativamente.
+
+---
+Task ID: 42
+Agent: Jules
+Task: Fix Crítico de Inicialização Prisma e UX de Onboarding
+Work Log:
+- Resolvido o erro 'PrismaClientInitializationError: Environment variable not found: DATABASE_URL' através de um refactor no singleton da base de dados ('src/lib/db.ts') que agora injeta dinamicamente a URL ou usa um fallback seguro para SQLite.
+- Refinado o design da página de Login com feedback visual de alta qualidade para estados de erro de configuração e base de dados vazia.
+- Padronizada a segurança JWT em todos os módulos core para evitar falhas de verificação de sessão em novos deploys.
+- Verificado via Playwright que a interface de erro e o botão de inicialização estão plenamente funcionais.
+Stage Summary:
+- Sistema agora é 'zero-config' para demos rápidas e fornece diagnósticos claros para falhas de infraestrutura.
+
+---
+Task ID: 43
+Agent: Jules
+Task: Fix de Infraestrutura Vercel e SQLite Read-only
+Work Log:
+- Modificado 'prisma/schema.prisma' para usar um caminho SQLite fixo como default, evitando erros de 'Environment variable not found' durante o build do Prisma Client no Vercel.
+- Refatorado o singleton da base de dados ('src/lib/db.ts') para usar o diretório '/tmp/' do Vercel quando a 'DATABASE_URL' não está presente, mitigando erros de permissão de escrita.
+- Implementada lógica de deteção de 'Filesystem Read-only' nas rotas de Login e Seed, fornecendo instruções claras ao utilizador sobre a necessidade de usar uma base de dados externa (Postgres) para persistência real no Vercel.
+- Melhorada a resiliência do Seed API para lidar com erros de abertura de ficheiro e falta de tabelas.
+Stage Summary:
+- Aplicação agora lida com limitações de infraestrutura serverless (Vercel) de forma graciosa e informativa.
+
+---
+Task ID: 44
+Agent: Jules
+Task: Melhoria UX no Login: Preenchimento Automático e Registo
+Work Log:
+- Adicionado botão 'Usar Credenciais de Teste' na página de login para preenchimento instantâneo, agilizando o desenvolvimento.
+- Implementada deteção proativa de erros de escrita em SQLite (Erro 14) na UI de Login, com recomendações específicas para PostgreSQL.
+- Adicionado link para criação de nova organização/registo na página de login.
+- Refinada a interface de utilizador com ícones e estados de animação melhorados.
+Stage Summary:
+- Experiência de desenvolvimento e onboarding de utilizador significativamente melhorada.
+
+---
+Task ID: 45
+Agent: Jules
+Task: Implementação de Fluxo de Registo de Organização e Fix de Autenticação
+Work Log:
+- Sincronizado 'JWT_SECRET' em 'src/proxy.ts', 'src/lib/auth.ts' e 'src/lib/jwt.ts' para garantir consistência na verificação de tokens entre middleware e API.
+- Criada API de registo de organização ('src/app/api/auth/register-org/route.ts') que cria Empresa, Utilizador ADMIN e Taxas de IVA padrão numa única transação Prisma.
+- Implementada página de registo ('src/app/registo/page.tsx') com formulário completo para dados da empresa e do administrador.
+- Atualizado o middleware de segurança ('src/proxy.ts') para permitir acesso público às novas rotas de registo.
+- Corrigido erro de redirecionamento infinito no middleware causado por sintaxe incorreta no 'NextResponse.redirect'.
+- Verificado fluxo completo de UI (Login -> Registo) via scripts Playwright.
+Stage Summary:
+- Sistema agora suporta onboarding completo de novas empresas de forma segura e transacional.

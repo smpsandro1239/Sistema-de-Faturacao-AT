@@ -5,7 +5,7 @@
 **Progresso Total:** ~80% (fiscal ~97%, comercial ~55%)
 *Nota: Fase de expansão comercial e API pública segura com conformidade fiscal AT.*
 
-**Última atualização: 04-03-2026
+**Última atualização: 2026-03-05
 **Versão do projeto:** 1.8.1-beta
 
 ---
@@ -117,7 +117,7 @@
 
 **Progresso Total:** ~80% (fiscal ~95%, comercial ~55%)
 
-**Última atualização: 04-03-2026
+**Última atualização: 2026-03-05
 **Versão do projeto:** 1.0.0-beta
 
 🔴 OPORTUNIDADES DE DESTAQUE VS CONCORRENTES (2026 – onde Moloni/Vendus/InvoiceXpress/PHC GO/Jasmin ganham)

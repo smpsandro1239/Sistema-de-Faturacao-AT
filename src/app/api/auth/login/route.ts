@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     const { email, password } = validation.data;
 
-    // Rate limiting: max 5 tentativas por email a cada 15 minutos
+    // Rate limiting
     if (email && !rateLimit(`login:${email}`, 5, 15 * 60 * 1000)) {
       return NextResponse.json(
         { error: "Demasiadas tentativas de login. Por favor, aguarde 15 minutos." },
@@ -28,26 +28,44 @@ export async function POST(request: Request) {
       );
     }
 
-    // Logging para debug em produção
-    console.log(`Tentativa de login para: ${email}`);
+    // Diagnóstico de Base de Dados
+    try {
+      const count = await db.utilizador.count();
 
-    // Verificar se existem utilizadores na BD
-    const count = await db.utilizador.count();
-    console.log(`Total de utilizadores na BD: ${count}`);
+      if (count === 0) {
+        return NextResponse.json(
+          { error: "O sistema não tem utilizadores. Por favor, utilize o botão 'INICIALIZAR DADOS DEMO' acima." },
+          { status: 401 }
+        );
+      }
+    } catch (dbError: any) {
+      console.error("[LOGIN] Erro DB:", dbError);
+
+      let friendlyError = "Erro ao contactar a base de dados.";
+
+      if (dbError.message?.includes("Unable to open the database file")) {
+        friendlyError = "Erro de escrita no servidor (Filesystem Read-only). É recomendável configurar uma base de dados externa (PostgreSQL) na Vercel.";
+      } else if (dbError.message?.includes("DATABASE_URL")) {
+        friendlyError = "Variável DATABASE_URL não configurada ou inválida.";
+      } else if (dbError.message?.includes("table") || dbError.message?.includes("relation")) {
+        friendlyError = "Estrutura de tabelas não encontrada. A base de dados precisa de ser sincronizada.";
+      }
+
+      return NextResponse.json(
+        { error: friendlyError, details: dbError.message },
+        { status: 500 }
+      );
+    }
 
     const result = await authenticateUser(email, password);
 
     if (!result) {
-      console.warn(`Falha na autenticação para: ${email}`);
       return NextResponse.json(
-        { error: "Credenciais inválidas." },
+        { error: "Email ou password incorretos." },
         { status: 401 }
       );
     }
 
-    console.log(`Login bem-sucedido para: ${email}`);
-
-    // Definir cookie de sessão com JWT
     await setSessionCookie(result.token);
 
     return NextResponse.json({
@@ -55,10 +73,10 @@ export async function POST(request: Request) {
       utilizador: result.user,
       token: result.token,
     });
-  } catch (error) {
-    console.error("Erro no login:", error);
+  } catch (error: any) {
+    console.error("[LOGIN] Erro Crítico:", error);
     return NextResponse.json(
-      { error: "Erro ao processar login na base de dados. Verifique a ligação." },
+      { error: "Erro interno no servidor." },
       { status: 500 }
     );
   }
