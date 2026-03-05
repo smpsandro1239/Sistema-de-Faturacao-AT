@@ -1,0 +1,14 @@
+I have implemented several fixes for the Vercel deployment of FaturaAT:
+1. Standardized JWT_SECRET fallback to "faturaat-secret-key-change-in-production-2024" in src/proxy.ts, src/lib/auth.ts, and src/lib/jwt.ts.
+2. Updated src/lib/db.ts to use "/tmp/dev.db" when running on Vercel without a DATABASE_URL to avoid read-only filesystem errors.
+3. Enhanced the Login page (src/app/login/page.tsx) with:
+   - Automated "Seed" button for empty databases.
+   - Diagnostic alerts for DB connection errors.
+   - "Use Test Credentials" shortcut.
+   - Link to a new Organization Registration flow.
+4. Created a new Organization Registration flow:
+   - API: src/app/api/auth/register-org/route.ts (creates Empresa + ADMIN user + default VAT rates in a transaction).
+   - UI: src/app/registo/page.tsx.
+5. Updated src/proxy.ts to allow public access to /registo and the register API.
+
+Please review for security, best practices, and potential regressions.

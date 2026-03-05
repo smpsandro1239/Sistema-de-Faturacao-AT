@@ -15,7 +15,9 @@ import {
   Loader2,
   AlertCircle,
   Database,
-  RefreshCw
+  RefreshCw,
+  UserPlus,
+  Key
 } from "lucide-react";
 
 export default function LoginPage() {
@@ -86,6 +88,11 @@ export default function LoginPage() {
     }
   };
 
+  const preencherDemo = () => {
+    setEmail("admin@faturaat.pt");
+    setPassword("admin123");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl border-slate-200">
@@ -107,7 +114,9 @@ export default function LoginPage() {
               <AlertDescription className="font-medium">
                 {dbStatus.error}
                 <div className="mt-2 text-xs opacity-80">
-                  Verifique se a variável DATABASE_URL está configurada na Vercel ou no ficheiro .env.
+                  {dbStatus.error.includes("Unable to open")
+                    ? "SQLite indisponível (Serverless Read-only). Recomendado usar PostgreSQL (Neon/Supabase) nas variáveis de ambiente."
+                    : "Verifique a variável DATABASE_URL nas configurações do seu projeto."}
                 </div>
               </AlertDescription>
             </Alert>
@@ -117,7 +126,7 @@ export default function LoginPage() {
             <Alert className="bg-amber-50 border-amber-200 text-amber-800 animate-pulse">
               <Database className="h-4 w-4 text-amber-600" />
               <AlertDescription className="flex flex-col gap-3">
-                <span className="font-semibold text-sm">Base de dados vazia detetada.</span>
+                <span className="font-semibold text-sm">O sistema ainda não foi inicializado.</span>
                 <Button
                   size="sm"
                   variant="outline"
@@ -130,7 +139,7 @@ export default function LoginPage() {
                   ) : (
                     <Database className="h-4 w-4 mr-2" />
                   )}
-                  INICIALIZAR DADOS DEMO
+                  INICIALIZAR DADOS DE TESTE
                 </Button>
               </AlertDescription>
             </Alert>
@@ -145,13 +154,13 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-700 font-semibold">Email de Acesso</Label>
+              <Label htmlFor="email" className="text-slate-700 font-semibold">Email</Label>
               <div className="relative group">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="ex: admin@empresa.pt"
+                  placeholder="admin@faturaat.pt"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 h-11 border-slate-300 focus-visible:ring-emerald-500"
@@ -161,9 +170,7 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" name="password" className="text-slate-700 font-semibold">Password</Label>
-              </div>
+              <Label htmlFor="password" name="password" className="text-slate-700 font-semibold">Password</Label>
               <div className="relative group">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
                 <Input
@@ -178,26 +185,45 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg shadow-lg shadow-emerald-100 transition-all hover:scale-[1.01] active:scale-[0.99]"
-              disabled={loading || !!dbStatus?.error}
-            >
-              {loading ? (
-                <>
-                  <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
-                  A entrar...
-                </>
-              ) : (
-                "Entrar no Sistema"
-              )}
-            </Button>
+            <div className="flex flex-col gap-3">
+              <Button
+                type="submit"
+                className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg shadow-lg shadow-emerald-100 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                disabled={loading || !!dbStatus?.error}
+              >
+                {loading ? (
+                  <>
+                    <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+                    A processar...
+                  </>
+                ) : (
+                  "Entrar"
+                )}
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={preencherDemo}
+                className="w-full border-slate-200 text-slate-600 hover:bg-slate-50 font-medium"
+                disabled={loading}
+              >
+                <Key className="h-4 w-4 mr-2" />
+                Usar Credenciais de Teste
+              </Button>
+            </div>
           </form>
 
-          <div className="pt-6 border-t border-slate-100 text-center">
-            <div className="inline-block px-4 py-2 bg-slate-50 rounded-lg border border-slate-200">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Acesso Demonstração</p>
-              <p className="font-mono text-sm text-slate-600">admin@faturaat.pt / admin123</p>
+          <div className="pt-6 border-t border-slate-100 flex flex-col items-center gap-4">
+            <div className="text-center">
+              <p className="text-sm text-slate-500 mb-2">Ainda não tem conta?</p>
+              <Link
+                href="/registo"
+                className="inline-flex items-center text-emerald-600 font-bold hover:underline"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Criar Nova Organização
+              </Link>
             </div>
           </div>
         </CardContent>

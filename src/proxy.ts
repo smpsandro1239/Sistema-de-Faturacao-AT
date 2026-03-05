@@ -11,7 +11,9 @@ const SECRET_KEY = new TextEncoder().encode(JWT_SECRET);
 // Rotas que não precisam de autenticação
 const PUBLIC_ROUTES = [
   "/login",
+  "/registo",
   "/api/auth/login",
+  "/api/auth/register-org",
   "/api/seed",
   "/api/portal", // O portal público já tem a sua própria lógica de accessKey
   "/portal",
