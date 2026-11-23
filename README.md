@@ -1,14 +1,14 @@
-# FaturaAT — Sistema de Faturação Certificado (Portugal)
+# FaturaAT — Projeto de Sistema de Faturação (Portugal)
 
-Sistema completo de faturação certificado pela Autoridade Tributária (AT), focado em PMEs reais. Concorrente direto de Moloni, Vendus e InvoiceXpress.
+Projeto de desenvolvimento de um sistema de faturação e gestão comercial para o mercado português. **Não está declarado como software certificado pela Autoridade Tributária (AT)** e não deve ser utilizado para emitir documentos fiscais reais sem validação técnica, jurídica e certificação aplicável.
 
 ## 🚀 Funcionalidades Implementadas
 
-### ⚖️ Fiscal & Conformidade (AT)
-- **Algoritmo de Hash Certificado**: Selagem de documentos com SHA1 encadeado.
-- **ATCUD & QR Code**: Geração automática de códigos obrigatórios.
-- **SAF-T PT**: Exportação completa do ficheiro de auditoria (XML 1.04).
-- **Validação AT**: Lógica pronta para submissão e conformidade total.
+### ⚖️ Requisitos fiscais — implementação por validar
+- **Hash de documentos**: implementação de hash encadeado; a conformidade com os requisitos legais deve ser verificada por auditoria independente.
+- **ATCUD & QR Code**: funcionalidades de geração em desenvolvimento/por validar face às especificações oficiais em vigor.
+- **SAF-T PT**: exportação prevista/implementada no projeto, sujeita a testes de conformidade com o esquema oficial aplicável.
+- **Validação AT**: integração e conformidade com os serviços da AT não devem ser consideradas concluídas sem testes oficiais e certificação.
 
 ### 💼 Gestão Comercial
 - **POS (Ponto de Venda)**: Interface de venda rápida otimizada para retalho com suporte PWA.
@@ -67,4 +67,9 @@ Para ambiente de produção, é obrigatória a utilização de PostgreSQL. Consu
 - `prisma/`: Esquema da base de dados.
 
 ---
-Desenvolvido para conformidade rigorosa com os requisitos fiscais portugueses.
+
+## ⚠️ Estado e utilização
+
+Este repositório é um projeto de software em desenvolvimento. A presença de funcionalidades relacionadas com ATCUD, QR Code, hash ou SAF-T não comprova certificação nem conformidade fiscal. Antes de qualquer utilização comercial ou emissão de documentos reais, são necessários testes abrangentes, validação jurídica e técnica e cumprimento do processo de certificação exigido pela AT.
+
+Não introduzas dados pessoais ou fiscais reais em ambientes de teste. Usa dados fictícios e mantém credenciais e segredos fora do repositório.
