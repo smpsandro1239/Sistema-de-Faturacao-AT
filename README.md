@@ -28,6 +28,28 @@ Projeto de desenvolvimento de um sistema de faturação e gestão comercial para
 - **Relatórios Profissionais**: Exportação de dados de vendas para Excel (XLSX) e CSV com resumo de IVA.
 - **Automação de Email**: Envio de faturas PDF diretamente para o cliente com links seguros.
 
+## 🏗️ Arquitetura de alto nível
+
+```mermaid
+flowchart TD
+    USER[Utilizador] --> UI[Next.js 15 / UI]
+    UI --> API[Route Handlers / API]
+    API --> AUTH[Autenticação, RBAC e validação]
+    API --> ORM[Prisma ORM]
+    ORM --> DB[(SQLite dev / PostgreSQL prod)]
+    API --> DOC[Documentos PDF e SAF-T]
+    API --> MAIL[Email / Nodemailer]
+    UI --> CHARTS[Dashboard / Recharts]
+```
+
+O fluxo é conceptual e resume os componentes documentados; não representa uma certificação fiscal nem validação de conformidade com a AT.
+
+## 📸 Demonstração visual
+
+Não foram encontradas capturas de ecrã versionadas no repositório durante esta auditoria. A galeria será acrescentada após captura da aplicação em execução, com dados fictícios e sem documentos fiscais ou dados pessoais reais.
+
+Capturas prioritárias: dashboard, POS, detalhe de documento, inventário e relatórios.
+
 ## 🛠️ Stack Tecnológica
 
 - **Framework**: Next.js 15 (App Router)
